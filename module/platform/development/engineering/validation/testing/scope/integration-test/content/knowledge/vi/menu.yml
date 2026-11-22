@@ -1,0 +1,374 @@
+menu:
+- level1: Tổng quan tích hợp
+  level2:
+  - Kiểm thử tích hợp là gì và những lỗi tương tác mà nó tìm kiếm
+  - Thành phần, module, hệ thống và ranh giới tích hợp
+  - Phân biệt kiểm thử đơn vị, kiểm thử tích hợp, kiểm thử hợp đồng và E2E
+  - Tích hợp trong cùng tiến trình và tích hợp qua mạng
+  - Quan hệ giữa hành vi nghiệp vụ, adapter và hạ tầng
+  - Độ trung thực của môi trường, tốc độ phản hồi và chi phí bảo trì
+  - Những điều một integration test thành công có thể và chưa thể chứng minh
+  - Lộ trình từ một kết nối đơn giản đến luồng tích hợp nhiều thành phần
+- level1: Phạm vi và mục tiêu
+  level2:
+  - Xác định hệ thống được kiểm thử và các dependency nằm trong phạm vi
+  - Vẽ đường đi của lời gọi, dữ liệu và tác dụng phụ
+  - Chọn điểm bắt đầu và điểm quan sát kết quả
+  - Phân biệt tích hợp thành phần với tích hợp giữa các hệ thống
+  - Ưu tiên ranh giới có chuyển đổi dữ liệu hoặc rủi ro cao
+  - Xác định yêu cầu chức năng và điều kiện lỗi cần kiểm chứng
+  - Lập tiêu chí đạt theo hành vi thay vì chỉ kiểm tra kết nối
+  - Ghi rõ những dependency được thay thế và giới hạn bằng chứng
+- level1: Chiến lược tích hợp
+  level2:
+  - Big bang, top-down, bottom-up và cách tiếp cận kết hợp
+  - Tích hợp tăng dần theo dependency và khả năng nghiệp vụ
+  - Phân biệt kiểm tra một adapter với kiểm tra cả luồng thành phần
+  - Chọn dependency thật, dịch vụ giả lập hoặc môi trường sandbox
+  - Smoke test cho kết nối và integration test cho hành vi
+  - Chia bộ test nhanh và bộ test cần hạ tầng đầy đủ
+  - Kết hợp integration test với kiểm thử hợp đồng giữa các nhóm
+  - Chọn thứ tự triển khai khi nhiều thành phần thay đổi cùng lúc
+  - Đánh giá phần rủi ro còn lại sau mỗi mức tích hợp
+- level1: Thiết kế tình huống
+  level2:
+  - Chuyển yêu cầu tương tác thành điều kiện đầu vào và kết quả quan sát
+  - Bao phủ luồng thành công cùng đường đi dữ liệu thực tế
+  - Kiểm tra đầu vào không hợp lệ tại đúng ranh giới
+  - Kiểm tra lỗi chuyển đổi kiểu, mất trường và sai giá trị mặc định
+  - Xác minh tác dụng phụ được tạo đúng và không tạo ngoài chủ đích
+  - Thiết kế tình huống không có dữ liệu, dữ liệu trùng và dữ liệu biên
+  - Kiểm tra dependency chậm, không sẵn sàng hoặc trả kết quả không hợp lệ
+  - Xác định tính bất biến nghiệp vụ xuyên qua nhiều thành phần
+  - Giữ mỗi tình huống đủ hẹp để xác định nguyên nhân thất bại
+- level1: Kiến trúc mã kiểm thử
+  level2:
+  - Tổ chức integration test theo ranh giới và khả năng cần bảo vệ
+  - Tách mã kiểm thử, fixture, client hỗ trợ và cấu hình môi trường
+  - Giữ điểm vào công khai của thành phần trong đường thực thi
+  - Tránh gọi tắt qua nhiều lớp khiến ranh giới cần kiểm tra bị bỏ qua
+  - Thiết kế test data builder thể hiện dữ liệu nghiệp vụ
+  - Phân biệt mã hỗ trợ thao tác với assertion về kết quả
+  - Đặt tên để thể hiện điều kiện, tương tác và hành vi mong đợi
+  - Giữ integration test chạy được độc lập và theo cả suite
+  - Quản lý helper dùng chung mà không che khuất quá nhiều chi tiết
+- level1: Môi trường và dependency
+  level2:
+  - Chọn môi trường cục bộ, container, dùng chung hoặc tạm thời
+  - Quản lý phiên bản database, broker, cache và dịch vụ phụ trợ
+  - Tách cấu hình endpoint, credential và namespace khỏi mã test
+  - Kiểm tra readiness thay vì chỉ kiểm tra tiến trình đã khởi động
+  - Cấp phát cổng, đường dẫn và tài nguyên không xung đột
+  - Phân biệt lỗi khởi tạo hạ tầng với lỗi tích hợp sản phẩm
+  - Giữ tương thích cấu hình giữa môi trường kiểm thử và triển khai
+  - Quản lý proxy, DNS, TLS và kết nối nội bộ giữa container
+  - Dọn tài nguyên sau khi test thành công, thất bại hoặc bị hủy
+- level1: Testcontainers
+  level2:
+  - Vai trò của Testcontainers trong kiểm thử với dependency thật
+  - Điều kiện Docker và kiểm tra môi trường trước khi chạy
+  - GenericContainer và các module theo loại dịch vụ
+  - Vòng đời container theo test, lớp và toàn bộ phiên chạy
+  - Dynamic port, network alias và giao tiếp giữa các container
+  - Wait strategy, health check và thời điểm dependency sẵn sàng
+  - Nạp script khởi tạo, dữ liệu và cấu hình vào container
+  - Đọc log, chẩn đoán startup failure và giữ bằng chứng
+  - Container reuse, tốc độ khởi động và rủi ro trạng thái tồn dư
+  - Phân biệt Testcontainers, Docker Compose và môi trường dịch vụ có sẵn
+- level1: Dữ liệu và fixture
+  level2:
+  - Phân biệt dữ liệu tham chiếu, dữ liệu cho test và dữ liệu đầu ra
+  - Tạo fixture thể hiện trạng thái nghiệp vụ cần tích hợp
+  - Dữ liệu có quan hệ, khóa ngoại và thứ tự khởi tạo
+  - Sinh giá trị duy nhất cho nhiều test hoặc nhiều worker
+  - Tách dữ liệu riêng của test khỏi dữ liệu dùng chung
+  - Đặt lại trạng thái bằng cleanup, transaction hoặc tài nguyên mới
+  - Xử lý fixture theo phiên bản schema và yêu cầu
+  - Kiểm tra dữ liệu còn lại sau khi test lỗi giữa chừng
+  - Ghi nhận đầu vào cần thiết để tái hiện kết quả thất bại
+- level1: JUnit và build
+  level2:
+  - Tổ chức integration test trong JUnit Platform
+  - Tag và quy tắc lựa chọn bộ integration test
+  - Fixture bằng lifecycle callback hoặc JUnit extension
+  - Parameterized test để kiểm tra biến thể của cùng một tích hợp
+  - Maven Failsafe và vòng đời integration-test, verify
+  - Gradle Test task hoặc JVM Test Suite cho integration test
+  - Phân tách classpath, test runtime và cấu hình cần hạ tầng
+  - Truyền endpoint, system property và JVM argument
+  - Chạy riêng một test bằng IDE, dòng lệnh hoặc CI
+  - Phát hiện bộ test bị skip hoặc không được công cụ build tìm thấy
+- level1: Spring TestContext
+  level2:
+  - Vai trò của ApplicationContext trong kiểm thử tích hợp Spring
+  - Khởi tạo context từ cấu hình có phạm vi rõ ràng
+  - Profiles, property sources và cấu hình riêng cho test
+  - '@DynamicPropertySource để nối cấu hình hạ tầng động'
+  - Tiêm bean thật và thay thế dependency có chủ đích
+  - Context cache và những thay đổi làm mất khả năng tái sử dụng
+  - '@DirtiesContext và trường hợp cần đặt lại context'
+  - Proxy, AOP và khác biệt giữa gọi bean với tạo đối tượng thủ công
+  - Chẩn đoán thiếu bean, trùng bean và cấu hình không khớp
+  - Giữ trạng thái singleton không làm nhiễm các test dùng chung context
+- level1: Spring Boot và test slice
+  level2:
+  - '@SpringBootTest và phạm vi cấu hình ứng dụng được nạp'
+  - Phân biệt môi trường web giả lập với server chạy trên cổng thật
+  - '@WebMvcTest và phạm vi kiểm tra lớp web'
+  - '@DataJpaTest, @JdbcTest và giới hạn của slice dữ liệu'
+  - '@WebFluxTest cho lớp web reactive'
+  - Bổ sung cấu hình cần thiết mà không vô tình nạp toàn bộ ứng dụng
+  - Dependency được thay thế trong slice và phần chưa được kiểm chứng
+  - Service connection với container khi phiên bản Spring Boot hỗ trợ
+  - Lựa chọn slice, context chọn lọc hoặc full context theo mục tiêu
+  - Nhận diện test pass ở slice nhưng thất bại khi ghép toàn ứng dụng
+- level1: HTTP và Spring MVC
+  level2:
+  - Kiểm thử routing, binding và chuyển đổi request vào controller
+  - MockMvc và phạm vi pipeline HTTP được mô phỏng
+  - Kiểm thử qua HTTP client khi server chạy trên cổng thật
+  - Status, header, content type và response body
+  - Bean Validation, exception handler và cấu trúc thông báo lỗi
+  - Filter, interceptor, converter và thứ tự xử lý
+  - Query parameter, path variable và các giá trị tùy chọn
+  - Multipart upload, download và streaming response
+  - Đối chiếu tác dụng phụ ở service hoặc repository sau lời gọi HTTP
+  - Giữ phạm vi tích hợp rõ khi chọn dependency thật hoặc thay thế
+- level1: WebFlux và reactive
+  level2:
+  - Ranh giới tích hợp trong pipeline reactive
+  - WebTestClient khi gắn với ứng dụng và khi gọi server thật
+  - StepVerifier để kiểm tra tín hiệu và kết quả bất đồng bộ
+  - Kiểm tra complete, error, cancellation và timeout
+  - Phân biệt subscription với thời điểm tác dụng phụ thực sự xảy ra
+  - Reactor context và lan truyền thông tin qua các thành phần
+  - Tích hợp reactive database, HTTP client hoặc message consumer
+  - Nhận diện thao tác blocking gây vấn đề trong pipeline
+  - Kiểm chứng streaming cùng giới hạn thời gian và số phần tử
+- level1: Dữ liệu và hợp đồng
+  level2:
+  - Kiểm tra serialization, deserialization và ánh xạ DTO
+  - Null, trường vắng mặt, giá trị mặc định và trường không được nhận diện
+  - Ngày giờ, múi giờ, enum và số thập phân qua ranh giới
+  - Naming strategy, content negotiation và encoding
+  - Phân biệt kiểm tra schema với kiểm tra ý nghĩa nghiệp vụ
+  - Backward compatibility và forward compatibility của dữ liệu
+  - Đối chiếu producer, consumer và hợp đồng dùng chung
+  - Quản lý payload mẫu, snapshot và golden file có xem xét
+  - Kiểm tra dữ liệu qua nhiều lần chuyển đổi không bị mất ý nghĩa
+  - Phân biệt bằng chứng từ contract test với bằng chứng từ kết nối thật
+- level1: Persistence và ORM
+  level2:
+  - Repository, ORM, JDBC driver và database phối hợp thế nào
+  - Kiểm chứng mapping entity, column, khóa và quan hệ
+  - CRUD qua repository với schema và database thực tế
+  - Query method, JPQL, native query và tham số truy vấn
+  - Pagination, sorting và thứ tự kết quả xác định
+  - Constraint, nullability và lỗi toàn vẹn dữ liệu
+  - Flush, clear và nguy cơ chỉ kiểm tra dữ liệu trong persistence context
+  - Lazy loading, cascade, orphan removal và ranh giới session
+  - Generated key, auditing và giá trị được tạo bởi database
+  - Phân biệt hành vi của database giả lập với database mục tiêu
+- level1: Giao dịch
+  level2:
+  - Ranh giới transaction giữa test và thành phần ứng dụng
+  - '@Transactional trong test và các giả định về rollback'
+  - Kiểm tra commit thực sự và tác dụng phụ sau commit
+  - HTTP request, thread mới hoặc xử lý nền ngoài transaction của test
+  - Propagation và tương tác giữa các transaction lồng nhau
+  - Isolation level và hiện tượng đọc khi có giao dịch đồng thời
+  - Optimistic locking, pessimistic locking và xung đột cập nhật
+  - Rollback khi lỗi xảy ra sau khi đã thay đổi một phần dữ liệu
+  - Transaction event và thời điểm phát hoặc xử lý sự kiện
+  - Tránh false positive do chưa flush, chưa commit hoặc chưa tải lại dữ liệu
+- level1: Schema và migration
+  level2:
+  - Khởi tạo database bằng migration thay vì giả định schema có sẵn
+  - Kiểm tra chuỗi migration với Flyway hoặc Liquibase
+  - Xác minh nâng cấp từ schema cũ có dữ liệu
+  - Constraint, index, default value và chuyển đổi kiểu dữ liệu
+  - Tách dữ liệu seed của test khỏi migration sản phẩm
+  - Kiểm tra ứng dụng tương thích trong giai đoạn chuyển đổi schema
+  - Xử lý migration lỗi, dở dang hoặc xung đột phiên bản
+  - Đối chiếu schema thực tế với mapping và truy vấn ứng dụng
+  - Tái lập database sạch cho từng nhóm tình huống cần thiết
+- level1: Cache và Redis
+  level2:
+  - Chọn ranh giới kiểm tra giữa ứng dụng, cache và nguồn dữ liệu
+  - Cache miss, cache hit và đường đọc dữ liệu thực tế
+  - Serialization key, value và prefix theo môi trường
+  - TTL, expiration và đồng bộ thời gian chờ trong test
+  - Cache invalidation khi dữ liệu nguồn thay đổi
+  - Phân biệt cập nhật database với thời điểm cache được cập nhật
+  - Concurrent access, cập nhật trùng và dữ liệu cache cũ
+  - Dependency cache không sẵn sàng và hành vi fallback
+  - Cô lập key và dọn dữ liệu khi test chạy song song
+- level1: HTTP client và dịch vụ ngoài
+  level2:
+  - Kiểm tra adapter HTTP với server giả lập tại ranh giới mạng
+  - WireMock hoặc công cụ tương đương cho request và response có kiểm soát
+  - Xác minh URL, method, header, query và request body
+  - Kiểm tra authentication header, token refresh và thông tin truy vết
+  - Ánh xạ mã trạng thái, error body và exception phía ứng dụng
+  - Connection timeout, response timeout và phản hồi không hoàn chỉnh
+  - Retry, backoff và số lần gọi thực tế
+  - TLS, redirect, connection reuse và cấu hình HTTP client
+  - Phân biệt test adapter với gọi môi trường sandbox của nhà cung cấp
+  - Ngăn test vô tình gọi dịch vụ thật ngoài phạm vi đã cấu hình
+- level1: Giao thức dịch vụ
+  level2:
+  - Kiểm tra GraphQL query, mutation và error response
+  - Schema GraphQL và ánh xạ resolver đến dependency
+  - gRPC service, protobuf và cách kiểm tra status, metadata
+  - Khả năng tương thích dữ liệu khi client và server khác phiên bản
+  - WebSocket handshake, phiên kết nối và trao đổi thông điệp
+  - SSE, luồng dữ liệu dài và thời điểm đóng kết nối
+  - Xử lý timeout, cancellation và mất kết nối theo từng giao thức
+  - Chọn điểm quan sát đủ để phân biệt lỗi transport với lỗi nghiệp vụ
+- level1: Xác thực và phân quyền
+  level2:
+  - Xác định ranh giới kiểm tra giữa ứng dụng và nhà cung cấp danh tính
+  - Kiểm tra security filter chain bằng request thực tế
+  - Người dùng chưa xác thực, thiếu quyền và được phép truy cập
+  - JWT signature, issuer, audience và thời hạn token
+  - Phân biệt user giả lập với token được xác minh qua bộ lọc thật
+  - Session, cookie, CSRF và cách ứng dụng xử lý request
+  - Tích hợp OAuth2 hoặc OIDC trong môi trường kiểm thử phù hợp
+  - Phân quyền theo tài nguyên, tenant và dữ liệu người dùng
+  - Xác minh mã lỗi và tránh lộ thông tin qua response
+  - Quản lý tài khoản, khóa và thông tin bí mật phục vụ test
+- level1: Messaging và sự kiện
+  level2:
+  - Producer, broker, consumer và ranh giới tích hợp cần kiểm tra
+  - Khởi tạo topic, queue, subscription và consumer group
+  - Serialization, schema, header và correlation ID của message
+  - Chờ message được xử lý và quan sát tác dụng phụ
+  - Acknowledgment, commit offset và thời điểm được xem là hoàn thành
+  - Message trùng, gửi lại và xử lý idempotent
+  - Ordering, partition và giới hạn thứ tự thực thi
+  - Retry, dead-letter queue và message không xử lý được
+  - Kiểm tra broker mất kết nối hoặc consumer khởi động lại
+  - Cô lập topic, queue và dọn message giữa các test
+- level1: Nhất quán phân tán
+  level2:
+  - Nhất quán cuối cùng và cách đặt điều kiện chờ có giới hạn
+  - Giao dịch database kết hợp gửi message có thể thất bại ở đâu
+  - Transactional outbox và quá trình chuyển sự kiện đến broker
+  - Consumer inbox hoặc cơ chế chống xử lý trùng
+  - Kiểm chứng Saga và các bước bù khi một thành phần thất bại
+  - Xử lý thành công một phần qua nhiều dịch vụ
+  - Sự kiện đến muộn, đến sai thứ tự và thay đổi trạng thái
+  - Tái khởi động hoặc phát lại khi công việc bị ngắt
+  - Xác minh bất biến nghiệp vụ thay vì chỉ kiểm tra từng lời gọi
+- level1: Tệp và lưu trữ
+  level2:
+  - Kiểm tra luồng tạo, đọc, cập nhật và xóa tệp qua adapter
+  - Đường dẫn, encoding, quyền và quy tắc đặt tên
+  - Tệp lớn, stream và đóng tài nguyên sau xử lý
+  - Tích hợp object storage với bucket hoặc vùng dữ liệu riêng
+  - Metadata, content type và tính toàn vẹn dữ liệu tải lên
+  - Upload dở dang, lỗi mạng và hành vi dọn dữ liệu
+  - Quản lý tệp tạm không xung đột giữa nhiều lần chạy
+  - Xác minh hành vi của trình giả lập so với dịch vụ lưu trữ mục tiêu
+- level1: Tác vụ nền và theo lịch
+  level2:
+  - Ranh giới giữa lời gọi khởi tạo và công việc chạy nền
+  - Kích hoạt tác vụ theo lịch có kiểm soát thay vì chờ thời gian thực
+  - Quan sát trạng thái bắt đầu, hoàn thành và thất bại của job
+  - Tích hợp xử lý batch với database, tệp hoặc broker
+  - Checkpoint, restart và tiếp tục sau khi job bị ngắt
+  - Retry, skip và xử lý bản ghi lỗi theo chính sách ứng dụng
+  - Ngăn chạy job trùng hoặc tạo tác dụng phụ hai lần
+  - Lan truyền thông tin người dùng, tenant và trace sang luồng nền
+  - Dọn executor, scheduler và trạng thái job sau khi kiểm tra
+- level1: Lỗi và khả năng phục hồi
+  level2:
+  - Tạo lỗi tại đúng dependency và thời điểm cần kiểm tra
+  - Phân biệt lỗi nghiệp vụ, lỗi transport và dependency quá tải
+  - Kiểm tra timeout, retry, circuit breaker và fallback
+  - Giới hạn số lần thử và tổng thời gian hoàn thành
+  - Backpressure, hàng đợi đầy và hành vi từ chối công việc
+  - Dependency phục hồi và khả năng xử lý trở lại
+  - Xác minh cleanup và không rò rỉ connection sau thất bại
+  - Kiểm tra hủy yêu cầu khi công việc chưa hoàn thành
+  - Giới hạn phạm vi gây lỗi có chủ đích và giữ khả năng xác định nguyên nhân
+- level1: Đồng thời và tài nguyên
+  level2:
+  - Thiết kế tình huống nhiều request cùng truy cập một tài nguyên
+  - Điều phối thread bằng barrier hoặc latch thay vì sleep
+  - Kiểm tra lost update, xung đột khóa và cập nhật nguyên tử
+  - Idempotency key khi nhiều yêu cầu trùng đến đồng thời
+  - Connection pool, thread pool và giới hạn đồng thời
+  - Phát hiện deadlock, timeout chờ tài nguyên và rò rỉ
+  - Quan sát kết quả của từng tác vụ cùng bất biến cuối cùng
+  - Tách lỗi đồng thời của sản phẩm khỏi lỗi chia sẻ fixture
+  - Giới hạn mục tiêu của integration test so với kiểm thử tải
+- level1: Thời gian và tính xác định
+  level2:
+  - Tiêm Clock để kiểm tra hết hạn và điều kiện theo thời gian
+  - Quản lý timezone, locale và cách biểu diễn timestamp
+  - Chờ trạng thái bằng polling có giới hạn và thông báo lỗi rõ
+  - Kiểm soát seed và dữ liệu ngẫu nhiên để tái hiện
+  - Xử lý thứ tự không được bảo đảm của query, message và collection
+  - Phân biệt thời gian ảo với thời gian thực của dependency ngoài
+  - Tránh assert thời lượng quá chặt gây thất bại do nhiễu
+  - Ghi lại thời điểm, seed và điều kiện môi trường khi lỗi xảy ra
+  - Kiểm chứng test lặp lại được mà vẫn phát hiện lỗi tương tác thực
+- level1: Assertion và bằng chứng
+  level2:
+  - Chọn kết quả có thể quan sát từ ranh giới công khai
+  - Đối chiếu response cùng trạng thái dữ liệu và tác dụng phụ
+  - Xác minh không phát sinh message, bản ghi hoặc lời gọi ngoài dự kiến
+  - Tránh assertion phụ thuộc quá chặt vào chi tiết triển khai
+  - Thu thập application log, container log và mã tương quan
+  - Đính kèm request, response hoặc message đã che dữ liệu nhạy cảm
+  - Chụp trạng thái database hoặc tài nguyên phục vụ chẩn đoán
+  - Thông báo assertion nêu rõ điều kiện chờ và giá trị thực tế
+  - Giữ bằng chứng ngay cả khi setup hoặc cleanup thất bại
+- level1: Cô lập và thực thi song song
+  level2:
+  - Chọn phạm vi chia sẻ context, container và dữ liệu
+  - Tạo namespace riêng cho database, cache, broker và filesystem
+  - Phân biệt tăng số worker với tăng khả năng song song thực tế
+  - Khóa tài nguyên không thể chia sẻ an toàn
+  - Static state, singleton và nguy cơ nhiễm test
+  - Chạy riêng, chạy toàn suite và đảo thứ tự để tìm dependency ẩn
+  - Dọn tài nguyên chỉ thuộc lần chạy hiện tại
+  - Cân bằng chi phí khởi tạo với mức độ độc lập
+  - Đánh giá song song qua cả tốc độ, tài nguyên và độ ổn định
+- level1: CI và báo cáo
+  level2:
+  - Chạy integration test theo thay đổi, nhánh, lịch hoặc yêu cầu
+  - Chuẩn bị Docker, image, network và credential trên runner
+  - Tách bước kiểm tra nhanh với bộ cần hạ tầng đầy đủ
+  - Chia shard theo tài nguyên và thời lượng thực tế
+  - Đối chiếu test dự kiến với test được phát hiện và thực thi
+  - Thu thập báo cáo XML, HTML, log và dữ liệu chẩn đoán
+  - Phân biệt lỗi hạ tầng với lỗi test trong trạng thái pipeline
+  - Giữ cấu hình lệnh chạy có thể tái hiện trên máy cá nhân
+  - Quản lý timeout toàn job cùng cleanup khi bị hủy
+  - Thiết lập quality gate theo kết quả và rủi ro đã xác định
+- level1: Chẩn đoán và bảo trì
+  level2:
+  - Phân loại thất bại theo context, cấu hình, dữ liệu, kết nối và hành vi
+  - Điều tra test chỉ thất bại trên CI hoặc khi chạy toàn suite
+  - Nhận diện flaky test do readiness, transaction và eventual consistency
+  - Chạy lại có kiểm soát và giữ bằng chứng của lần thất bại đầu
+  - Tái hiện tối thiểu mà vẫn giữ ranh giới tích hợp liên quan
+  - Cập nhật test khi API, schema hoặc hành vi nghiệp vụ thay đổi
+  - Nâng cấp dependency hạ tầng, image và framework có kiểm chứng
+  - Loại bỏ test trùng hoặc lỗi thời mà không mất bảo vệ quan trọng
+  - Tối ưu context, fixture và thời gian khởi động theo bằng chứng
+  - Quản lý người phụ trách, test bị cách ly và thời hạn xử lý
+- level1: Thực hành tổng hợp
+  level2:
+  - Kiểm chứng repository JPA với database container và migration thật
+  - Phát hiện test pass giả do chưa flush hoặc transaction chưa commit
+  - Kiểm thử luồng HTTP qua controller, service và database
+  - Kiểm tra HTTP adapter với giả lập timeout, retry và response lỗi
+  - Đối chiếu hành vi được kiểm tra bởi test slice và full integration test
+  - Kiểm chứng producer, broker, consumer và tác dụng phụ cuối cùng
+  - Kiểm tra outbox hoặc Saga khi có lỗi giữa chừng
+  - Tái hiện xung đột cập nhật bằng hai giao dịch đồng thời
+  - Chạy suite song song với dữ liệu, cache và queue được cô lập
+  - Bàn giao pipeline có báo cáo, log và lệnh tái hiện đầy đủ

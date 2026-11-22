@@ -1,0 +1,91 @@
+menu:
+  - title: "Nền tảng tích hợp"
+    slug: integration-foundations
+    index: 0
+  - title: "Đồng bộ và bất đồng bộ"
+    slug: synchronous-and-asynchronous
+    index: 1
+  - title: "Kiến trúc tích hợp"
+    slug: integration-architecture
+    index: 2
+  - title: "Hợp đồng tích hợp"
+    slug: integration-contracts
+    index: 3
+  - title: "Biểu diễn dữ liệu"
+    slug: data-representation
+    index: 4
+  - title: "HTTP và REST"
+    slug: http-and-rest
+    index: 5
+  - title: "RPC và gRPC"
+    slug: rpc-and-grpc
+    index: 6
+  - title: "Webhook"
+    slug: webhooks
+    index: 7
+  - title: "Hàng đợi thông điệp"
+    slug: message-queues
+    index: 8
+  - title: "Sự kiện và pub/sub"
+    slug: events-and-pubsub
+    index: 9
+  - title: "Luồng dữ liệu"
+    slug: data-streaming
+    index: 10
+  - title: "Tệp và xử lý lô"
+    slug: files-and-batch-processing
+    index: 11
+  - title: "Tích hợp dữ liệu"
+    slug: data-integration
+    index: 12
+  - title: "Định tuyến và chuyển đổi"
+    slug: routing-and-transformation
+    index: 13
+  - title: "Điều phối quy trình"
+    slug: workflow-orchestration
+    index: 14
+  - title: "Thời hạn và thử lại"
+    slug: timeouts-deadlines-and-retries
+    index: 15
+  - title: "Cô lập và phục hồi"
+    slug: fault-isolation-and-recovery
+    index: 16
+  - title: "Chống xử lý trùng"
+    slug: idempotency-and-deduplication
+    index: 17
+  - title: "Thứ tự và đồng thời"
+    slug: ordering-and-concurrency
+    index: 18
+  - title: "Giao dịch phân tán"
+    slug: distributed-transactions
+    index: 19
+  - title: "Nhất quán dữ liệu"
+    slug: data-consistency
+    index: 20
+  - title: "Bảo mật tích hợp"
+    slug: integration-security
+    index: 21
+  - title: "Quan sát hệ thống"
+    slug: observability
+    index: 22
+  - title: "Hiệu năng và tải"
+    slug: performance-and-load
+    index: 23
+  - title: "Kiểm thử tích hợp"
+    slug: integration-testing
+    index: 24
+  - title: "Phiên bản và tiến hóa"
+    slug: versioning-and-evolution
+    index: 25
+  - title: "Triển khai và vận hành"
+    slug: deployment-and-operations
+    index: 26
+  - title: "Quản trị tích hợp"
+    slug: integration-governance
+    index: 27
+  - title: "Lựa chọn giải pháp"
+    slug: integration-approach-selection
+    index: 28
+  - title: "Thực hành tổng hợp"
+    slug: integration-practice
+    index: 29

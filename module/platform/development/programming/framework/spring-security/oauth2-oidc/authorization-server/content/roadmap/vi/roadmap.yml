@@ -1,0 +1,64 @@
+roadmap:
+- id: vai-tro-authorization-server
+  title: Vai trò Authorization Server
+  purpose: Hiểu nhiệm vụ của Authorization Server trong OAuth 2.0 và lớp định danh bổ sung của OpenID Connect.
+  objectives:
+  - Phân biệt Authorization Server, Client, Resource Server và Resource Owner
+  - Giải thích sự khác nhau giữa OAuth 2.0 và OpenID Connect
+  - Nhận diện authorization grant, scope và token trong một luồng cơ bản
+- id: khoi-tao-voi-spring-security
+  title: Khởi tạo với Spring Security
+  purpose: Thiết lập ứng dụng cấp quyền bằng các thành phần và cấu hình nền tảng của Spring Security.
+  objectives:
+  - Thêm dependency phù hợp cho Authorization Server trong Spring Boot
+  - Cấu hình SecurityFilterChain dành cho các protocol endpoint
+  - Kết nối đăng nhập người dùng với luồng cấp quyền
+- id: dang-ky-va-xac-thuc-client
+  title: Đăng ký và xác thực Client
+  purpose: Quản lý các ứng dụng được phép yêu cầu token cùng chính sách bảo mật của chúng.
+  objectives:
+  - Khai báo RegisteredClient và RegisteredClientRepository
+  - Cấu hình redirect URI, grant type, scope và client authentication
+  - Phân biệt public client với confidential client
+- id: authorization-code-va-pkce
+  title: Authorization Code và PKCE
+  purpose: Hiểu và kiểm tra luồng cấp quyền qua trình duyệt với cơ chế bảo vệ authorization code.
+  objectives:
+  - Mô tả luồng authorize, redirect và token exchange
+  - Cấu hình và kiểm tra PKCE code_challenge/code_verifier
+  - Giải thích vai trò của state và redirect URI hợp lệ
+- id: grant-va-consent
+  title: Grant và Consent
+  purpose: Điều chỉnh việc cấp token theo loại client và quyền truy cập đã được chấp thuận.
+  objectives:
+  - Phân biệt authorization_code, client_credentials và refresh_token
+  - Cấu hình scope cùng chính sách yêu cầu user consent
+  - Kiểm tra trường hợp thiếu quyền hoặc grant không được phép
+- id: token-jwt-va-jwk
+  title: Token, JWT và JWK
+  purpose: Hiểu cách Authorization Server sinh, ký, công bố và quản lý vòng đời token.
+  objectives:
+  - Phân biệt access token, refresh token và ID token
+  - Cấu hình JWKSource, JWT signing và jwks endpoint
+  - Kiểm tra token revocation, introspection và thời hạn token
+- id: openid-connect-provider
+  title: OpenID Connect Provider
+  purpose: Bổ sung chức năng xác thực danh tính theo chuẩn OIDC cho Authorization Server.
+  objectives:
+  - Bật OIDC và đọc provider discovery metadata
+  - Giải thích ID token, UserInfo và các claim định danh
+  - Kiểm thử OIDC login, scope openid và logout
+- id: luu-tru-va-tuy-chinh
+  title: Lưu trữ và tùy chỉnh
+  purpose: Chuẩn bị hệ thống cấp quyền có thể duy trì trạng thái và tùy chỉnh hành vi.
+  objectives:
+  - Phân biệt lưu in-memory với JDBC cho client và authorization
+  - Cấu hình OAuth2AuthorizationService và AuthorizationConsentService
+  - Tùy chỉnh issuer, endpoint và token claims phù hợp yêu cầu
+- id: kiem-thu-va-van-hanh-an-toan
+  title: Kiểm thử và vận hành an toàn
+  purpose: Xác minh luồng cấp quyền và khả năng bảo vệ thông tin nhạy cảm trong vận hành.
+  objectives:
+  - Kiểm thử redirect URI sai, PKCE thiếu, scope sai và token hết hạn
+  - Đánh giá quản lý client secret, khóa ký và cơ chế luân chuyển khóa
+  - Theo dõi lỗi endpoint, log kiểm toán và cấu hình HTTPS

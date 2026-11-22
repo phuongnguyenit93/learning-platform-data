@@ -1,0 +1,400 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Ansible là gì và bài toán quản lý cấu hình trong DevOps
+  - Trạng thái mong muốn, tính hội tụ và tính lặp lại không đổi (idempotence)
+  - Kiến trúc control node, managed node và mô hình điều khiển từ xa
+  - Quan hệ giữa inventory, play, task, module, plugin và role
+  - Luồng thực thi từ dữ liệu đầu vào đến trạng thái máy đích
+  - Phân biệt ansible-core, gói Ansible, collections và nền tảng thương mại
+  - Phân biệt Ansible với shell script, Terraform và công cụ điều phối container
+  - Kiến thức Linux, mạng, SSH, Python và YAML cần chuẩn bị
+- level1: Môi trường
+  level2:
+  - Lựa chọn môi trường control node theo ma trận hỗ trợ
+  - Cài đặt Ansible trong môi trường Python được cô lập
+  - Kiểm tra tương thích Python trên control node và managed node
+  - Kiểm tra ansible --version và xác định cấu hình đang sử dụng
+  - Tổ chức thư mục inventory, playbook, roles và collections
+  - Thiết lập ansible.cfg theo phạm vi dự án
+  - Tra cứu cấu hình bằng ansible-config và tài liệu bằng ansible-doc
+  - Phân biệt thứ tự ưu tiên cấu hình, tùy chọn dòng lệnh và biến
+  - Ghim phiên bản công cụ và phụ thuộc để tái lập môi trường
+- level1: Kết nối
+  level2:
+  - Thiết lập SSH key, tài khoản kết nối và kiểm tra host key
+  - Cấu hình ansible_host, ansible_user và cổng kết nối
+  - Phân biệt tên host trong inventory với địa chỉ máy đích
+  - Kiểm tra kết nối bằng ansible.builtin.ping và phân biệt với ICMP
+  - Sử dụng SSH config, bastion và ProxyJump
+  - Thiết lập become, become_user và cơ chế nâng quyền
+  - Tách tài khoản kết nối khỏi tài khoản thực thi tác vụ
+  - Chọn Python interpreter và xử lý máy chưa có Python
+  - Phân biệt SSH, local connection và plugin kết nối theo nền tảng
+- level1: Inventory
+  level2:
+  - Vai trò của inventory trong xác định phạm vi quản lý
+  - Viết inventory tĩnh bằng YAML hoặc INI
+  - Tổ chức host, group, nhóm cha và nhóm con
+  - Sử dụng nhóm all, ungrouped và bí danh host
+  - Khai báo biến kết nối ở host hoặc group
+  - Tổ chức group_vars và host_vars theo cấu trúc dự án
+  - Chọn host bằng pattern, phép hợp, giao và loại trừ
+  - Kết hợp nhiều nguồn inventory và kiểm tra dữ liệu hợp nhất
+  - Kiểm tra inventory bằng ansible-inventory --list, --graph và --host
+  - Giới hạn phạm vi chạy bằng --limit và xác minh host trước khi thực thi
+- level1: Inventory động
+  level2:
+  - Phân biệt inventory plugin với inventory script
+  - Lựa chọn collection cung cấp nguồn inventory phù hợp
+  - Cấu hình nguồn inventory từ hạ tầng đám mây hoặc hệ thống tài sản
+  - Xác thực tới nguồn inventory bằng quyền chỉ đọc cần thiết
+  - Tạo nhóm từ thuộc tính bằng constructed và keyed_groups
+  - Tổng hợp biến kết nối từ dữ liệu máy được phát hiện
+  - Quản lý cache inventory và độ mới của dữ liệu
+  - Xử lý host trùng tên, nguồn lỗi và phạm vi phát hiện ngoài dự kiến
+- level1: Lệnh ad hoc
+  level2:
+  - Cú pháp ansible, host pattern và lựa chọn module
+  - Truyền tham số module và đọc kết quả theo từng host
+  - Phân biệt module chuyên dụng, command, shell và raw
+  - Thực hiện kiểm tra thông tin hệ thống bằng tác vụ chỉ đọc
+  - Quản lý gói, tệp và dịch vụ qua lệnh ad hoc
+  - Sử dụng nâng quyền và giới hạn số kết nối đồng thời
+  - Nhận diện khi tác vụ ad hoc cần chuyển thành playbook có kiểm soát
+- level1: Playbook
+  level2:
+  - Cấu trúc YAML của playbook, play và danh sách task
+  - Đặt tên play và task để diễn giải mục đích thay đổi
+  - Khai báo hosts, gather_facts, become và thứ tự thực thi
+  - Gọi module bằng tên đầy đủ có namespace (FQCN)
+  - Truyền tham số bằng mapping và phân biệt keyword với tham số module
+  - Chạy playbook bằng ansible-playbook
+  - Đọc trạng thái ok, changed, skipped, failed và unreachable
+  - Đọc PLAY RECAP và phân biệt thành công với đúng trạng thái mong muốn
+  - Truyền biến đầu vào bằng --extra-vars
+  - Kiểm tra cú pháp và liệt kê host hoặc task trước khi chạy
+- level1: Biến
+  level2:
+  - Khai báo biến trong play, task và tệp biến
+  - Phân biệt chuỗi, số, boolean, null, list và dictionary
+  - Truy cập biến lồng nhau bằng dấu chấm hoặc khóa
+  - Đăng ký kết quả module bằng register
+  - Tạo dữ liệu bằng set_fact và nạp tệp bằng include_vars
+  - Hiểu phạm vi biến ở play, host và role
+  - Áp dụng thứ tự ưu tiên giữa các nguồn biến
+  - Phân biệt role defaults và role vars
+  - Quản lý giá trị mặc định, biến bắt buộc và dữ liệu chưa được định nghĩa
+  - Kết hợp dictionary hoặc list có chủ đích thay vì dựa vào ghi đè ngầm
+  - Kiểm tra kiểu và ràng buộc đầu vào bằng assert
+- level1: Facts
+  level2:
+  - Thu thập thông tin máy đích bằng gather_facts và setup
+  - Truy cập ansible_facts và phân biệt với biến inventory
+  - Lựa chọn gather_subset và lọc thông tin cần thu thập
+  - Sử dụng facts để điều chỉnh tác vụ theo hệ điều hành
+  - Tạo custom facts và quản lý thư mục facts cục bộ
+  - Hiểu inventory_hostname, group_names, groups và hostvars
+  - Phân biệt facts của từng host với dữ liệu của control node
+  - Bật fact cache và kiểm soát độ mới hoặc dữ liệu nhạy cảm
+  - Xử lý thiếu facts, facts cũ và sự khác biệt khi tắt gather_facts
+- level1: Jinja2
+  level2:
+  - Vai trò của Jinja2 trong biểu thức và mẫu cấu hình
+  - Nội suy biến và phân biệt biểu thức với văn bản mẫu
+  - Sử dụng filters để chuyển đổi kiểu và định dạng dữ liệu
+  - Sử dụng tests để kiểm tra kiểu, trạng thái và giá trị
+  - Xử lý undefined, default, mandatory và omit
+  - Biến đổi list hoặc dictionary bằng map, selectattr và dict2items
+  - Kết hợp dữ liệu bằng combine và xử lý cấu trúc lồng nhau
+  - Sử dụng lookup và query với nhận thức về nơi dữ liệu được đọc
+  - Viết mẫu có vòng lặp, điều kiện và kiểm soát khoảng trắng
+  - Quản lý kiểu dữ liệu gốc và tránh nội suy Jinja lồng trong biểu thức
+- level1: Điều kiện và vòng lặp
+  level2:
+  - Viết when bằng biểu thức trả về boolean
+  - Kết hợp điều kiện và kiểm tra biến đã được định nghĩa
+  - Rẽ nhánh theo facts, nhóm host và kết quả tác vụ
+  - Lặp qua list bằng loop và qua dictionary bằng dict2items
+  - Sử dụng loop_control, loop_var và nhãn hiển thị
+  - Đọc results khi register được dùng với vòng lặp
+  - Kết hợp when với loop và xử lý vòng lặp không có phần tử
+  - Sử dụng until, retries và delay cho thao tác cần chờ
+  - Phân biệt lặp theo dữ liệu với xử lý theo lô ở mức host
+  - Di chuyển with_* cũ sang loop với phép biến đổi dữ liệu phù hợp
+- level1: Tệp và mẫu
+  level2:
+  - Quản lý thư mục, tệp, liên kết và quyền bằng file
+  - Sao chép nội dung bằng copy và phân biệt nguồn local với remote_src
+  - Sinh cấu hình theo host bằng template
+  - Chọn lineinfile, blockinfile hoặc template theo quyền sở hữu tệp
+  - Thiết lập owner, group, mode và biểu diễn quyền tệp rõ ràng
+  - Kiểm tra cú pháp cấu hình bằng validate trước khi thay thế
+  - Tải dữ liệu bằng get_url hoặc uri và kiểm tra chứng thư hoặc checksum
+  - Đọc tệp từ máy đích bằng slurp hoặc fetch
+  - Quản lý gói nén bằng archive hoặc unarchive theo collection cung cấp
+  - Kiểm soát sao lưu, thay thế nguyên tử và nguy cơ lộ nội dung qua diff
+- level1: Hệ điều hành
+  level2:
+  - Quản lý gói bằng package, apt hoặc dnf theo hệ điều hành
+  - Quản lý kho gói, khóa ký và phiên bản phần mềm
+  - Điều khiển dịch vụ bằng service hoặc systemd_service
+  - Quản lý tài khoản, nhóm và SSH authorized key
+  - Thiết lập cron hoặc bộ định thời theo module phù hợp
+  - Quản lý mount, filesystem và dung lượng với collection tương ứng
+  - Cấu hình tham số kernel, firewall và SELinux theo phạm vi quản lý
+  - Sử dụng command với argv, creates và removes
+  - Chỉ dùng shell khi cần cơ chế shell và kiểm soát dữ liệu đầu vào
+  - Khởi động lại bằng reboot và chờ máy sẵn sàng
+  - Chuẩn hóa khác biệt giữa các bản phân phối bằng biến và facts
+- level1: Handlers
+  level2:
+  - Vai trò của handler trong phản ứng với thay đổi
+  - Kích hoạt handler bằng notify khi task báo changed
+  - Hiểu thời điểm chạy và cơ chế gộp thông báo
+  - Dùng listen để gom các phản ứng theo chủ đề
+  - Kiểm soát thứ tự handler và tránh trùng tên giữa các role
+  - 'Sử dụng meta: flush_handlers khi cần áp dụng cấu hình sớm'
+  - Phân biệt reload và restart theo khả năng dịch vụ
+  - Đánh giá force_handlers và ảnh hưởng khi play gặp lỗi
+- level1: Xử lý lỗi
+  level2:
+  - Phân biệt lỗi task, host không kết nối được và lỗi cú pháp
+  - Định nghĩa điều kiện thất bại bằng failed_when
+  - Định nghĩa thay đổi bằng changed_when mà không che giấu trạng thái thực
+  - Sử dụng assert và fail cho điều kiện tiên quyết
+  - Nhóm tác vụ bằng block với rescue và always
+  - Phân biệt ignore_errors, ignore_unreachable và xử lý phục hồi
+  - Quản lý mã trả về, stdout và stderr khi gọi lệnh
+  - Chờ dịch vụ bằng wait_for hoặc kiểm tra HTTP bằng uri
+  - Dừng triển khai bằng any_errors_fatal hoặc max_fail_percentage
+  - Thiết kế bù trừ và quay lui thay vì giả định playbook là giao dịch
+- level1: Điều phối
+  level2:
+  - Hiểu chiến lược linear, free và thứ tự tiến triển giữa các host
+  - Giới hạn thực thi theo lô bằng serial
+  - Điều chỉnh forks và throttle theo loại tài nguyên
+  - Ủy quyền tác vụ bằng delegate_to và local_action
+  - Sử dụng run_once và nhận diện hành vi theo từng lô serial
+  - Phân biệt host sở hữu biến với nơi tác vụ được thực thi
+  - Quản lý delegated facts và dữ liệu giữa nhiều host
+  - Chạy tác vụ dài bằng async, poll và async_status
+  - Thêm host trong phiên chạy bằng add_host hoặc tạo nhóm bằng group_by
+  - Đánh giá ansible-pull cho mô hình máy đích chủ động lấy cấu hình
+- level1: Chế độ kiểm tra
+  level2:
+  - Hiểu phạm vi mô phỏng của --check theo mức hỗ trợ module
+  - Đọc --diff để đánh giá thay đổi trước và sau
+  - Kết hợp --check, --diff và --limit trên phạm vi thử nghiệm
+  - Phân biệt --syntax-check với xác minh hành vi thực tế
+  - Xử lý task phụ thuộc vào kết quả chưa được tạo trong check mode
+  - 'Đánh giá task có check_mode: false ngay cả khi chạy --check'
+  - Ẩn diff nhạy cảm và kiểm soát đầu ra
+  - Phát hiện sai lệch cấu hình và xác nhận bằng chạy thực trên môi trường thử
+- level1: Tái sử dụng
+  level2:
+  - Tách playbook lớn theo ranh giới trách nhiệm
+  - Phân biệt import tĩnh và include động
+  - Tái sử dụng task bằng import_tasks và include_tasks
+  - Ghép playbook bằng import_playbook
+  - Truyền biến, vòng lặp và điều kiện vào nội dung được tái sử dụng
+  - Gắn tags cho play, task, role và nội dung include
+  - Chọn phần thực thi bằng --tags hoặc --skip-tags
+  - Hiểu tags always, never và giới hạn của liệt kê task động
+  - Thiết kế giao diện đầu vào rõ ràng trước khi chuyển tác vụ thành role
+- level1: Roles
+  level2:
+  - Cấu trúc tasks, handlers, templates, files, defaults, vars và meta
+  - Khởi tạo role và đặt tên theo trách nhiệm cấu hình
+  - Khai báo biến đầu vào và giá trị mặc định
+  - Xác thực đầu vào bằng argument_specs
+  - Sử dụng role trong roles, import_role hoặc include_role
+  - Quản lý phạm vi biến và tùy chọn public theo phiên bản
+  - Tổ chức handlers và đường dẫn tài nguyên bên trong role
+  - Khai báo phụ thuộc role và kiểm soát thứ tự áp dụng
+  - Thiết kế role hỗ trợ nhiều hệ điều hành có giới hạn rõ ràng
+  - Viết README, ví dụ sử dụng và cam kết tương thích của role
+- level1: Collections
+  level2:
+  - Phân biệt role độc lập và role nằm trong collection
+  - Cấu trúc namespace, collection, plugin và tên FQCN
+  - Tìm kiếm nội dung trên Ansible Galaxy hoặc Automation Hub
+  - Cài đặt role và collection qua ansible-galaxy
+  - Khai báo requirements.yml và ghim phiên bản phụ thuộc
+  - Phân biệt phụ thuộc collection với thư viện Python hoặc gói hệ thống
+  - Quản lý đường dẫn cài đặt và tránh xung đột phiên bản
+  - Đánh giá nguồn gốc, bảo trì và chất lượng nội dung bên thứ ba
+  - Đóng gói, phát hành và quản lý phiên bản collection nội bộ
+- level1: Ansible Vault
+  level2:
+  - Phạm vi bảo vệ dữ liệu lưu trữ của Ansible Vault
+  - Mã hóa cả tệp hoặc một giá trị bằng encrypt_string
+  - Tạo, xem và chỉnh sửa tệp được mã hóa
+  - Cấp mật khẩu giải mã qua lời nhắc hoặc password client
+  - Phân biệt Vault ID với cơ chế phân quyền dữ liệu
+  - Sử dụng nhiều Vault ID cho các nhóm bí mật
+  - Luân chuyển mật khẩu bằng rekey và kiểm tra dữ liệu sau chuyển đổi
+  - Tích hợp Vault vào chạy cục bộ, CI và nền tảng điều khiển
+  - Phân biệt mã hóa khi lưu trữ với bảo vệ dữ liệu trong bộ nhớ và đầu ra
+- level1: Quản lý môi trường
+  level2:
+  - Tổ chức inventory riêng cho development, staging và production
+  - Tách cấu hình dùng chung khỏi khác biệt theo môi trường
+  - Thiết kế group_vars và host_vars tránh sao chép không cần thiết
+  - Phân tách bí mật và quyền truy cập theo môi trường
+  - Kiểm tra ma trận giá trị hiệu lực trước khi chạy
+  - Quản lý thay đổi cấu hình qua Git và rà soát pull request
+  - Phát hiện sai lệch giữa cấu hình được khai báo và trạng thái thực
+  - Chuẩn hóa bootstrap, cập nhật định kỳ và bàn giao quyền sở hữu
+- level1: Triển khai ứng dụng
+  level2:
+  - Phân biệt cấu hình nền tảng máy chủ và triển khai phiên bản ứng dụng
+  - Cài đặt JDK và chuẩn bị tài khoản chạy ứng dụng Java
+  - Lấy artifact đã được phát hành và kiểm tra checksum
+  - Quản lý thư mục phiên bản, liên kết hiện hành và quyền tệp
+  - Sinh cấu hình ứng dụng theo môi trường mà không nhúng bí mật vào mã
+  - Quản lý dịch vụ ứng dụng bằng systemd và handlers
+  - Thực hiện rolling deployment với serial và kiểm tra sức khỏe
+  - Điều phối loại máy khỏi bộ cân bằng tải rồi đưa trở lại
+  - Thiết kế quay lui artifact và đánh giá tương thích dữ liệu
+  - Xác nhận sau triển khai và ghi lại phiên bản hoặc commit cấu hình
+- level1: Windows
+  level2:
+  - Phân biệt control node và máy Windows được quản lý
+  - Lựa chọn kết nối WinRM, PSRP hoặc SSH theo hỗ trợ hiện hành
+  - Chuẩn bị PowerShell, kết nối và cơ chế xác thực
+  - Sử dụng ansible.windows và collections bổ sung
+  - Quản lý tệp, dịch vụ, tính năng Windows và phần mềm
+  - Thực hiện become trên Windows với cơ chế phù hợp
+  - Xử lý reboot, đường dẫn và khác biệt mã hóa ký tự
+  - Bảo vệ thông tin xác thực và chẩn đoán giới hạn xác thực nhiều chặng
+- level1: Thiết bị mạng
+  level2:
+  - Phân biệt tự động hóa thiết bị mạng với quản lý máy chủ
+  - Chọn collection theo hãng, nền tảng và phiên bản thiết bị
+  - Cấu hình network_cli, httpapi hoặc netconf theo module hỗ trợ
+  - Thu thập facts và sao lưu cấu hình thiết bị
+  - Sử dụng network resource modules và mô hình dữ liệu đầu vào
+  - Đánh giá trạng thái merged, replaced hoặc overridden theo module
+  - Kiểm tra diff, phạm vi thay đổi và nguy cơ mất kết nối quản trị
+  - Thiết kế kiểm tra trước, sau và phục hồi cấu hình mạng
+- level1: Cloud và container
+  level2:
+  - Phân biệt cấp phát tài nguyên với cấu hình bên trong máy
+  - Kết hợp Ansible với đầu ra Terraform mà không chồng quyền sở hữu
+  - Sử dụng cloud collections và xác thực bằng quyền tối thiểu
+  - Chạy tác vụ gọi API tại control node hoặc máy được ủy quyền
+  - Tạo tài nguyên, chờ sẵn sàng và cập nhật inventory khi cần
+  - Quản lý Docker hoặc Podman bằng collection tương ứng
+  - Áp dụng tài nguyên Kubernetes theo collection hỗ trợ
+  - Kiểm soát phụ thuộc SDK, quyền truy cập và vòng đời tài nguyên thử nghiệm
+- level1: Kiểm thử
+  level2:
+  - Phân biệt kiểm tra cú pháp, kiểm tra phong cách và kiểm chứng hành vi
+  - Áp dụng yamllint và ansible-lint theo quy ước dự án
+  - Viết assert cho điều kiện tiên quyết và kết quả quan trọng
+  - Thiết kế kiểm tra chức năng dịch vụ sau cấu hình
+  - Chạy lại playbook để kiểm chứng tính lặp lại không đổi
+  - Tạo Molecule scenario cho role hoặc collection
+  - Tổ chức create, prepare, converge, verify và destroy theo scenario
+  - Kiểm tra idempotence trong Molecule và đánh giá ngoại lệ có chủ đích
+  - Thử nhiều hệ điều hành hoặc phiên bản phụ thuộc bằng ma trận kiểm thử
+  - Kiểm tra đường lỗi, phục hồi và giới hạn mô phỏng bằng container
+- level1: Tích hợp CI/CD
+  level2:
+  - Thiết kế chuỗi kiểm tra từ pull request đến áp dụng cấu hình
+  - Tách tác vụ lint, syntax, Molecule và kiểm thử tích hợp
+  - Chuẩn bị dependency và inventory thử nghiệm tái lập được
+  - Cấp thông tin xác thực ngắn hạn hoặc có phạm vi giới hạn cho CI
+  - Ngăn mã từ pull request không tin cậy tiếp cận bí mật production
+  - Chuyển cấu hình đã kiểm chứng qua staging trước production
+  - Lưu bằng chứng chạy và thông tin phiên bản phụ thuộc
+  - Kiểm soát chạy đồng thời, cổng phê duyệt và thực thi lại
+- level1: Môi trường thực thi
+  level2:
+  - Vai trò của execution environment trong tái lập Ansible
+  - Phân biệt Python virtual environment và execution environment dạng container
+  - Khai báo execution-environment.yml cho ansible-builder
+  - Đóng gói ansible-core, collections, thư viện Python và gói hệ thống
+  - Xây dựng image, ghim nguồn phụ thuộc và kiểm tra nội dung
+  - Chạy playbook hoặc kiểm tra inventory bằng ansible-navigator
+  - Cấp inventory, cấu hình và bí mật vào container theo phạm vi cần thiết
+  - Phát hành image bất biến và sử dụng thống nhất giữa máy cá nhân, CI và Controller
+- level1: AWX và Controller
+  level2:
+  - Phân biệt AWX và Automation Controller trong Ansible Automation Platform
+  - Tổ chức organization, team và người dùng
+  - Liên kết project với kho Git và quản lý phiên bản nội dung
+  - Khai báo inventory, nguồn đồng bộ và credentials
+  - Tạo job template với playbook và execution environment
+  - Nhận đầu vào qua survey hoặc biến được cho phép lúc chạy
+  - Xây workflow với nhánh thành công, thất bại và phê duyệt
+  - Thiết lập lịch chạy, thông báo và truy xuất lịch sử job
+  - Phân quyền theo vai trò cho người xem, người chạy và người quản trị
+  - Tích hợp API, webhook và kiểm soát tác vụ trùng
+  - Phân biệt Controller với Automation Hub và Event-Driven Ansible
+- level1: Bảo mật
+  level2:
+  - Áp dụng quyền tối thiểu trên control node và managed node
+  - Bảo vệ SSH key, become credential và khóa giải mã Vault
+  - Đánh giá ranh giới tin cậy của lookup, template và plugin
+  - Ngăn lộ bí mật qua debug, register, callback hoặc log
+  - 'Sử dụng no_log và diff: false với nhận thức về giới hạn bảo vệ'
+  - Kiểm soát quyền tệp cấu hình, inventory và thư mục dự án
+  - Xác minh nguồn role, collection và image trước khi sử dụng
+  - Kiểm soát shell injection và dữ liệu không tin cậy
+  - Quản lý bản vá, kiểm toán thay đổi và thu hồi quyền tự động hóa
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian task và xác định điểm nghẽn trước khi tối ưu
+  - Điều chỉnh forks, serial và throttle theo tải thực tế
+  - Tối ưu SSH multiplexing và đánh giá pipelining
+  - Giảm thu thập facts hoặc sử dụng cache có kiểm soát
+  - Giảm vòng lặp gọi module bằng tham số danh sách khi module hỗ trợ
+  - Giới hạn dữ liệu lookup, hostvars và xử lý Jinja lớn
+  - Phân tách tác vụ gọi API khỏi tác vụ thực thi trên máy đích
+  - Đánh giá độ đúng và tải tài nguyên sau thay đổi hiệu năng
+- level1: Chẩn đoán
+  level2:
+  - Chọn mức verbosity và thu thập đầu ra có kiểm soát
+  - Xử lý lỗi YAML, thụt dòng, dấu nháy và kiểu dữ liệu
+  - Chẩn đoán SSH unreachable, timeout và lỗi xác minh host key
+  - Xử lý lỗi become, sudo và quyền truy cập tệp tạm
+  - Chẩn đoán Python interpreter hoặc thư viện module bị thiếu
+  - Tìm nguồn ghi đè biến và đọc giá trị hiệu lực
+  - Xử lý undefined variable, biểu thức điều kiện và lỗi template
+  - Chẩn đoán task luôn changed hoặc handler không chạy
+  - Xử lý lỗi collection, FQCN và đường dẫn tìm kiếm
+  - Phân biệt lỗi trên control node, máy được ủy quyền và máy đích
+- level1: Mở rộng Ansible
+  level2:
+  - Đánh giá khi cần module hoặc plugin riêng thay cho nội dung sẵn có
+  - Phân biệt module, action plugin, lookup, filter và callback
+  - Tạo module với AnsibleModule và khai báo argument_spec
+  - Trả kết quả bằng exit_json hoặc fail_json có cấu trúc
+  - Thiết kế module có tính lặp lại không đổi và hỗ trợ check mode
+  - Bảo vệ tham số bí mật và tránh ghi dữ liệu nhạy cảm
+  - Kiểm tra nội dung mở rộng bằng ansible-test theo loại kiểm thử
+  - Đóng gói plugin và module vào collection có tài liệu sử dụng
+- level1: Nâng cấp
+  level2:
+  - Kiểm kê ansible-core, Python, collections và plugin đang sử dụng
+  - Đọc changelog, porting guide và vòng đời hỗ trợ trước nâng cấp
+  - Kiểm tra yêu cầu tương thích của collection và module
+  - Rà soát thay đổi templating từ ansible-core 2.19
+  - Xử lý thay đổi kiểu dữ liệu gốc, điều kiện boolean và độ tin cậy của template
+  - Thay nội dung bị loại bỏ hoặc đổi namespace theo hướng dẫn chính thức
+  - Chạy ma trận kiểm thử và canary trước khi đổi môi trường thực thi chung
+  - Ghim phiên bản mới, lưu bằng chứng kiểm tra và chuẩn bị quay lại phiên bản cũ
+- level1: Thực hành
+  level2:
+  - Dựng phòng lab với control node và nhiều máy Linux được quản lý
+  - Tổ chức inventory nhiều nhóm và giải thích biến hiệu lực từng máy
+  - Viết playbook cấu hình máy chủ web với template và handler
+  - Chuyển playbook thành role có đầu vào được kiểm tra
+  - Bảo vệ cấu hình nhạy cảm bằng Vault và kiểm tra nguy cơ lộ log
+  - Chứng minh tính lặp lại không đổi và phát hiện sai lệch cấu hình
+  - Kiểm thử role bằng Molecule rồi tích hợp vào CI
+  - Triển khai ứng dụng Java theo lô với kiểm tra sức khỏe và quay lui
+  - Đóng gói execution environment và chạy cùng nội dung trên nền tảng điều khiển
+  - Diễn tập lỗi kết nối, lỗi cấu hình và phục hồi có bằng chứng

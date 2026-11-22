@@ -1,3 +1,0 @@
-menuLevel1: Comparator
-menuLevel2: Comparator.equals() khác với việc compare() trả về 0 cho hai phần tử
-status: WRITTEN

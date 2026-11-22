@@ -1,0 +1,7 @@
+# Runtime Packaging And Lauching
+
+**Runtime Packaging and Launching** là quá trình biến mã nguồn và các dependency thành artifact có thể phân phối, sau đó khởi chạy ứng dụng trong môi trường thực tế. Với Java, đầu ra có thể là JAR, WAR, một distribution gồm thư viện và start script, hoặc container image chứa runtime phù hợp. Đóng gói đúng cần bảo đảm entry point, resource, dependency và cấu hình runtime nhất quán; khởi chạy đúng còn phụ thuộc vào lệnh Java, JVM options, biến môi trường, quyền truy cập tệp và cách tiến trình nhận tín hiệu từ nền tảng triển khai.
+
+Lộ trình gồm tám mốc: nhận diện định dạng artifact; dùng Maven/Gradle tạo đầu ra nhất quán; chuẩn bị executable JAR và cấu trúc archive; cấu hình lệnh khởi chạy cùng JVM options; quản lý cấu hình môi trường và secret; tạo container image với multi-stage build và layer; vận hành vòng đời tiến trình, health check và graceful shutdown; cuối cùng là kiểm chứng, lưu trữ và phát hành artifact. Người học sẽ phân biệt build-time với runtime configuration, classpath với module path và môi trường build với image tối thiểu dùng để chạy ứng dụng.
+
+Module phù hợp với lập trình viên Java, build/release engineer và DevOps đã biết Java cơ bản, Maven hoặc Gradle, dòng lệnh và Docker nhập môn. Sau khi hoàn thành, bạn có thể đóng gói một ứng dụng thành artifact phù hợp, chạy thử bằng lệnh Java chính xác, chuyển cấu hình theo môi trường, tạo image có thể triển khai và kiểm tra phiên bản artifact trước/sau phát hành.

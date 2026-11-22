@@ -1,0 +1,3115 @@
+menu:
+- slug: serialization-overview
+  title: Nền tảng
+  childs:
+  - slug: serialization-overview-001
+    title: Tuần tự hóa (serialization) là gì và vì sao dữ liệu phải có dạng biểu diễn để lưu hoặc truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-overview-002
+    title: Giải tuần tự hóa (deserialization) và việc tái tạo dữ liệu trong một tiến trình khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-overview-003
+    title: Phân biệt tuần tự hóa, mã hóa ký tự, chuyển đổi mô hình và nén dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-overview-004
+    title: Phân biệt tuần tự hóa với mã hóa bảo mật, băm và ký dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-overview-005
+    title: Marshalling, parsing, binding và codec trong toàn bộ chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-overview-006
+    title: Dạng biểu diễn trên đường truyền khác với cách đối tượng nằm trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-overview-007
+    title: Các bên ghi, bên đọc và thỏa thuận cần có để hiểu cùng một dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-overview-008
+    title: Lộ trình với ví dụ trao đổi đơn hàng giữa Java, tệp và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serialization-pipeline
+  title: Chuỗi xử lý
+  childs:
+  - slug: serialization-pipeline-001
+    title: Từ đối tượng miền đến DTO, cấu trúc dữ liệu, văn bản và byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-pipeline-002
+    title: 'Chiều đọc: tách bản ghi, giải mã, phân tích cú pháp, ánh xạ và kiểm tra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-pipeline-003
+    title: Xác định trách nhiệm của từng lớp trong chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-pipeline-004
+    title: Ranh giới giữa kiểm tra cú pháp, cấu trúc và ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-pipeline-005
+    title: Tuần tự hóa toàn đối tượng hoặc chỉ một phép chiếu có mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-pipeline-006
+    title: Phân biệt lưu trạng thái với lưu hành vi hoặc tài nguyên đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-pipeline-007
+    title: Điều kiện để chuyển đổi đi rồi về giữ được thông tin cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-pipeline-008
+    title: Định nghĩa tiêu chí tương đương khi kết quả đọc lại không phải cùng đối tượng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-pipeline-009
+    title: Nhận diện điểm có thể mất thông tin hoặc phát sinh tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bits-and-bytes
+  title: Bit và byte
+  childs:
+  - slug: bits-and-bytes-001
+    title: Bit, byte, dãy byte và vai trò trong định dạng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bits-and-bytes-002
+    title: Biểu diễn số nguyên có dấu, không dấu và giới hạn của kiểu byte Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bits-and-bytes-003
+    title: Thứ tự byte big-endian, little-endian và thỏa thuận giữa bên ghi với bên đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bits-and-bytes-004
+    title: Số có độ rộng cố định và số có độ dài biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bits-and-bytes-005
+    title: Varint và ý tưởng biểu diễn số có dấu bằng ZigZag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bits-and-bytes-006
+    title: Số dấu phẩy động và cách giữ hoặc mất độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bits-and-bytes-007
+    title: Độ dài, căn chỉnh và các trường điều khiển trong một cấu trúc nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bits-and-bytes-008
+    title: ByteBuffer và ByteOrder khi đọc hoặc ghi dữ liệu theo bố cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bits-and-bytes-009
+    title: Đọc dãy byte bằng biểu diễn hexadecimal để chẩn đoán lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-and-unicode
+  title: Văn bản và Unicode
+  childs:
+  - slug: text-and-unicode-001
+    title: Phân biệt ký tự, điểm mã Unicode, đơn vị mã và byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-002
+    title: UTF-8, UTF-16 và lựa chọn bộ ký tự theo thỏa thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-003
+    title: Độ dài String khác với số byte hoặc số ký tự người dùng nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-004
+    title: Chọn Charset tường minh thay vì dựa vào cấu hình mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-005
+    title: Byte Order Mark và cách xử lý theo định dạng hoặc giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-006
+    title: Ký tự không biểu diễn được, byte không hợp lệ và chính sách báo lỗi hoặc thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-007
+    title: Chuẩn hóa Unicode khác với mã hóa ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-008
+    title: Ký tự điều khiển, ký tự thoát và dấu phân cách trong văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-009
+    title: Xuống dòng LF hoặc CRLF và ý nghĩa khi tách bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-and-unicode-010
+    title: Chuyển đổi byte–String nhiều lần và nguy cơ hỏng dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: types-and-values
+  title: Kiểu và giá trị
+  childs:
+  - slug: types-and-values-001
+    title: Ánh xạ kiểu dữ liệu của định dạng với kiểu Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-002
+    title: Thiếu trường, null, giá trị rỗng và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-003
+    title: Số nguyên lớn và khả năng đọc của các hệ thống khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-004
+    title: BigDecimal, giá trị thập phân và quy tắc giữ thang số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-005
+    title: NaN, vô cực và số 0 có dấu trong những định dạng hỗ trợ khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-006
+    title: Tiền tệ, đơn vị đo và thông tin không được suy đoán từ con số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-007
+    title: Ngày, giờ địa phương, thời điểm và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-008
+    title: Enum, mã định danh và chính sách khi gặp mã mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-009
+    title: Dữ liệu nhị phân trong định dạng văn bản và vai trò của Base64
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-010
+    title: Tập hợp, thứ tự phần tử, khóa ánh xạ và phần tử trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: types-and-values-011
+    title: Giữ ý nghĩa khi chuyển đổi từ kiểu mạnh sang cấu trúc dữ liệu tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-graphs
+  title: Đồ thị đối tượng
+  childs:
+  - slug: object-graphs-001
+    title: Cây dữ liệu khác với đồ thị có tham chiếu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graphs-002
+    title: Tham chiếu vòng và nguy cơ đệ quy không kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graphs-003
+    title: Cùng giá trị khác với cùng định danh hoặc cùng tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graphs-004
+    title: Nhúng đối tượng hay biểu diễn quan hệ bằng định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graphs-005
+    title: Định dạng có cơ chế tham chiếu và định dạng chỉ mô tả cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graphs-006
+    title: Đa hình và cách nhận diện biến thể dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graphs-007
+    title: Giới hạn độ sâu, số phần tử và kích thước đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graphs-008
+    title: Tài nguyên như kết nối, luồng và khóa đồng bộ không phải dữ liệu trao đổi thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graphs-009
+    title: Tránh kéo theo proxy, trạng thái nội bộ hoặc dữ liệu nhạy cảm ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-graphs-010
+    title: Chọn ranh giới đối tượng được tuần tự hóa theo mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-io-streams
+  title: Luồng vào ra Java
+  childs:
+  - slug: java-io-streams-001
+    title: InputStream, OutputStream, Reader và Writer theo loại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-io-streams-002
+    title: Cầu nối InputStreamReader hoặc OutputStreamWriter với Charset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-io-streams-003
+    title: Luồng có bộ đệm và chi phí đọc ghi từng phần nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-io-streams-004
+    title: ByteArrayInputStream hoặc ByteArrayOutputStream cho xử lý trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-io-streams-005
+    title: DataInputStream và DataOutputStream cho dữ liệu nhị phân có kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-io-streams-006
+    title: writeUTF, readUTF, modified UTF-8 và giới hạn của cách biểu diễn này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-io-streams-007
+    title: Đọc không đủ số byte, cuối luồng và cách phát hiện bản ghi chưa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-io-streams-008
+    title: flush khác với đóng luồng hoặc bảo đảm dữ liệu đã được lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-io-streams-009
+    title: try-with-resources và quyền sở hữu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-io-streams-010
+    title: Đọc ghi theo từng khối để tránh tải toàn bộ dữ liệu vào bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-framing
+  title: Đóng khung dữ liệu
+  childs:
+  - slug: data-framing-001
+    title: Vì sao dãy byte cần quy tắc xác định ranh giới bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-framing-002
+    title: Đóng khung bằng độ dài cố định, tiền tố độ dài hoặc dấu phân cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-framing-003
+    title: Thoát dấu phân cách và trường hợp nội dung chứa xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-framing-004
+    title: Dòng dữ liệu mạng không bảo đảm mỗi lần đọc tương ứng một thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-framing-005
+    title: Đọc tiêu đề trước, kiểm tra độ dài rồi đọc nội dung có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-framing-006
+    title: Header, magic number, phiên bản và cờ định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-framing-007
+    title: Phân biệt một tài liệu, chuỗi nhiều tài liệu và định dạng theo bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-framing-008
+    title: JSON Lines hoặc NDJSON cho luồng nhiều bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-framing-009
+    title: Luồng bị cắt, bản ghi hỏng và điều kiện có thể tiếp tục đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-framing-010
+    title: Giới hạn số byte, thời gian đọc và lượng dữ liệu được phép giải nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json
+  title: JSON
+  childs:
+  - slug: json-001
+    title: 'Mô hình giá trị JSON: object, array, string, number, boolean và null'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-002
+    title: Cú pháp chuỗi, ký tự thoát và biểu diễn Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-003
+    title: Khóa thuộc tính dạng chuỗi và thứ tự không nên mang ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-004
+    title: Trường bị thiếu khác với trường có giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-005
+    title: Giới hạn số của từng bên đọc và nguy cơ mất chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-006
+    title: Đối tượng có tên thuộc tính trùng và chính sách xử lý phải được xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-007
+    title: Ngày giờ, dữ liệu nhị phân và kiểu đa hình cần quy ước bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-008
+    title: JSON hợp lệ khác với JSON đáp ứng cấu trúc hoặc quy tắc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-009
+    title: Biểu diễn gọn, biểu diễn dễ đọc và tác động đến byte đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-010
+    title: Đánh giá ưu điểm với giới hạn mà không gắn vào một thư viện cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml
+  title: XML
+  childs:
+  - slug: xml-001
+    title: Cấu trúc phần tử, thuộc tính và nội dung văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-002
+    title: Well-formed khác với valid theo lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-003
+    title: Namespace, tên có tiền tố và định danh theo URI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-004
+    title: Thoát ký tự, CDATA và nội dung hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-005
+    title: Khai báo mã hóa và sự thống nhất với byte thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-006
+    title: Phần tử vắng mặt, phần tử rỗng và biểu diễn null theo quy ước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-007
+    title: DTD, XML Schema và vai trò mô tả cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-008
+    title: DOM, SAX hoặc StAX theo cách đọc và mức dùng bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-009
+    title: Thực thể ngoài, tài nguyên tham chiếu và giới hạn xử lý an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-010
+    title: Ánh xạ XML sang mô hình Java mà vẫn giữ đúng cấu trúc cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: csv
+  title: CSV
+  childs:
+  - slug: csv-001
+    title: CSV như dạng trao đổi bản ghi có cột và các giới hạn của nó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-002
+    title: Thỏa thuận dấu phân cách, dấu bao, ký tự thoát và xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-003
+    title: Trường chứa dấu phân cách, dấu nháy hoặc nội dung nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-004
+    title: Header, thứ tự cột, cột trùng tên và cột bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-005
+    title: Mọi trường đọc từ văn bản cần quy tắc suy ra hoặc chuyển kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-006
+    title: Giá trị rỗng, null và giá trị mặc định không có một cách hiểu chung cho mọi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-007
+    title: Số thập phân, ngày giờ và ảnh hưởng của quy ước địa phương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-008
+    title: Mã hóa ký tự, BOM và dữ liệu có tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-009
+    title: Báo lỗi theo bản ghi với số dòng vật lý có thể khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csv-010
+    title: Nguy cơ nội dung được phần mềm bảng tính hiểu thành công thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: yaml-and-configuration
+  title: YAML và cấu hình
+  childs:
+  - slug: yaml-and-configuration-001
+    title: YAML với ánh xạ, chuỗi phần tử và giá trị vô hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-configuration-002
+    title: Thụt lề, dấu bao chuỗi và nội dung nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-configuration-003
+    title: Giá trị có thể được suy ra thành số, boolean hoặc ngày theo phiên bản với bộ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-configuration-004
+    title: Anchor, alias và dữ liệu có tham chiếu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-configuration-005
+    title: Tag, kiểu tùy chỉnh và giới hạn cần đặt khi đọc dữ liệu ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-configuration-006
+    title: TOML như lựa chọn mô tả cấu hình có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-configuration-007
+    title: Phân biệt định dạng cấu hình với định dạng trao đổi thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-configuration-008
+    title: Giữ chú thích, thứ tự và bố cục không giống với chỉ giữ giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: yaml-and-configuration-009
+    title: Chọn quy ước biểu diễn rõ ràng để tránh cấu hình được hiểu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: binary-formats
+  title: Định dạng nhị phân
+  childs:
+  - slug: binary-formats-001
+    title: Định dạng nhị phân tự mô tả hoặc phụ thuộc lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-002
+    title: Thẻ trường, độ dài, kiểu và bố cục để bên đọc nhận diện dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-003
+    title: Protocol Buffers với số hiệu trường và mã được sinh từ định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-004
+    title: Avro với lược đồ bên ghi, bên đọc và quá trình phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-005
+    title: CBOR hoặc MessagePack cho cấu trúc dữ liệu có kiểu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-006
+    title: Giá trị bị thiếu, giá trị mặc định và mức độ giữ thông tin kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-007
+    title: Byte của dữ liệu nhị phân không nhất thiết là định dạng tuần tự hóa Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-008
+    title: Phân biệt tuần tự hóa bản ghi với bố cục cột phục vụ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-009
+    title: Khả năng đọc khác ngôn ngữ và chi phí phụ thuộc công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: binary-formats-010
+    title: So sánh kích thước, tính dễ kiểm tra và chi phí tiến hóa định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-schemas
+  title: Lược đồ dữ liệu
+  childs:
+  - slug: data-schemas-001
+    title: Lược đồ mô tả cấu trúc, kiểu và những ràng buộc nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-schemas-002
+    title: Lược đồ tách rời, nhúng trong dữ liệu hoặc tham chiếu qua định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-schemas-003
+    title: JSON Schema, XML Schema và định nghĩa kiểu của định dạng nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-schemas-004
+    title: Trường bắt buộc, tùy chọn, null và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-schemas-005
+    title: Giới hạn số, chuỗi, phần tử và cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-schemas-006
+    title: Biến thể dữ liệu và quy tắc nhận diện kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-schemas-007
+    title: Phiên bản lược đồ, kho đăng ký và trách nhiệm của hai đầu trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-schemas-008
+    title: Sinh mã từ lược đồ hoặc suy ra lược đồ từ mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-schemas-009
+    title: Giới hạn của kiểm tra lược đồ đối với ý nghĩa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-schemas-010
+    title: Quản lý dữ liệu mẫu hợp lệ và không hợp lệ đi cùng định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-compatibility
+  title: Tương thích phiên bản
+  childs:
+  - slug: version-compatibility-001
+    title: Tương thích ngược, xuôi và đầy đủ theo vai trò bên ghi với bên đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-002
+    title: Phân biệt tương thích byte, cấu trúc, kiểu và ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-003
+    title: Thêm trường và cách bên đọc cũ xử lý thông tin chưa biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-004
+    title: Xóa trường, đổi tên và chính sách giữ bí danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-005
+    title: Đổi kiểu, miền số, đơn vị hoặc cách biểu diễn thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-006
+    title: Thay đổi bắt buộc, null hoặc giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-007
+    title: Thêm mã enum hoặc biến thể đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-008
+    title: Số hiệu trường trong định dạng gắn thẻ và nguy cơ tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-009
+    title: Dữ liệu lưu dài hạn, phát lại thông điệp và nhiều phiên bản cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-010
+    title: Ma trận kiểm thử bên ghi cũ với bên đọc mới và ngược lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-011
+    title: Kế hoạch ngừng hỗ trợ cùng quy trình chuyển đổi dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exchange-models
+  title: Mô hình trao đổi
+  childs:
+  - slug: exchange-models-001
+    title: Thiết kế DTO theo nhu cầu trao đổi thay vì sao chép toàn mô hình miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchange-models-002
+    title: Đặt tên trường, ý nghĩa và ví dụ để bên đọc không phải suy đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchange-models-003
+    title: Chọn định danh, dữ liệu nhúng và mức chi tiết cần công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchange-models-004
+    title: Biểu diễn tiền, đơn vị, ngày giờ và thông tin tùy chọn một cách tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchange-models-005
+    title: Quy ước trường chưa biết và giá trị chưa được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchange-models-006
+    title: Phiên bản thông điệp, loại nội dung và siêu dữ liệu cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchange-models-007
+    title: Tách dữ liệu công khai khỏi trạng thái nội bộ hoặc dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchange-models-008
+    title: Giữ mô hình trao đổi có thể tồn tại độc lập với một phiên bản lớp Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchange-models-009
+    title: Phân biệt thông điệp trạng thái, sự kiện và yêu cầu thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exchange-models-010
+    title: Ghi nhận những thông tin cố ý bị lược bỏ hoặc làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mapping-strategies
+  title: Chiến lược ánh xạ
+  childs:
+  - slug: mapping-strategies-001
+    title: Ánh xạ thủ công, phản chiếu hoặc sinh mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mapping-strategies-002
+    title: Phân tích theo luồng token, dựng cây trung gian hoặc gắn trực tiếp vào đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mapping-strategies-003
+    title: Ánh xạ trường, thuộc tính, constructor hoặc factory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mapping-strategies-004
+    title: Đối tượng bất biến, record và điều kiện khởi tạo có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mapping-strategies-005
+    title: Thông tin generic bị xóa lúc chạy và cách bộ đọc nhận biết kiểu phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mapping-strategies-006
+    title: Bộ chuyển đổi cho kiểu đặc thù và nơi đặt quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mapping-strategies-007
+    title: Chọn biến thể đa hình bằng mã loại được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mapping-strategies-008
+    title: Chính sách với thuộc tính không biết, thiếu hoặc không chuyển đổi được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mapping-strategies-009
+    title: Phân biệt chuyển kiểu tự động tiện dụng với chuyển đổi làm sai ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mapping-strategies-010
+    title: Trách nhiệm quản lý tài nguyên và cấu hình an toàn luồng của từng thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-serialization
+  title: Java Serialization
+  childs:
+  - slug: java-serialization-001
+    title: Serializable là giao diện đánh dấu và phạm vi cơ chế tuần tự hóa gốc của Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-002
+    title: ObjectOutputStream với writeObject và ObjectInputStream với readObject
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-003
+    title: Luồng đối tượng có header, mô tả lớp và tham chiếu đến dữ liệu đã ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-004
+    title: Phạm vi các trường được ghi theo cơ chế mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-005
+    title: Trường static, transient và trạng thái không được ghi mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-006
+    title: Đồ thị đối tượng có phần tử không Serializable và lỗi phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-007
+    title: Giữ tham chiếu dùng chung hoặc tham chiếu vòng trong đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-008
+    title: Bộ ghi nhớ đối tượng trong ObjectOutputStream và tác động khi ghi lại đối tượng đã sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-009
+    title: reset, ghi không chia sẻ và giới hạn của các lựa chọn này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-010
+    title: Đọc đúng thứ tự các giá trị được ghi và xử lý kết thúc luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-011
+    title: Định dạng gốc của Java không phải hợp đồng độc lập ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-serialization-012
+    title: Giới hạn khi dùng dữ liệu gắn với lớp Java làm định dạng lưu trữ lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-identifiers
+  title: Định danh lớp
+  childs:
+  - slug: class-identifiers-001
+    title: serialVersionUID nhận diện khả năng tương thích của lớp trong luồng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-identifiers-002
+    title: Khai báo tường minh khác với giá trị được tính tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-identifiers-003
+    title: serialVersionUID khác với phiên bản nghiệp vụ hoặc phiên bản định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-identifiers-004
+    title: InvalidClassException và các nguyên nhân cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-identifiers-005
+    title: Thêm, bỏ hoặc thay đổi trường trong phạm vi tương thích của Java Serialization
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-identifiers-006
+    title: Giá trị của trường không có trong dữ liệu cũ sau khi đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-identifiers-007
+    title: Đổi hệ phân cấp, kiểu trường hoặc tên lớp và giới hạn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-identifiers-008
+    title: Class loader, tên lớp và môi trường cần thiết để tái tạo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-identifiers-009
+    title: Đối chiếu dữ liệu cũ với lớp mới bằng bộ mẫu hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-identifiers-010
+    title: Khai báo UID giống nhau không tự làm mọi thay đổi trở nên tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serialization-customization
+  title: Tùy biến tuần tự hóa
+  childs:
+  - slug: serialization-customization-001
+    title: writeObject và readObject để kiểm soát dữ liệu của một lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-002
+    title: defaultWriteObject hoặc defaultReadObject trong quy trình tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-003
+    title: Ghi và đọc dữ liệu bổ sung theo thứ tự cùng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-004
+    title: PutField, GetField và kiểm soát trường tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-005
+    title: serialPersistentFields để tách dạng lưu với một phần cấu trúc cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-006
+    title: readObjectNoData và trường hợp thiếu dữ liệu cho lớp trong hệ phân cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-007
+    title: Kiểm tra bất biến sau khi đọc thay vì tin vào dữ liệu trong luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-008
+    title: writeReplace và readResolve để thay thế đối tượng theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-009
+    title: Mẫu đối tượng trung gian tuần tự hóa (serialization proxy)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-010
+    title: Không thực hiện thao tác bên ngoài hoặc để lộ đối tượng chưa hợp lệ trong quá trình đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serialization-customization-011
+    title: '@Serial để thể hiện các thành phần thuộc cơ chế tuần tự hóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inheritance-and-special-types
+  title: Kế thừa và kiểu đặc biệt
+  childs:
+  - slug: inheritance-and-special-types-001
+    title: Lớp con Serializable khi lớp cha không tham gia tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-special-types-002
+    title: Constructor của lớp cha không Serializable và điều kiện khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-special-types-003
+    title: Dữ liệu của từng lớp trong hệ phân cấp có tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-special-types-004
+    title: Cơ chế đặc thù khi tuần tự hóa enum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-special-types-005
+    title: Record và vai trò constructor chuẩn khi giải tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-special-types-006
+    title: Mảng, collection và những giới hạn về phần tử bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-special-types-007
+    title: Lớp lồng, lớp ẩn danh và trạng thái bên ngoài dễ bị kéo theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-special-types-008
+    title: Lambda, lớp sinh động và rủi ro xem dạng tuần tự hóa là hợp đồng lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-special-types-009
+    title: Proxy ORM hoặc proxy động khác với dữ liệu trao đổi có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inheritance-and-special-types-010
+    title: Đối tượng bất biến và yêu cầu khôi phục bất biến sau khi đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: externalizable
+  title: Externalizable
+  childs:
+  - slug: externalizable-001
+    title: Externalizable khác với tùy biến cục bộ trong Serializable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: externalizable-002
+    title: writeExternal và readExternal cho toàn bộ dạng biểu diễn của lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: externalizable-003
+    title: Constructor không tham số và yêu cầu khi khôi phục đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: externalizable-004
+    title: Tự xác định phiên bản, thứ tự trường và cách nhận biết dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: externalizable-005
+    title: Đọc ghi kiểu nguyên thủy hoặc đối tượng con theo thỏa thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: externalizable-006
+    title: Trách nhiệm kiểm tra độ dài, miền giá trị và trạng thái sau khi đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: externalizable-007
+    title: Kế thừa, trường của lớp cha và trách nhiệm tự quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: externalizable-008
+    title: Lợi ích kiểm soát khác với giả định luôn nhanh hoặc nhỏ hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: externalizable-009
+    title: So sánh với codec riêng hoặc định dạng có lược đồ cho cùng nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deserialization-security
+  title: Bảo mật giải tuần tự hóa
+  childs:
+  - slug: deserialization-security-001
+    title: Dữ liệu đầu vào không đáng tin cậy và ranh giới thực sự của bộ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-002
+    title: Tái tạo đối tượng có thể kích hoạt hành vi ngoài việc gán giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-003
+    title: Giới hạn loại được phép, kích thước, độ sâu và số tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-004
+    title: ObjectInputFilter cho cơ chế tuần tự hóa gốc của Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-005
+    title: Phạm vi bộ lọc, cách phối hợp cấu hình và kiểm tra bộ lọc thực sự được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-006
+    title: Không dùng tên lớp tùy ý trong dữ liệu để quyết định kiểu được khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-007
+    title: Kiểm soát tài nguyên ngoài khi đọc XML hoặc cấu trúc có tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-008
+    title: Alias, cấu trúc lồng quá sâu và dữ liệu nén có thể làm tăng chi phí xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-009
+    title: Kiểm tra bất biến sau khi đọc và tách khỏi hành vi có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-010
+    title: Không ghi bí mật hoặc trạng thái nhạy cảm chỉ vì chúng có trong đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deserialization-security-011
+    title: Bộ lọc kiểu không thay thế xác thực dữ liệu, cập nhật phụ thuộc hoặc thiết kế giao thức an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: determinism
+  title: Tính xác định
+  childs:
+  - slug: determinism-001
+    title: Cùng dữ liệu có thể tạo ra dãy byte khác nhau như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-002
+    title: Thứ tự trường, thứ tự khóa và thứ tự phần tử ảnh hưởng đến đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-003
+    title: Khoảng trắng, ký tự thoát và cách biểu diễn số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-004
+    title: Biểu diễn thời gian hoặc Unicode tương đương về ý nghĩa nhưng khác byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-005
+    title: Phân biệt chuyển đổi đi rồi về, đầu ra ổn định và chuẩn hóa chính tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-006
+    title: Canonicalization khi cần so sánh, băm hoặc ký dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-007
+    title: Đầu ra deterministic của một công cụ không tự là chuẩn chung giữa mọi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-008
+    title: Chọn băm byte gốc hay băm dạng chuẩn theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: determinism-009
+    title: Kiểm chứng tính ổn định qua cấu hình, phiên bản và ngôn ngữ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compression-and-integrity
+  title: Nén và toàn vẹn
+  childs:
+  - slug: compression-and-integrity-001
+    title: Nén dữ liệu sau tuần tự hóa và giải nén trước khi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compression-and-integrity-002
+    title: Đánh đổi kích thước, CPU và độ trễ của nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compression-and-integrity-003
+    title: Phân biệt thuật toán nén với định dạng đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compression-and-integrity-004
+    title: Metadata về thuật toán, kích thước và phiên bản để bên đọc xử lý đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compression-and-integrity-005
+    title: Checksum hỗ trợ phát hiện lỗi ngẫu nhiên nhưng không tự xác thực người gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compression-and-integrity-006
+    title: Băm, mã xác thực và chữ ký số phục vụ những mục đích khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compression-and-integrity-007
+    title: Thứ tự tuần tự hóa, nén, bảo vệ và xác minh theo thiết kế giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compression-and-integrity-008
+    title: Giới hạn kích thước sau giải nén và tài nguyên được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compression-and-integrity-009
+    title: Phát hiện dữ liệu bị cắt, bị thay đổi hoặc không khớp thông tin độ dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: large-data-and-streaming
+  title: Dữ liệu lớn và luồng
+  childs:
+  - slug: large-data-and-streaming-001
+    title: Đọc toàn tài liệu vào bộ nhớ khác với xử lý theo token hoặc bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-and-streaming-002
+    title: Chọn đơn vị xử lý và giới hạn bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-and-streaming-003
+    title: Tuần tự hóa tăng dần vào luồng thay vì tạo String trung gian rất lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-and-streaming-004
+    title: Xử lý dữ liệu bị chia giữa nhiều lần đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-and-streaming-005
+    title: Áp lực ngược và điều tiết tốc độ giữa bên tạo với bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-and-streaming-006
+    title: Dữ liệu nhiều bản ghi và khả năng tiếp tục từ điểm đã xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-and-streaming-007
+    title: Phân biệt thứ tự ghi, thứ tự hoàn tất và xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-and-streaming-008
+    title: Hủy thao tác, timeout và giải phóng luồng khi bên nhận dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-and-streaming-009
+    title: Giới hạn một bản ghi quá lớn dù toàn bộ luồng được xử lý tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-data-and-streaming-010
+    title: Kiểm tra bộ nhớ và thời gian với dữ liệu có quy mô đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-recovery
+  title: Lỗi và phục hồi
+  childs:
+  - slug: errors-and-recovery-001
+    title: Phân loại lỗi đọc byte, giải mã ký tự, cú pháp, kiểu và ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-002
+    title: Báo vị trí theo byte, dòng, cột hoặc đường dẫn trường phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-003
+    title: Thiếu kiểu lớp, UID không khớp và dữ liệu không thể tái tạo trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-004
+    title: Phân biệt tài liệu rỗng, null hợp lệ và đầu vào bị cắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-005
+    title: Từ chối toàn bộ hoặc cách ly bản ghi lỗi theo ranh giới đã định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-006
+    title: Chỉ bỏ qua dữ liệu khi biết chắc có thể tìm lại ranh giới bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-007
+    title: Retry lỗi truyền nhận khác với thử lại dữ liệu sai cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-008
+    title: Giữ dữ liệu gốc cần thiết để chẩn đoán mà không làm lộ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-009
+    title: Ghi nhận kết quả chưa xác định khi lỗi xảy ra giữa quá trình ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-recovery-010
+    title: Khôi phục tệp hoặc bản ghi theo thỏa thuận với lớp lưu trữ bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử chuyển đổi đi rồi về theo tiêu chí tương đương đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Mẫu dữ liệu chuẩn (golden files) và điều kiện cập nhật có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử kiểu số, biên giá trị, độ chính xác và chính sách làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử tiếng Việt, ký tự ngoài BMP, ký tự thoát và byte không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử null, thiếu trường, mặc định và tập hợp rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử thứ tự, phần tử trùng, tham chiếu vòng và đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử lớp hoặc lược đồ cũ với dữ liệu phiên bản mới và ngược lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử trao đổi giữa Java với ngôn ngữ hoặc công cụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử luồng bị cắt, đọc từng phần và bản ghi vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử bộ lọc, giới hạn độ sâu và cấu trúc gây tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Sinh dữ liệu theo thuộc tính và dữ liệu ngẫu nhiên có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Đối chiếu byte khi yêu cầu là tính xác định thay vì chỉ so sánh đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm tra tài nguyên được đóng khi hoàn tất, lỗi hoặc bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo kích thước đầu ra, thông lượng, độ trễ và mức cấp phát bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Phân biệt chi phí tuần tự hóa với I/O, nén và truyền mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Đo chiều ghi và chiều đọc riêng theo dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Khởi động JVM, biên dịch JIT và cách tránh kết quả đo sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: JMH cho phép đo nhỏ và kiểm thử tải cho luồng xử lý đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Bộ đệm, kích thước bản ghi và số lớp chuyển đổi trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Tái sử dụng cấu hình hoặc bộ ghi theo hợp đồng an toàn luồng của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Chi phí reflection, sinh mã và cấu trúc trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Đánh đổi kích thước nhỏ với chi phí phân tích hoặc tiến hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Giữ giới hạn an toàn và tính đúng khi tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Thông tin kiểu nội dung khác với bộ ký tự và cách nén truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Trao đổi HTTP theo hợp đồng request hoặc response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Thông điệp qua broker với ranh giới payload, header và định danh lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Lưu tệp với phiên bản định dạng và thông tin cần đọc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Phân biệt hoàn tất tuần tự hóa với dữ liệu đã được lưu bền hoặc gửi thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Tách DTO trao đổi khỏi thực thể ORM và đối tượng có proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Lưu đối tượng trong bộ nhớ đệm với yêu cầu tương thích khi triển khai nhiều phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Dữ liệu snapshot, dữ liệu sự kiện và thời gian cần đọc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Đặt codec tại ranh giới kiến trúc và chuyển lỗi về tầng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: Quan sát kích thước hoặc thời gian xử lý mà không log toàn bộ nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: solution-selection
+  title: Lựa chọn giải pháp
+  childs:
+  - slug: solution-selection-001
+    title: Xác định mục đích lưu, truyền, cấu hình hoặc phân tích trước khi chọn định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-002
+    title: Khả năng đọc bằng mắt, độ gọn và yêu cầu nhiều ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-003
+    title: Lược đồ, sinh mã, công cụ kiểm tra và chi phí quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-004
+    title: Khả năng biểu diễn số, thời gian, đồ thị và đa hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-005
+    title: Độ bền của hợp đồng khi dữ liệu tồn tại lâu hơn mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-006
+    title: Nhu cầu xử lý theo luồng, truy cập một phần và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-007
+    title: Khả năng bảo vệ đầu vào và cấu hình an toàn của bộ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-008
+    title: Khả năng tích hợp với hệ thống đã có và chi phí chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-009
+    title: Thử nghiệm trên dữ liệu thực tế với tiêu chí chấp nhận được định nghĩa trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Đánh đồng tuần tự hóa với toString hoặc định dạng hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-002
+    title: Đánh đồng mã hóa ký tự, Base64, nén và bảo mật dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-003
+    title: Chuyển byte nhị phân thành String mà không có quy tắc biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-004
+    title: Tự ghép JSON, XML hoặc CSV mà không xử lý ký tự thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-005
+    title: Tự suy ra ngày giờ, kiểu số hoặc giá trị null khác với bên gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-006
+    title: Cho rằng tuần tự hóa giữ nguyên mọi hành vi và tài nguyên của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-007
+    title: Kéo cả thực thể, tham chiếu vòng hoặc bí mật vào dữ liệu trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-008
+    title: Dùng tên lớp triển khai làm hợp đồng đa hình công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-009
+    title: Cho rằng cùng serialVersionUID thì mọi phiên bản lớp đều đọc được nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-010
+    title: Thử lại dữ liệu sai mà không thay đổi nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-011
+    title: Chỉ kiểm thử đọc đi ghi lại trong cùng một tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-012
+    title: Chọn định dạng từ phép đo không đại diện hoặc bỏ qua yêu cầu tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-serialization-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-serialization-practice-001
+    title: Xác định thông tin cần trao đổi trong một đơn hàng và thiết kế DTO riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-002
+    title: Đặc tả kiểu, đơn vị, null, thời gian và các giới hạn của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-003
+    title: Ghi đọc văn bản UTF-8 có tiếng Việt và kiểm tra byte thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-004
+    title: So sánh biểu diễn cùng dữ liệu bằng JSON, XML, CSV và một định dạng nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-005
+    title: Xây dựng luồng nhiều bản ghi với đóng khung và kiểm tra độ dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-006
+    title: Tuần tự hóa đồ thị Java để quan sát tham chiếu dùng chung và transient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-007
+    title: Thay đổi lớp Serializable rồi kiểm tra dữ liệu cũ với serialVersionUID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-008
+    title: Tùy biến quá trình đọc để khôi phục bất biến của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-009
+    title: Áp dụng bộ lọc cùng giới hạn kích thước cho dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-010
+    title: Thiết kế hai phiên bản thông điệp và ma trận kiểm thử tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-011
+    title: Đo kích thước, thời gian và bộ nhớ trong cả chiều ghi với chiều đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-012
+    title: Xử lý lỗi giữa luồng và đối soát bản ghi đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-serialization-practice-013
+    title: Danh sách kiểm tra trước khi công bố một định dạng trao đổi hoặc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

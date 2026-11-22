@@ -1,0 +1,145 @@
+menu:
+  - title: "Tổng quan Google Cloud"
+    slug: google-cloud-overview
+    index: 0
+  - title: "Hệ thống tài nguyên và vị trí"
+    slug: resource-hierarchy-and-locations
+    index: 1
+  - title: "Công cụ và môi trường GCP"
+    slug: tools-and-development-environment
+    index: 2
+  - title: "Thanh toán và ngân sách"
+    slug: billing-and-budgets
+    index: 3
+  - title: "IAM và xác thực"
+    slug: iam-and-authentication
+    index: 4
+  - title: "Quản trị tổ chức"
+    slug: organization-governance
+    index: 5
+  - title: "VPC và định tuyến"
+    slug: vpc-and-routing
+    index: 6
+  - title: "DNS và kết nối hybrid"
+    slug: dns-and-hybrid-connectivity
+    index: 7
+  - title: "Cân bằng tải và phân phối nội dung"
+    slug: load-balancing-and-content-delivery
+    index: 8
+  - title: "Bảo mật và truy cập mạng"
+    slug: network-security-and-access
+    index: 9
+  - title: "Compute Engine"
+    slug: compute-engine
+    index: 10
+  - title: "Nhóm máy ảo và tự động mở rộng"
+    slug: instance-groups-and-autoscaling
+    index: 11
+  - title: "Lưu trữ khối và tệp"
+    slug: block-and-file-storage
+    index: 12
+  - title: "Cloud Storage"
+    slug: cloud-storage
+    index: 13
+  - title: "Container và Artifact Registry"
+    slug: containers-and-artifact-registry
+    index: 14
+  - title: "GKE cơ bản"
+    slug: gke-fundamentals
+    index: 15
+  - title: "GKE nâng cao và vận hành"
+    slug: advanced-gke-operations
+    index: 16
+  - title: "Cloud Run"
+    slug: cloud-run
+    index: 17
+  - title: "Cloud Run functions và Eventarc"
+    slug: cloud-run-functions-and-eventarc
+    index: 18
+  - title: "App Engine"
+    slug: app-engine
+    index: 19
+  - title: "API Gateway và Apigee"
+    slug: api-gateway-and-apigee
+    index: 20
+  - title: "Pub/Sub và thông điệp"
+    slug: pubsub-and-messaging
+    index: 21
+  - title: "Điều phối và tích hợp ứng dụng"
+    slug: orchestration-and-integration
+    index: 22
+  - title: "Cloud SQL và AlloyDB"
+    slug: cloud-sql-and-alloydb
+    index: 23
+  - title: "Spanner"
+    slug: spanner
+    index: 24
+  - title: "Firestore và Firebase"
+    slug: firestore-and-firebase
+    index: 25
+  - title: "Bigtable và Memorystore"
+    slug: bigtable-and-memorystore
+    index: 26
+  - title: "BigQuery"
+    slug: bigquery
+    index: 27
+  - title: "Pipeline và xử lý dữ liệu"
+    slug: data-pipelines-and-processing
+    index: 28
+  - title: "Quản trị và khai thác dữ liệu"
+    slug: data-governance-and-analytics
+    index: 29
+  - title: "Vertex AI và học máy"
+    slug: vertex-ai-and-machine-learning
+    index: 30
+  - title: "AI tạo sinh trên Google Cloud"
+    slug: generative-ai
+    index: 31
+  - title: "Khóa mã hóa và bí mật"
+    slug: encryption-keys-and-secrets
+    index: 32
+  - title: "Bảo mật và tuân thủ"
+    slug: security-and-compliance
+    index: 33
+  - title: "Cloud Observability"
+    slug: cloud-observability
+    index: 34
+  - title: "SRE và độ tin cậy"
+    slug: sre-and-reliability
+    index: 35
+  - title: "Hạ tầng bằng mã với Terraform"
+    slug: infrastructure-as-code-with-terraform
+    index: 36
+  - title: "CI/CD và chuỗi cung ứng"
+    slug: cicd-and-software-supply-chain
+    index: 37
+  - title: "Java và Spring trên GCP"
+    slug: java-and-spring
+    index: 38
+  - title: "Kiểm thử ứng dụng GCP"
+    slug: application-testing
+    index: 39
+  - title: "Di chuyển lên Google Cloud"
+    slug: cloud-migration
+    index: 40
+  - title: "Hạ tầng lai và đa đám mây"
+    slug: hybrid-and-multicloud-infrastructure
+    index: 41
+  - title: "Thiết kế kiến trúc GCP"
+    slug: architecture-design
+    index: 42
+  - title: "Hiệu năng và FinOps"
+    slug: performance-and-finops
+    index: 43
+  - title: "Sao lưu và phục hồi thảm họa"
+    slug: backup-and-disaster-recovery
+    index: 44
+  - title: "Hạ tầng chuyên biệt"
+    slug: specialized-infrastructure
+    index: 45
+  - title: "Dự án thực hành GCP"
+    slug: hands-on-projects
+    index: 46
+  - title: "Vận hành và xử lý sự cố"
+    slug: operations-and-troubleshooting
+    index: 47

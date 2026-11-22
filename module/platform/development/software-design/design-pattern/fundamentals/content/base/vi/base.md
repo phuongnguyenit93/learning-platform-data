@@ -1,0 +1,7 @@
+# Software Design Design Pattern Fundamentals
+
+Design pattern là những hướng giải quyết đã được đúc kết cho các vấn đề thường lặp lại trong thiết kế phần mềm hướng đối tượng. Pattern không phải đoạn mã có thể sao chép nguyên xi: giá trị của chúng nằm ở cách phân chia trách nhiệm, tổ chức quan hệ giữa các đối tượng và tạo ngôn ngữ chung để thảo luận thiết kế. Việc chọn mẫu cần xuất phát từ bài toán và cân nhắc độ phức tạp tăng thêm.
+
+Module phù hợp với người đã biết Java cơ bản, class, interface, kế thừa, đa hình và collection. Lộ trình bắt đầu bằng cách nhận diện vấn đề thiết kế, ôn các nguyên lý OOP và đọc thành phần của một pattern, sau đó làm quen ba nhóm chính: Creational (tạo đối tượng), Structural (tổ hợp đối tượng) và Behavioral (phân phối hành vi). Các ví dụ như Factory Method, Adapter hay Strategy chỉ dùng để làm rõ mục đích và cách lựa chọn, không nhằm học sâu từng pattern ở cấp này.
+
+Sau khi hoàn thành, bạn có thể đọc sơ đồ cấu trúc pattern, xác định hoàn cảnh áp dụng, so sánh lợi ích với chi phí và thử refactor một ví dụ Java có kiểm thử bảo vệ hành vi. Mục tiêu là hình thành tư duy thiết kế có lý do, tránh lạm dụng pattern khi giải pháp đơn giản hơn đã đáp ứng tốt yêu cầu.

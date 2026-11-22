@@ -1,0 +1,57 @@
+roadmap:
+- id: entropy-tinh-kho-doan
+  title: Entropy & tính khó đoán
+  purpose: Hiểu vì sao tính khó dự đoán quan trọng hơn vẻ ngoài ngẫu nhiên của chuỗi trong bảo mật.
+  objectives:
+  - Giải thích entropy, seed và nguồn ngẫu nhiên
+  - Phân biệt tính ngẫu nhiên với tính không thể dự đoán
+  - Nhận diện rủi ro seed yếu hoặc lặp lại
+- id: prng-csprng-drbg
+  title: PRNG, CSPRNG & DRBG
+  purpose: Lựa chọn bộ sinh số ngẫu nhiên phù hợp thay vì dùng hàm phục vụ mô phỏng hay giao diện.
+  objectives:
+  - So sánh Math.random, Random và SecureRandom
+  - Giải thích vai trò entropy source và DRBG
+  - Nêu lý do PRNG thông thường không dùng cho secret
+- id: securerandom-trong-java
+  title: SecureRandom trong Java
+  purpose: Sinh byte ngẫu nhiên an toàn bằng API tiêu chuẩn Java và hiểu sự phụ thuộc vào provider.
+  objectives:
+  - Tạo SecureRandom và gọi nextBytes cho buffer
+  - Nhận biết getInstanceStrong và khả năng blocking
+  - Không dùng seed cố định cho mã bảo mật thực tế
+- id: seed-reseed-provider
+  title: Seed, Reseed & Provider
+  purpose: Nhận biết các yếu tố ảnh hưởng đến trạng thái bộ sinh và vận hành trên nền tảng khác nhau.
+  objectives:
+  - Giải thích khởi tạo và reseed của DRBG
+  - Kiểm tra algorithm/provider đang được sử dụng
+  - Đánh giá cấu hình JVM và nguồn entropy của hệ điều hành
+- id: token-session-id
+  title: Token & Session ID
+  purpose: Dùng đầu ra CSPRNG để tạo giá trị bí mật đủ entropy và khó bị đoán trong ứng dụng.
+  objectives:
+  - Sinh reset token bằng bytes rồi mã hóa Base64URL
+  - Ước tính độ dài token và số bit entropy thực tế
+  - Đặt expiry, one-time use và không ghi token vào log
+- id: khoa-salt-nonce
+  title: Khóa, Salt & Nonce
+  purpose: Phân biệt yêu cầu ngẫu nhiên của các tham số mật mã để tránh dùng sai cho từng ngữ cảnh.
+  objectives:
+  - Dùng API tạo khóa được duyệt với nguồn ngẫu nhiên an toàn
+  - Tạo salt độc lập cho thao tác băm mật khẩu
+  - Bảo đảm nonce/IV không tái sử dụng trong cùng key theo chế độ mã hóa
+- id: lay-mau-khong-thien-lech
+  title: Lấy mẫu không thiên lệch
+  purpose: Chuyển bytes ngẫu nhiên sang mã hoặc số trong khoảng cho trước mà không vô tình giảm entropy.
+  objectives:
+  - Phân biệt nextInt(bound) với phép modulo tùy tiện
+  - Tạo mã từ bảng ký tự bằng lựa chọn đều
+  - Kiểm tra kích thước không gian kết quả và tỷ lệ đoán
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & vận hành
+  purpose: Kiểm tra đúng API, cách sử dụng và cấu hình mà không nhầm kiểm thử thống kê với chứng minh an toàn.
+  objectives:
+  - Viết test xác nhận format, length và tính dùng một lần
+  - Quét code để phát hiện Math.random dùng cho secret
+  - Đánh giá entropy availability và lỗi sinh random khi deploy

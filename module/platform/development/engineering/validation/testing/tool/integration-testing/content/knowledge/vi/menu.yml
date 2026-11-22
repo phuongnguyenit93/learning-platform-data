@@ -1,0 +1,339 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kiểm thử tích hợp là gì và loại lỗi chỉ xuất hiện khi các thành phần phối hợp
+  - Phân biệt kiểm thử đơn vị, kiểm thử thành phần, kiểm thử tích hợp và kiểm thử đầu cuối
+  - 'Xác định ranh giới tích hợp: trong tiến trình, qua mạng và qua hệ thống lưu trữ'
+  - Kiểm thử tích hợp trong một ứng dụng và giữa nhiều dịch vụ
+  - Vai trò của thành phần thật, thành phần giả lập và môi trường dùng một lần
+  - Những gì kiểm thử tích hợp chứng minh được và giới hạn của môi trường thử
+  - 'Kiến trúc một bài kiểm thử: chuẩn bị, kích hoạt, quan sát và dọn dẹp'
+  - Lộ trình từ kiểm thử một repository đến kiểm thử một luồng nghiệp vụ nhiều hệ thống
+- level1: Thiết kế kiểm thử
+  level2:
+  - Chọn điểm tích hợp theo rủi ro nghiệp vụ và mức độ phụ thuộc
+  - Chuyển yêu cầu nghiệp vụ thành kịch bản tích hợp có kết quả quan sát được
+  - Lựa chọn điểm vào qua service, API, sự kiện hoặc tác vụ nền
+  - Xác định thành phần chạy thật và thành phần được thay thế trong mỗi kịch bản
+  - Thiết kế trường hợp thành công, dữ liệu biên và phụ thuộc thất bại
+  - Phân biệt kiểm tra kết quả trả về với kiểm tra tác động lên dữ liệu và sự kiện
+  - Định nghĩa điều kiện ban đầu và quyền sở hữu dữ liệu thử
+  - Thiết kế bài kiểm thử độc lập, lặp lại được và không phụ thuộc thứ tự
+  - Cân bằng độ chân thực, tốc độ và chi phí bảo trì của bộ kiểm thử
+- level1: Bộ công cụ
+  level2:
+  - Vai trò của JUnit Jupiter trong điều phối các bài kiểm thử tích hợp
+  - Spring Test và Spring Boot Test trong khởi tạo ứng dụng phục vụ kiểm thử
+  - Testcontainers trong cung cấp phụ thuộc thật có vòng đời tự động
+  - DBUnit và Database Rider trong chuẩn bị, so sánh dữ liệu cơ sở dữ liệu
+  - Awaitility trong chờ kết quả bất đồng bộ theo điều kiện
+  - GreenMail trong kiểm thử gửi và nhận email
+  - LocalStack trong mô phỏng cục bộ các dịch vụ đám mây được hỗ trợ
+  - Lựa chọn công cụ theo giao thức, hệ thống phụ thuộc và khả năng quan sát
+  - Ranh giới với công cụ assertion, mocking, service stubbing, HTTP và contract testing
+  - Kiểm tra độ tương thích giữa JDK, thư viện kiểm thử, ứng dụng và dịch vụ phụ thuộc
+- level1: Tổ chức dự án
+  level2:
+  - Phân tách mã kiểm thử đơn vị và kiểm thử tích hợp theo mục tiêu chạy
+  - Tổ chức package, tên lớp và tài nguyên để nhận diện phạm vi bài kiểm thử
+  - JUnit tags và bộ lọc chọn nhóm kiểm thử tích hợp
+  - Tạo source set và tác vụ kiểm thử tích hợp riêng trong Gradle
+  - Maven Failsafe và vòng đời integration-test, verify
+  - Quản lý phụ thuộc kiểm thử và đồng bộ phiên bản bằng BOM phù hợp
+  - Tách cấu hình theo môi trường và tránh tải nhầm thông tin vận hành thật
+  - Tổ chức fixture, dữ liệu mẫu và tiện ích kiểm thử dùng chung
+  - Chạy một lớp, một nhóm và toàn bộ bộ kiểm thử từ IDE hoặc dòng lệnh
+- level1: Spring TestContext
+  level2:
+  - TestContext Framework và vòng đời ngữ cảnh kiểm thử Spring
+  - '@SpringJUnitConfig, @ContextConfiguration và lựa chọn nguồn cấu hình'
+  - Đưa các bean cần thiết vào ngữ cảnh bằng cấu hình tối thiểu
+  - '@ActiveProfiles và lựa chọn profile dành cho kiểm thử'
+  - '@TestPropertySource và thứ tự ưu tiên cấu hình trong bài kiểm thử'
+  - '@DynamicPropertySource và đăng ký giá trị chỉ biết lúc chạy'
+  - '@TestConfiguration và bổ sung cấu hình riêng cho kiểm thử'
+  - Bộ nhớ đệm ApplicationContext và những yếu tố làm thay đổi khóa ngữ cảnh
+  - '@DirtiesContext: khi nào cần và ảnh hưởng đến thời gian chạy'
+  - Dependency injection, vòng đời JUnit và trạng thái dùng chung giữa các bài kiểm thử
+- level1: Spring Boot Test
+  level2:
+  - '@SpringBootTest và lựa chọn cấu hình khởi động ứng dụng'
+  - Các chế độ webEnvironment và ranh giới thực thi của từng chế độ
+  - RANDOM_PORT và lấy cổng thực tế cho máy khách kiểm thử
+  - Kiểm thử qua tầng service với ngữ cảnh ứng dụng đầy đủ
+  - Kiểm thử HTTP qua máy chủ thật được khởi động trong bài kiểm thử
+  - Thay thế bean tại ranh giới ngoài bằng cơ chế tương thích phiên bản Spring đang dùng
+  - '@Import và kiểm soát cấu hình bổ sung trong ngữ cảnh kiểm thử'
+  - '@ServiceConnection và kết nối dịch vụ Testcontainers với Spring Boot'
+  - Phân biệt cấu hình Testcontainers trong bài kiểm thử và cấu hình phát triển cục bộ
+  - Kiểm tra khởi động thất bại do thiếu cấu hình hoặc phụ thuộc bắt buộc
+- level1: Test slices
+  level2:
+  - Test slice là gì và cách lựa chọn phạm vi ngữ cảnh theo tầng ứng dụng
+  - '@DataJpaTest và kiểm thử ánh xạ, repository, truy vấn JPA'
+  - '@JdbcTest và kiểm thử JDBC với cấu hình dữ liệu tối thiểu'
+  - '@DataJdbcTest và kiểm thử repository Spring Data JDBC'
+  - '@DataMongoTest và kiểm thử tích hợp với MongoDB'
+  - '@DataRedisTest và phạm vi kiểm thử dữ liệu Redis'
+  - '@WebMvcTest và ranh giới giữa kiểm thử lớp web với tích hợp toàn ứng dụng'
+  - '@WebFluxTest và kiểm thử lớp web phản ứng trong phạm vi được chọn'
+  - '@AutoConfigureTestDatabase và kiểm soát việc thay thế cơ sở dữ liệu'
+  - Bổ sung bean còn thiếu mà không vô tình mở rộng slice thành toàn bộ ứng dụng
+- level1: Testcontainers cơ bản
+  level2:
+  - Kiến trúc Testcontainers và vai trò của container runtime
+  - Điều kiện chạy, quyền truy cập và phát hiện môi trường container
+  - Khai báo phụ thuộc Testcontainers và các module dành cho từng dịch vụ
+  - GenericContainer và lựa chọn image có phiên bản xác định
+  - Module cơ sở dữ liệu và lấy thông tin kết nối sau khi khởi động
+  - Tích hợp JUnit Jupiter bằng @Testcontainers và @Container
+  - Cấu hình biến môi trường, lệnh khởi động và tệp cấu hình trong container
+  - Phân biệt cổng bên trong container với cổng được ánh xạ ra máy chạy kiểm thử
+  - Wait strategy và xác định dịch vụ thực sự sẵn sàng
+  - Startup timeout, log container và chẩn đoán lần khởi động đầu tiên
+  - Thu hồi tài nguyên sau khi chạy và xử lý tài nguyên còn sót
+- level1: Vòng đời container
+  level2:
+  - Lựa chọn container theo từng phương thức, từng lớp hoặc toàn bộ tiến trình kiểm thử
+  - Phân biệt trường static và trường instance khi quản lý container bằng JUnit
+  - Điều phối thứ tự khởi động container và tạo ApplicationContext
+  - Thiết kế container dùng chung với Spring context cache
+  - Đăng ký endpoint động bằng @DynamicPropertySource hoặc @ServiceConnection
+  - Quản lý singleton container và tránh dừng dịch vụ trước các lớp kiểm thử còn lại
+  - Phân biệt tái sử dụng container với cô lập trạng thái dữ liệu
+  - Đánh giá reusable containers và giới hạn áp dụng trong từng môi trường
+  - Khởi động nhiều phụ thuộc độc lập và kiểm soát lỗi khởi động
+  - Đóng tài nguyên máy khách, kết nối và container theo đúng vòng đời
+- level1: Mạng và nhiều dịch vụ
+  level2:
+  - Tạo mạng container riêng cho một nhóm dịch vụ liên quan
+  - Network alias và địa chỉ kết nối giữa các container
+  - Địa chỉ kết nối từ JVM kiểm thử vào dịch vụ trong container
+  - Kết nối từ container đến dịch vụ chạy trên máy chủ kiểm thử
+  - Xác định quan hệ phụ thuộc và điều kiện sẵn sàng của từng dịch vụ
+  - Thiết lập hệ thống nhiều container bằng mã nguồn hoặc cấu hình Compose
+  - Truyền endpoint, thông tin xác thực và dữ liệu cấu hình giữa các dịch vụ
+  - Theo dõi log và mã định danh của từng container trong một lần chạy
+  - Cô lập mạng, cổng và tên tài nguyên khi nhiều bộ kiểm thử cùng thực thi
+- level1: Cơ sở dữ liệu SQL
+  level2:
+  - Chọn PostgreSQL, MySQL hoặc cơ sở dữ liệu đúng với hệ thống cần kiểm thử
+  - Giới hạn của cơ sở dữ liệu nhúng khi thay thế hệ quản trị dùng trong vận hành
+  - Kết nối DataSource vào cơ sở dữ liệu Testcontainers
+  - Kiểm thử ánh xạ bảng, cột, khóa chính và ràng buộc
+  - Kiểm thử repository, truy vấn tùy chỉnh và phép chiếu dữ liệu
+  - Kiểm thử phân trang, sắp xếp và kết quả với thứ tự xác định
+  - Kiểm thử kiểu ngày giờ, múi giờ, số thập phân và giá trị null
+  - Kiểm thử quan hệ, cascade, tải lười và thời điểm truy cập dữ liệu
+  - Kiểm tra lỗi khóa duy nhất, khóa ngoại và ràng buộc kiểm tra
+  - Xác minh câu lệnh đã được thực thi bằng flush, clear và đọc lại dữ liệu
+  - Kiểm thử đường ghi và đường đọc khi ứng dụng có nhiều nguồn dữ liệu
+- level1: Dữ liệu và migration
+  level2:
+  - Thiết kế fixture tối thiểu nhưng đủ thể hiện điều kiện nghiệp vụ
+  - Lựa chọn SQL script, factory hoặc dataset theo phạm vi kiểm thử
+  - '@Sql và điều khiển thời điểm chuẩn bị hoặc dọn dữ liệu'
+  - Phân biệt trạng thái schema với trạng thái dữ liệu của từng bài kiểm thử
+  - Chạy Flyway hoặc Liquibase trên cơ sở dữ liệu mới
+  - Kiểm thử nâng cấp schema từ phiên bản cũ có dữ liệu
+  - Kiểm tra thứ tự migration và lỗi migration khi khởi động
+  - Quản lý khóa chính, sequence và dữ liệu tham chiếu dùng chung
+  - Dọn bảng, truncate, tạo schema riêng hoặc khởi tạo lại cơ sở dữ liệu
+  - Tạo dữ liệu chứa Unicode, ngày giờ biên và các quan hệ phức tạp
+- level1: DBUnit và Database Rider
+  level2:
+  - DBUnit giải quyết việc thiết lập và so sánh trạng thái cơ sở dữ liệu như thế nào
+  - Cấu trúc dataset và lựa chọn định dạng phù hợp với công cụ
+  - DatabaseOperation và các chiến lược chuẩn bị, cập nhật, dọn dữ liệu
+  - Tích hợp Database Rider với JUnit và cấu hình kết nối
+  - '@DataSet và nạp dữ liệu trước bài kiểm thử'
+  - '@ExpectedDataSet và so sánh trạng thái dữ liệu sau thực thi'
+  - Xử lý cột sinh tự động, giá trị động và cột không tham gia so sánh
+  - Kiểm soát thứ tự bản ghi và tránh phụ thuộc thứ tự trả về không bảo đảm
+  - Xử lý ràng buộc khóa ngoại và thứ tự thao tác giữa các bảng
+  - Kết hợp dataset với giao dịch, migration và cơ sở dữ liệu Testcontainers
+- level1: Giao dịch và đồng thời
+  level2:
+  - '@Transactional trong bài kiểm thử và cơ chế rollback sau khi chạy'
+  - Giao dịch ở luồng kiểm thử và giao dịch ở máy chủ HTTP thật
+  - Khi nào rollback của bài kiểm thử không thu hồi được dữ liệu đã tạo
+  - Kiểm thử commit thật và hành vi chỉ xảy ra sau khi commit
+  - Propagation và ranh giới giao dịch giữa nhiều service
+  - Kiểm thử optimistic locking bằng nhiều phiên làm việc độc lập
+  - Kiểm thử pessimistic locking và hành vi chờ khóa
+  - Thiết kế kiểm thử cạnh tranh bằng hàng rào đồng bộ thay vì chờ tùy ý
+  - Xác minh tính duy nhất, tính nguyên tử và idempotency khi có yêu cầu đồng thời
+  - Phân biệt lỗi cô lập giao dịch với lỗi do fixture hoặc ngữ cảnh lưu trữ JPA
+- level1: MongoDB và Redis
+  level2:
+  - Khởi động MongoDB bằng Testcontainers và đăng ký thông tin kết nối
+  - Kiểm thử ánh xạ document, repository và truy vấn MongoDB
+  - Kiểm thử index duy nhất, giá trị thiếu và dữ liệu lồng nhau
+  - Chuẩn bị replica set khi kịch bản MongoDB yêu cầu giao dịch
+  - Khởi động Redis bằng container và cấu hình máy khách
+  - Kiểm thử tuần tự hóa khóa, giá trị và tương thích dữ liệu
+  - Kiểm thử cache hit, cache miss, cập nhật và vô hiệu hóa
+  - Kiểm thử TTL và chờ dữ liệu hết hạn theo điều kiện
+  - Cô lập database, collection và namespace khóa giữa các bài kiểm thử
+  - Dọn dữ liệu mà không ảnh hưởng tới các bài kiểm thử đang chạy đồng thời
+- level1: HTTP và bảo mật
+  level2:
+  - Xây dựng bài kiểm thử HTTP đi xuyên lớp web, service và cơ sở dữ liệu thật
+  - Lựa chọn MockMvc, WebTestClient hoặc máy khách HTTP theo ranh giới cần kiểm thử
+  - Phân biệt mô phỏng xử lý web trong tiến trình với gọi máy chủ qua socket thật
+  - Kiểm tra mã trạng thái, nội dung phản hồi và tác động lưu trữ trong cùng kịch bản
+  - Kiểm thử validation, chuyển đổi dữ liệu và ánh xạ ngoại lệ
+  - Kiểm thử xác thực và phân quyền với cấu hình bảo mật có hiệu lực
+  - Phân biệt danh tính giả lập trong kiểm thử với luồng xác thực thật
+  - Chuẩn bị token, khóa ký và thời hạn xác thực cho môi trường kiểm thử
+  - Kiểm thử phiên, cookie, CSRF và hành vi khi quyền truy cập thay đổi
+  - Kiểm thử luồng gọi dịch vụ HTTP phụ thuộc với ranh giới thay thế được xác định rõ
+- level1: Kafka
+  level2:
+  - Chọn Kafka container hoặc EmbeddedKafka theo mục tiêu và độ chân thực cần thiết
+  - Khởi động broker và cung cấp bootstrap servers cho ứng dụng
+  - Tạo topic, số partition và dữ liệu cấu hình cho bài kiểm thử
+  - 'Kiểm thử producer: khóa, header, giá trị và tuần tự hóa thông điệp'
+  - Kiểm thử consumer từ thông điệp đầu vào đến tác động nghiệp vụ
+  - Cô lập topic, consumer group và offset giữa các bài kiểm thử
+  - Chờ consumer được gán partition trước khi kích hoạt kịch bản
+  - Kiểm thử retry, thông điệp lỗi và dead-letter topic
+  - Kiểm thử trùng thông điệp, idempotency và thứ tự trong từng partition
+  - Kiểm thử giao dịch và quan sát ranh giới xử lý được ứng dụng cam kết
+  - Dọn producer, consumer và dữ liệu broker sau khi kết thúc
+- level1: RabbitMQ
+  level2:
+  - Khởi động RabbitMQ container và đăng ký cấu hình kết nối
+  - Chuẩn bị exchange, queue, binding và routing key
+  - Kiểm thử luồng publish từ ứng dụng đến hàng đợi
+  - Kiểm thử listener và tác động nghiệp vụ sau khi nhận thông điệp
+  - Kiểm thử acknowledgement, rejection và requeue
+  - Kiểm thử retry, dead-letter exchange và xử lý thông điệp độc
+  - Cô lập tên queue, exchange và người dùng giữa các bài kiểm thử
+  - Chờ listener sẵn sàng và quan sát kết quả mà không phụ thuộc thời gian ngủ cố định
+  - Kiểm thử thông điệp trùng, consumer khởi động lại và hành vi khôi phục
+- level1: Bất đồng bộ
+  level2:
+  - Những nguồn bất đồng bộ trong kiểm thử tích hợp Java
+  - Awaitility và cách biểu diễn điều kiện hoàn tất có thể quan sát
+  - atMost, pollInterval, pollDelay và thiết lập thời hạn chờ
+  - until và untilAsserted trong chờ dữ liệu hoặc trạng thái nghiệp vụ
+  - Chờ nhiều điều kiện liên quan mà không bỏ qua trạng thái thất bại
+  - Kiểm thử Future, CompletableFuture và tác vụ chạy trên executor
+  - Kiểm thử luồng phản ứng bằng StepVerifier trong kịch bản tích hợp phù hợp
+  - Kiểm soát đồng hồ, lịch thực thi và thời gian nghiệp vụ trong bài kiểm thử
+  - Phân biệt chờ kết quả cuối cùng với xác minh một hành vi không xảy ra
+  - Thu thập trạng thái cuối cùng và nguyên nhân lỗi khi điều kiện chờ hết hạn
+- level1: Email
+  level2:
+  - GreenMail và cách tạo máy chủ thư phục vụ kiểm thử
+  - Cấu hình SMTP của ứng dụng trỏ vào máy chủ thư kiểm thử
+  - Kiểm thử người gửi, người nhận, tiêu đề và nội dung thư
+  - Kiểm thử nội dung HTML, Unicode và cấu trúc MIME
+  - Kiểm thử tệp đính kèm và metadata của tệp
+  - Chờ email từ tác vụ bất đồng bộ theo điều kiện
+  - Cô lập hộp thư, dọn thư và tránh đọc nhầm kết quả từ bài kiểm thử trước
+  - Kiểm thử lỗi gửi thư, retry và tác động nghiệp vụ khi email chưa gửi thành công
+- level1: Kho tệp và đám mây
+  level2:
+  - Lựa chọn dịch vụ thật dùng một lần hoặc trình mô phỏng theo mục tiêu tích hợp
+  - Khởi động LocalStack và cấu hình endpoint, vùng, thông tin xác thực kiểm thử
+  - Kiểm thử lưu, đọc, xóa object và metadata theo API S3
+  - Kiểm thử luồng gửi nhận qua hàng đợi tương thích SQS trong phạm vi được hỗ trợ
+  - Khởi tạo bucket, queue và tài nguyên riêng cho từng bài kiểm thử
+  - Kiểm thử tích hợp hệ thống tệp với thư mục tạm thời
+  - Kiểm thử tệp lớn, nội dung nhị phân và lỗi đọc ghi
+  - Nhận diện khác biệt giữa trình mô phỏng và dịch vụ đám mây thật
+  - Giới hạn quyền truy cập và ngăn cấu hình kiểm thử trỏ nhầm tài nguyên vận hành
+- level1: Tác vụ và sự kiện
+  level2:
+  - Kiểm thử sự kiện trong ứng dụng và ranh giới đồng bộ, bất đồng bộ
+  - Kiểm thử listener phụ thuộc trạng thái giao dịch đã commit
+  - Kiểm thử tác vụ theo lịch bằng điểm kích hoạt có thể điều khiển
+  - Kiểm thử Spring Batch với JobLauncherTestUtils và dữ liệu thực
+  - Cô lập metadata, tham số job và trạng thái chạy lại của tác vụ batch
+  - Kiểm thử transactional outbox từ ghi dữ liệu đến phát sự kiện
+  - Kiểm thử xử lý inbox, chống trùng và cập nhật trạng thái nghiệp vụ
+  - Xác minh tính nhất quán cuối cùng trong luồng đi qua nhiều thành phần
+  - Kiểm thử chạy lại, khôi phục và bù trừ khi luồng xử lý bị gián đoạn
+- level1: Lỗi và phục hồi
+  level2:
+  - Thiết kế kịch bản phụ thuộc chưa sẵn sàng khi ứng dụng khởi động
+  - Mô phỏng mất kết nối, ngắt dịch vụ và khởi động lại container
+  - Sử dụng Toxiproxy để điều khiển độ trễ và gián đoạn đường truyền
+  - Kiểm thử timeout, retry và backoff với kết quả quan sát rõ ràng
+  - Kiểm thử circuit breaker và điều kiện phục hồi kết nối
+  - Kiểm thử lỗi sau khi một phần dữ liệu hoặc tác động ngoài đã được tạo
+  - Xác minh idempotency khi thực thi lại một yêu cầu thất bại
+  - Kiểm thử dữ liệu lỗi, thông điệp không đọc được và tương thích định dạng
+  - Phân biệt bài kiểm thử lỗi có kiểm soát với thử nghiệm hỗn loạn trên toàn hệ thống
+- level1: Cô lập và song song
+  level2:
+  - Nhận diện trạng thái dùng chung trong cơ sở dữ liệu, cache và hàng đợi
+  - Chọn mức cô lập theo container, schema, namespace hoặc bộ dữ liệu
+  - Tạo tên tài nguyên và mã định danh duy nhất cho mỗi lần chạy
+  - Chạy song song với JUnit và giới hạn tài nguyên thực tế
+  - Tránh cổng cố định và xung đột cấu hình khi nhiều tiến trình cùng chạy
+  - Kiểm soát container dùng chung khi các lớp kiểm thử thực thi đồng thời
+  - Thiết kế dọn dữ liệu an toàn khi một bài kiểm thử thất bại
+  - Phát hiện phụ thuộc thứ tự bằng cách đổi thứ tự và chạy lặp có kiểm soát
+  - Phân biệt an toàn luồng của tiện ích kiểm thử với an toàn dữ liệu của hệ thống đích
+- level1: Chẩn đoán lỗi
+  level2:
+  - Phân loại lỗi khởi động môi trường, lỗi cấu hình, lỗi dữ liệu và lỗi nghiệp vụ
+  - Đọc exception chain và báo cáo tạo ApplicationContext
+  - Thu log ứng dụng, container và dịch vụ phụ thuộc theo mã lần chạy
+  - Chẩn đoán kết nối sai host, cổng, mạng hoặc thông tin xác thực
+  - Chẩn đoán migration lỗi, schema không khớp và dữ liệu fixture không hợp lệ
+  - Chẩn đoán giao dịch chưa commit, dữ liệu chưa flush và phiên JPA giữ trạng thái cũ
+  - Chẩn đoán consumer chưa sẵn sàng, sai offset và thông điệp không được xử lý
+  - Thu thread dump và trạng thái hàng đợi khi bài kiểm thử bị treo
+  - Lưu ảnh chụp trạng thái dữ liệu và kết quả cuối khi bài kiểm thử thất bại
+  - Tái hiện lỗi CI bằng cấu hình, image và dữ liệu tương đương trên máy phát triển
+- level1: Tối ưu thời gian chạy
+  level2:
+  - Đo riêng thời gian khởi động container, tạo context và thực thi kịch bản
+  - Chọn test slice thay cho ngữ cảnh đầy đủ khi vẫn giữ đúng ranh giới cần kiểm thử
+  - Tăng khả năng dùng lại ApplicationContext bằng cấu hình nhất quán
+  - Giảm @DirtiesContext và cấu hình riêng không cần thiết giữa các lớp
+  - Chia sẻ container có kiểm soát và giữ dữ liệu thử được cô lập
+  - Tối ưu kích thước fixture, migration và số lần chuẩn bị dữ liệu
+  - Khởi động phụ thuộc độc lập song song và cân đối CPU, bộ nhớ
+  - Tránh polling quá dày, timeout quá dài và chờ cố định dư thừa
+  - Phân nhóm bài kiểm thử theo chi phí mà vẫn giữ các kịch bản quan trọng
+  - Đánh giá tốc độ cùng độ ổn định để tránh tối ưu bằng cách bỏ mất bằng chứng
+- level1: CI/CD
+  level2:
+  - Thiết kế job kiểm thử tích hợp và điều kiện chạy theo loại thay đổi
+  - Cung cấp container runtime trong môi trường CI
+  - Phân biệt kết nối Docker socket, Docker từ xa và Docker-in-Docker
+  - Quản lý image registry, xác thực, giới hạn tải image và cache phụ thuộc
+  - Đặt giới hạn thời gian, CPU, bộ nhớ và số tác vụ chạy đồng thời
+  - Quản lý profile, biến môi trường và bí mật dành riêng cho kiểm thử
+  - Xuất báo cáo JUnit cùng log ứng dụng, container và bằng chứng lỗi
+  - Phân mảnh bộ kiểm thử giữa nhiều job với dữ liệu được cô lập
+  - Dọn tài nguyên khi job thành công, thất bại hoặc bị hủy
+  - Thiết kế cổng chất lượng và xử lý hạ tầng không khả dụng trong pipeline
+- level1: Chất lượng và bảo trì
+  level2:
+  - Checklist đánh giá ranh giới, độ chân thực và kết quả quan sát của bài kiểm thử
+  - Nhận diện bài kiểm thử có thể thành công dù hành vi tích hợp đã hỏng
+  - Tránh kiểm tra quá sâu chi tiết triển khai làm bài kiểm thử dễ gãy
+  - 'Quản lý bài kiểm thử chập chờn: thu bằng chứng, phân loại và sửa nguyên nhân'
+  - Giới hạn retry tự động để không che giấu lỗi có thể tái hiện
+  - Cập nhật image, thư viện và fixture khi hệ thống phụ thuộc thay đổi
+  - Rà soát mức đại diện của môi trường kiểm thử so với môi trường vận hành
+  - Tài liệu hóa cách chạy, điều kiện tiên quyết và phương án xử lý lỗi thường gặp
+  - Loại bỏ kịch bản trùng lặp và giữ quyền sở hữu rõ ràng cho từng nhóm kiểm thử
+- level1: Thực hành tổng hợp
+  level2:
+  - Kiểm thử repository Spring Data JPA với PostgreSQL Testcontainers
+  - Kiểm thử migration trên cơ sở dữ liệu mới và trên schema có dữ liệu cũ
+  - Kiểm thử một giao dịch HTTP qua Spring Boot đến cơ sở dữ liệu thật
+  - Kiểm thử cache Redis sau thao tác đọc, cập nhật và vô hiệu hóa dữ liệu
+  - Kiểm thử luồng Kafka từ gửi yêu cầu đến dữ liệu được consumer ghi lại
+  - Kiểm thử xử lý thông điệp lỗi và chuyển vào hàng đợi hoặc topic lỗi
+  - Kiểm thử gửi email bất đồng bộ bằng GreenMail và Awaitility
+  - Kiểm thử lưu tệp vào dịch vụ tương thích S3 với endpoint kiểm thử riêng
+  - Kiểm thử transactional outbox và khả năng xử lý lại không tạo tác động trùng
+  - Xây dựng bộ kiểm thử tích hợp chạy song song và xuất đủ bằng chứng trên CI

@@ -1,7 +1,0 @@
-# Software Design Architecture Architectural Pattern Pipes And Filters
-
-Pipes and Filters là mẫu kiến trúc tổ chức một quy trình xử lý thành chuỗi các thành phần độc lập (**filters**) nối với nhau bằng các đường truyền dữ liệu (**pipes**). Mỗi filter nhận đầu vào, xử lý một trách nhiệm rõ ràng rồi xuất kết quả cho bước tiếp theo. Cách tổ chức này hỗ trợ thay thế, thêm hoặc sắp xếp lại các bước mà không phải sửa toàn bộ quy trình; thường gặp trong xử lý log, ETL, chuyển đổi dữ liệu và tích hợp thông điệp.
-
-Module dành cho người đã biết lập trình cơ bản, luồng xử lý dữ liệu và khái niệm interface hoặc message. Lộ trình bắt đầu từ sơ đồ pipeline, vai trò source–filter–sink và hợp đồng dữ liệu giữa các bước. Sau đó người học ghép pipeline, so sánh pipes đồng bộ (hàm, stream) với bất đồng bộ (message channel/queue), xử lý lỗi và retry, rồi đánh giá bottleneck, backpressure và các chiến lược kiểm thử. Có thể thực hành trên Java Stream API, Spring Integration hoặc Apache Camel tùy bối cảnh; các công cụ này minh họa những dạng pipeline khác nhau.
-
-Sau khi hoàn thành, bạn có thể thiết kế một pipeline nhỏ, định nghĩa input/output riêng cho từng filter, viết test độc lập và kiểm tra kết quả end-to-end. Với pipeline bất đồng bộ, cần chú ý thứ tự, xử lý trùng và retry; khi khối lượng tăng, cần đo từng chặng để tìm bottleneck. Pipes and Filters phù hợp khi các bước có thể tách biệt, nhưng có thể gây overhead và khó quản lý transaction nếu công việc phải thực hiện nguyên khối.

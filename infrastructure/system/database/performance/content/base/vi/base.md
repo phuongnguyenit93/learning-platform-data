@@ -1,5 +1,0 @@
-# Database Performance
-
-Database Performance là khả năng hệ quản trị cơ sở dữ liệu đáp ứng truy vấn và giao dịch với độ trễ, thông lượng và mức sử dụng tài nguyên phù hợp nhu cầu ứng dụng. Tối ưu hiệu năng không đơn thuần là tăng cấu hình máy chủ: cần đo tải thực tế, xác định điểm nghẽn, hiểu kế hoạch thực thi và kiểm chứng tác động của từng thay đổi. Một cải tiến chỉ có ý nghĩa khi giữ đúng kết quả dữ liệu và không gây tác dụng phụ không chấp nhận được.
-
-Module dành cho người đã biết SQL, bảng, chỉ mục và giao dịch cơ bản. Bạn sẽ bắt đầu với các chỉ số hiệu năng, sử dụng `EXPLAIN` để đọc kế hoạch thực thi, rồi thực hành thiết kế index và viết SQL hiệu quả. Lộ trình tiếp tục với thống kê của bộ tối ưu, tranh chấp giao dịch, kết nối, cache, tài nguyên CPU/RAM/I/O và giám sát truy vấn. Các tài liệu PostgreSQL/MySQL là ví dụ để thực hành; nguyên tắc cốt lõi là **đo trước, thay đổi có mục tiêu, kiểm tra lại bằng tải đại diện**.

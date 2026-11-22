@@ -1,0 +1,3 @@
+menuLevel1: Giao tiếp người dùng
+menuLevel2: Chờ dữ liệu mới bằng polling, Server-Sent Events hoặc WebSocket
+status: ''

@@ -1,0 +1,386 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Backstage là gì và vai trò trong kỹ thuật nền tảng
+  - Cổng thông tin lập trình viên nội bộ và trải nghiệm tự phục vụ
+  - Bài toán phân tán thông tin, quyền sở hữu và công cụ phát triển
+  - Phân biệt developer portal, internal developer platform và hệ thống thực thi
+  - Quan hệ giữa Software Catalog, Templates, TechDocs và plugins
+  - Vai trò của nhóm nền tảng, nhóm ứng dụng và người quản trị
+  - Xác định trường hợp sử dụng và phạm vi giá trị ban đầu
+  - Kiến thức Git, TypeScript, React, Node.js và vận hành cần chuẩn bị
+- level1: Kiến trúc
+  level2:
+  - Kiến trúc frontend, backend và cơ sở dữ liệu của Backstage
+  - Luồng yêu cầu từ giao diện tới plugin backend và hệ thống ngoài
+  - Tổ chức app, backend, plugin và package dùng chung trong monorepo
+  - Phân biệt frontend plugin, backend plugin, module và core service
+  - Vai trò của extension points và dependency injection
+  - Ranh giới dữ liệu giữa catalog và các nguồn thông tin gốc
+  - Phân biệt hệ thống frontend hoặc backend hiện hành với kiến trúc cũ
+  - Lựa chọn phạm vi tùy biến ứng dụng thay vì sửa lõi Backstage
+- level1: Khởi tạo
+  level2:
+  - Kiểm tra yêu cầu phiên bản Node.js, Yarn và hệ điều hành
+  - Khởi tạo ứng dụng bằng công cụ create-app chính thức
+  - Khảo sát cấu trúc packages, plugins và workspace
+  - Cài dependency và khởi chạy môi trường phát triển
+  - Xác định frontend URL, backend URL và các cổng dịch vụ
+  - Thử catalog, template và TechDocs mẫu
+  - Kiểm tra TypeScript, lint và bài kiểm thử có sẵn
+  - Đưa mã ứng dụng Backstage và lockfile vào Git để quản lý
+- level1: Cấu hình
+  level2:
+  - Tổ chức app-config.yaml và cấu hình theo môi trường
+  - Hiểu thứ tự nạp, hợp nhất và ghi đè các nguồn cấu hình
+  - Truyền giá trị từ biến môi trường hoặc tệp bí mật
+  - Phân biệt cấu hình frontend, backend và trường nhạy cảm
+  - Thiết lập app.baseUrl, backend.baseUrl, CORS và origin
+  - Khai báo config schema cho plugin hoặc module riêng
+  - Kiểm tra cấu hình hiệu lực và phát hiện khóa sai
+  - Phân biệt cấu hình lúc build với cấu hình lúc khởi động theo cách đóng gói
+  - Giữ thông tin xác thực ngoài mã nguồn và gói frontend
+- level1: Software Catalog
+  level2:
+  - Vai trò của catalog trong tìm kiếm và mô tả phần mềm
+  - Cấu trúc catalog-info.yaml với apiVersion, kind, metadata và spec
+  - Khai báo tên, namespace, mô tả, nhãn và annotation
+  - Sử dụng entity reference đầy đủ hoặc rút gọn
+  - Phân biệt UID nội bộ và định danh entity theo kind, namespace, name
+  - Đăng ký entity đầu tiên từ repository
+  - Đọc entity, trạng thái xử lý và liên kết nguồn
+  - Phân biệt dữ liệu khai báo với relations hoặc status do hệ thống tạo
+  - Thiết lập quy ước metadata dùng chung trong tổ chức
+- level1: Mô hình hệ thống
+  level2:
+  - Phân biệt Component, API, Resource, System và Domain
+  - Mô hình hóa service, website, thư viện và tác vụ dữ liệu bằng Component
+  - Mô hình hóa tài nguyên hạ tầng bằng Resource
+  - Khai báo chủ sở hữu, loại và giai đoạn vòng đời phần mềm
+  - Tổ chức các Component vào System và Domain
+  - Biểu diễn API được cung cấp hoặc được sử dụng
+  - Khai báo phụ thuộc bằng dependsOn và các trường quan hệ hỗ trợ
+  - Đọc catalog graph và kiểm tra quan hệ hai chiều
+  - Thiết kế độ chi tiết entity phù hợp với trách nhiệm và vòng đời thực
+- level1: Nạp dữ liệu
+  level2:
+  - Phân biệt đăng ký Location, discovery và entity provider
+  - Khai báo catalog locations tĩnh
+  - Tự động phát hiện catalog descriptor từ hệ thống quản lý mã nguồn
+  - Kết nối nguồn dữ liệu ngoài bằng provider thích hợp
+  - Phân biệt ingestion, processing và stitching
+  - Vai trò của entity policies, processors và schema validation
+  - Điều chỉnh lịch đồng bộ và giới hạn phạm vi phát hiện
+  - Xử lý metadata lỗi, entity trùng và xung đột nguồn cung cấp
+  - Kiểm tra quyền đọc URL và nguồn nội dung được phép tải
+- level1: Vòng đời entity
+  level2:
+  - Theo dõi entity từ nguồn gốc đến dữ liệu được công bố trong catalog
+  - Cập nhật descriptor và xác minh thời điểm dữ liệu có hiệu lực
+  - Đọc annotation managed-by-location và origin-location
+  - Xử lý quan hệ tới entity chưa tồn tại
+  - Phân biệt hủy đăng ký location với xóa dữ liệu entity
+  - Quản lý orphaned entity và chính sách khi nguồn bị loại bỏ
+  - Đổi tên, chuyển namespace hoặc thay chủ sở hữu có đánh giá tác động
+  - Đối chiếu catalog với nguồn chuẩn và kiểm tra chất lượng dữ liệu
+- level1: Tổ chức và danh tính
+  level2:
+  - Mô hình hóa User và Group trong catalog
+  - Khai báo thành viên, nhóm cha và cơ cấu tổ chức
+  - Đồng bộ người dùng hoặc nhóm từ nguồn danh tính được chọn
+  - Phân biệt entity người dùng với tài khoản đăng nhập bên ngoài
+  - Ánh xạ danh tính đăng nhập tới entity reference chuẩn
+  - Sử dụng quan hệ sở hữu để hiển thị trách nhiệm
+  - Kiểm soát thay đổi thành viên và tài khoản đã ngừng hoạt động
+  - Phân biệt metadata sở hữu với chính sách cấp quyền thực thi
+- level1: Tích hợp SCM
+  level2:
+  - Vai trò của integrations trong đọc nguồn và xuất bản nội dung
+  - Cấu hình GitHub, GitLab, Bitbucket hoặc Azure DevOps theo provider được chọn
+  - Phân biệt SCM integration credential và auth provider đăng nhập
+  - Lựa chọn token hoặc ứng dụng tích hợp với phạm vi quyền phù hợp
+  - Quản lý host riêng, API endpoint và chứng thư của dịch vụ nội bộ
+  - Giới hạn quyền đọc catalog và quyền ghi repository cho Scaffolder
+  - Thiết lập discovery hoặc đồng bộ tổ chức bằng module tương ứng
+  - Luân chuyển credential và kiểm tra tác động đến các tính năng phụ thuộc
+- level1: Xác thực
+  level2:
+  - Phân biệt đăng nhập Backstage và ủy quyền truy cập dịch vụ ngoài
+  - Lựa chọn và cấu hình auth provider cho tổ chức
+  - Thiết lập callback URL và môi trường xác thực
+  - Chọn sign-in resolver và kiểm tra ánh xạ User entity
+  - Quản lý phiên đăng nhập, token và thông tin người dùng
+  - Phân biệt user credentials và service credentials trong backend
+  - Sử dụng auth, httpAuth và userInfo service theo trách nhiệm
+  - Kiểm tra default auth policy và các endpoint được miễn xác thực
+  - Giới hạn guest provider vào môi trường phát triển phù hợp
+- level1: Phân quyền
+  level2:
+  - Vai trò của permission framework trong kiểm soát hành động và dữ liệu
+  - Phân biệt quyết định policy và thực thi quyết định tại plugin
+  - Khai báo permission, loại tài nguyên và hành động
+  - Thiết kế policy theo nhóm, quyền sở hữu hoặc thuộc tính tài nguyên
+  - Sử dụng allow, deny và conditional decisions
+  - Đánh giá lựa chọn RBAC, ABAC hoặc hệ thống policy bên ngoài
+  - Áp dụng quyền cho đọc catalog, sửa dữ liệu và đăng ký entity
+  - Kiểm soát quyền chạy template, action và truy cập task
+  - Kiểm tra plugin đã thực thi quyền ở backend và giới hạn bảo vệ giao diện
+  - Kiểm thử quyền hiệu lực của nhiều vai trò và trường hợp bị từ chối
+- level1: Giao diện catalog
+  level2:
+  - Tìm kiếm và lọc entity theo kind, type, owner hoặc lifecycle
+  - Đọc trang entity với thông tin sở hữu, liên kết và quan hệ
+  - Tổ chức tab, card và nội dung theo loại entity
+  - Điều khiển hiển thị nội dung theo annotation hoặc khả năng tích hợp
+  - Tùy chỉnh bộ lọc và cách trình bày tên entity
+  - Hiển thị catalog graph và các phụ thuộc liên quan
+  - Thiết kế đường dẫn từ catalog tới tài liệu, API và công cụ vận hành
+  - Kiểm tra trải nghiệm khi thiếu metadata hoặc tích hợp chưa được cấu hình
+- level1: Software Templates
+  level2:
+  - Vai trò của Software Templates trong quy trình tự phục vụ
+  - Phân biệt Template entity, bộ khung mã và task được tạo
+  - Cấu trúc template.yaml theo API version được hỗ trợ
+  - Khai báo owner, type, mô tả và hướng dẫn sử dụng
+  - Thiết kế biểu mẫu parameters bằng JSON Schema
+  - Sử dụng uiSchema, field extension và bộ chọn entity hoặc repository
+  - Kiểm tra dữ liệu đầu vào và ràng buộc giữa các trường
+  - Tổ chức steps, action, input và output của template
+  - Sử dụng biểu thức template và bộ lọc theo cú pháp Scaffolder
+  - Quản lý phiên bản template và cam kết tương thích cho người dùng
+- level1: Quy trình Scaffolder
+  level2:
+  - Tiếp nhận đầu vào, xem lại thông tin và khởi tạo task
+  - Lấy bộ khung bằng fetch:template và thay thế tham số
+  - Sử dụng action xuất bản phù hợp với nhà cung cấp repository
+  - Đăng ký catalog descriptor của thành phần mới
+  - Trả liên kết repository, entity và kết quả cho người dùng
+  - Truyền secrets hoặc thông tin xác thực với quyền giới hạn
+  - Sử dụng điều kiện, vòng lặp và kết quả bước trước
+  - Theo dõi trạng thái, nhật ký và lỗi từng bước
+  - Đánh giá chạy lại, hủy task và tài nguyên ngoài đã được tạo
+  - Thiết kế xử lý bù trừ và xác nhận kết quả ở hệ thống đích
+- level1: Custom actions
+  level2:
+  - Đánh giá nhu cầu action riêng và nội dung có sẵn
+  - Tạo action bằng API Scaffolder theo phiên bản đang dùng
+  - Khai báo schema đầu vào, đầu ra và mô tả action
+  - Đọc workspace tạm và thao tác đường dẫn an toàn
+  - Gọi API ngoài với timeout, xử lý lỗi và quyền tối thiểu
+  - Thiết kế hành vi lặp lại ổn định và chống tạo tài nguyên trùng
+  - Kiểm soát log, dữ liệu nhạy cảm và kết quả trả về
+  - Hỗ trợ dry-run khi action có thể mô phỏng an toàn
+  - Đăng ký action qua backend module và kiểm thử độc lập
+- level1: TechDocs
+  level2:
+  - Vai trò của tài liệu như mã nguồn trong Backstage
+  - Kết nối entity với tài liệu bằng techdocs-ref
+  - Tổ chức mkdocs.yml, Markdown, hình ảnh và điều hướng
+  - Hiểu các bước chuẩn bị nguồn, sinh tài liệu và xuất bản
+  - Phân biệt builder, generator và publisher
+  - Sử dụng techdocs-cli hoặc image sinh tài liệu tương thích
+  - Tạo tài liệu trong môi trường phát triển và đọc qua TechDocs Reader
+  - Thiết lập liên kết chỉnh sửa hoặc phản hồi về nguồn
+  - Kiểm tra liên kết, tài nguyên tĩnh và metadata tài liệu
+  - Xác định chủ sở hữu và quy trình cập nhật tài liệu theo thay đổi phần mềm
+- level1: Vận hành TechDocs
+  level2:
+  - Tách sinh tài liệu trong CI khỏi phục vụ tài liệu trong Backstage
+  - Cấu hình external builder và nơi lưu trữ dùng chung
+  - Cấp quyền ghi cho CI và quyền đọc cho TechDocs backend
+  - Xuất bản tài liệu theo định danh entity nhất quán
+  - Quản lý cache, cập nhật nội dung và dữ liệu không còn sử dụng
+  - Kiểm soát quyền truy cập tài liệu ở backend và hệ thống lưu trữ
+  - Cô lập quá trình build tài liệu cùng plugin MkDocs bên thứ ba
+  - Chẩn đoán lỗi build, publish, đường dẫn và nội dung cũ
+- level1: API Catalog
+  level2:
+  - Mô hình hóa API entity và metadata cần thiết
+  - Đăng ký định nghĩa OpenAPI, AsyncAPI hoặc GraphQL theo renderer hỗ trợ
+  - Quản lý định nghĩa nhúng hoặc được đọc từ nguồn tham chiếu
+  - Liên kết Component cung cấp và Component sử dụng API
+  - Hiển thị tài liệu API và tùy chỉnh renderer khi cần
+  - Quản lý phiên bản hợp đồng API và trạng thái vòng đời
+  - Phân biệt mô tả API, thử gọi API và quyền truy cập dịch vụ thật
+  - Kiểm tra đồng bộ giữa hợp đồng được công bố và nguồn phát hành
+- level1: Tìm kiếm
+  level2:
+  - Kiến trúc Search frontend, backend và search engine
+  - Vai trò của document, collator, index và kết quả tìm kiếm
+  - Lập chỉ mục Software Catalog và TechDocs
+  - Lựa chọn search engine theo tính năng và module được hỗ trợ
+  - Thiết lập lịch cập nhật và kiểm tra độ mới chỉ mục
+  - Tạo collator cho nguồn dữ liệu riêng
+  - Tùy chỉnh bộ lọc, loại kết quả và cách hiển thị
+  - Phối hợp permission framework để giới hạn nội dung được tìm thấy
+  - Xử lý lập chỉ mục lỗi, kết quả thiếu hoặc liên kết không còn đúng
+- level1: Tích hợp DevOps
+  level2:
+  - Thiết kế annotation ánh xạ entity với tài nguyên ở công cụ ngoài
+  - Hiển thị build và pipeline qua plugin CI được lựa chọn
+  - Kết nối thông tin triển khai từ Argo CD hoặc công cụ tương ứng
+  - Sử dụng Kubernetes plugin để quan sát workload liên quan entity
+  - Giới hạn cluster, namespace và dữ liệu Kubernetes được phép truy cập
+  - Liên kết dashboard giám sát, cảnh báo và hướng dẫn xử lý sự cố
+  - Tích hợp quản lý chất lượng, bảo mật hoặc chi phí khi có nhu cầu
+  - Phân biệt xem trạng thái và thực thi thao tác thay đổi bên ngoài
+  - Xác định quyền sở hữu, độ mới dữ liệu và hành vi khi tích hợp bị lỗi
+- level1: Hệ sinh thái plugin
+  level2:
+  - Tìm plugin chính thức hoặc cộng đồng theo trường hợp sử dụng
+  - Kiểm tra hệ thống frontend và backend mà plugin hỗ trợ
+  - Đánh giá chất lượng bảo trì, phụ thuộc và phạm vi quyền
+  - Phân biệt cài package, đăng ký backend và ghép giao diện
+  - Cấu hình annotation, credential và endpoint theo tài liệu plugin
+  - Kiểm thử plugin trong môi trường riêng trước khi đưa vào sử dụng
+  - Xác định người chịu trách nhiệm hỗ trợ và nâng cấp plugin
+  - Gỡ plugin cùng đánh giá dữ liệu, cấu hình và tích hợp còn lại
+- level1: Plugin frontend
+  level2:
+  - Thiết kế trang, card hoặc khả năng dùng chung cho plugin
+  - Khởi tạo package plugin và ranh giới phụ thuộc
+  - Sử dụng frontend plugin, module và extension theo hệ thống đang dùng
+  - Lựa chọn extension blueprint, cấu hình hoặc override phù hợp
+  - Định nghĩa route và liên kết route giữa các plugin
+  - Gọi backend qua discovery, fetch và Utility APIs
+  - Đọc entity context để hiển thị nội dung theo thành phần phần mềm
+  - Xử lý trạng thái tải, rỗng, lỗi và từ chối quyền
+  - Tùy chỉnh chủ đề, điều hướng và khả năng truy cập
+  - Kiểm thử component và tích hợp plugin vào ứng dụng
+- level1: Plugin backend
+  level2:
+  - Khởi tạo backend plugin và đăng ký vào backend instance
+  - Khai báo dependency tới core services qua registerInit
+  - Tạo HTTP router và kiểm tra schema đầu vào
+  - Sử dụng config, logger, discovery và URL reader
+  - Phân biệt plugin database với dữ liệu thuộc plugin khác
+  - Đọc credentials bằng auth hoặc httpAuth service
+  - Kiểm tra permission tại nơi thực thi hành động
+  - Gọi plugin khác bằng giao thức API và thông tin xác thực phù hợp
+  - Quản lý lỗi, timeout, log và dữ liệu phản hồi
+  - Định nghĩa vòng đời khởi động hoặc dừng và kiểm thử router
+- level1: Mở rộng backend
+  level2:
+  - Phân biệt backend plugin, backend module và service factory
+  - Sử dụng extension point để bổ sung chức năng cho một plugin
+  - Viết catalog entity provider cho nguồn dữ liệu tổ chức
+  - Bổ sung processor hoặc policy cho quy tắc metadata riêng
+  - Mở rộng Scaffolder actions hoặc Search collators qua module
+  - Thiết kế extension point có giao diện ổn định
+  - Lựa chọn core service dùng sẵn hoặc service riêng theo nhu cầu
+  - Quản lý cấu hình, kiểm thử và tương thích của nội dung mở rộng
+- level1: Lưu trữ và lịch tác vụ
+  level2:
+  - Lựa chọn PostgreSQL cho triển khai production theo hướng dẫn hỗ trợ
+  - Tổ chức cơ sở dữ liệu hoặc schema theo plugin
+  - Quản lý connection pool, TLS và quyền tài khoản cơ sở dữ liệu
+  - Quản lý migration dữ liệu cùng phiên bản ứng dụng
+  - Thiết kế scheduled task bằng scheduler service
+  - Cấu hình tần suất, timeout, initial delay và phạm vi chạy
+  - Phối hợp lịch tác vụ khi backend có nhiều replica
+  - Phân biệt dữ liệu bền vững, cache và dữ liệu có thể tái tạo
+  - Sao lưu và thử phục hồi cơ sở dữ liệu hoặc nơi lưu tài liệu
+- level1: Bảo mật
+  level2:
+  - Xác định ranh giới tin cậy giữa người dùng, plugin và dịch vụ ngoài
+  - Bảo vệ token SCM, khóa ký, credential cloud và secret trong cấu hình
+  - Giới hạn proxy endpoint, URL reader và địa chỉ đích được phép
+  - Ngăn SSRF hoặc đọc nội dung ngoài phạm vi qua dữ liệu đầu vào
+  - Kiểm soát đường dẫn và dữ liệu thực thi trong custom action
+  - Cô lập quyền của Scaffolder với khả năng tạo repository hoặc tài nguyên
+  - Bảo vệ dữ liệu trong log, task output và tài liệu đã xuất bản
+  - Rà soát thư viện, plugin và image trong chuỗi cung ứng phần mềm
+  - Quản lý chính sách xác thực endpoint, CORS và kênh truy cập production
+  - Luân chuyển bí mật, thu hồi quyền và diễn tập ứng phó sự cố
+- level1: Kiểm thử
+  level2:
+  - Thiết kế kiểm thử theo chức năng portal và ranh giới tích hợp
+  - Kiểm tra TypeScript, lint và hợp đồng cấu hình
+  - Kiểm thử entity descriptor, quan hệ và quy tắc catalog
+  - Kiểm thử UI plugin với trạng thái tải, lỗi và thiếu quyền
+  - Kiểm thử router backend bằng service được giả lập phù hợp
+  - Kiểm thử custom action với workspace và API ngoài được kiểm soát
+  - Dùng Template Editor và kiểm tra mức hỗ trợ dry-run của từng action
+  - Kiểm thử policy với trường hợp cho phép, từ chối và điều kiện
+  - Kiểm tra luồng đăng nhập, tạo thành phần và đọc TechDocs từ đầu đến cuối
+  - Xác minh thay đổi không làm lộ dữ liệu qua search hoặc API
+- level1: Tích hợp CI/CD
+  level2:
+  - Thiết kế pipeline kiểm tra, build và đóng gói Backstage
+  - Cài dependency tái lập từ lockfile và cache có kiểm soát
+  - Chạy kiểm thử theo package và kiểm thử tích hợp cần thiết
+  - Kiểm tra schema cấu hình cùng tập plugin trước khi đóng gói
+  - Build image và gắn phiên bản nguồn hoặc digest
+  - Quét phụ thuộc hoặc image và lưu bằng chứng kiểm tra
+  - Triển khai staging rồi xác minh các luồng trọng yếu
+  - Phối hợp migration, phê duyệt production và đường quay lui
+- level1: Triển khai
+  level2:
+  - Chọn mô hình triển khai backend phục vụ frontend hoặc các phần tách riêng
+  - Đóng gói Docker image theo hướng dẫn cho ứng dụng đang sử dụng
+  - Cấp cấu hình production và bí mật lúc khởi động
+  - Kết nối PostgreSQL, search engine và kho TechDocs dùng chung
+  - Thiết lập DNS, ingress, TLS và base URL nhất quán
+  - Cấu hình auth provider thật và callback theo domain triển khai
+  - Thiết lập health checks, resource requests và giới hạn tài nguyên
+  - Chạy nhiều replica với đánh giá scheduler, task và phiên đăng nhập
+  - Triển khai cập nhật và xác minh khả năng tương thích dữ liệu
+  - Thử phục hồi dịch vụ từ image, cấu hình và dữ liệu đã sao lưu
+- level1: Quan sát và hiệu năng
+  level2:
+  - Thu thập log có cấu trúc theo plugin, request hoặc Scaffolder task
+  - Theo dõi health endpoint và các phụ thuộc quan trọng
+  - Tích hợp metrics hoặc tracing qua cơ chế hỗ trợ của phiên bản
+  - Theo dõi thời gian nạp catalog, render trang và hoàn tất task
+  - Giám sát lỗi discovery, processing, indexing và xuất bản tài liệu
+  - Đo tải cơ sở dữ liệu, cache và kết nối tới dịch vụ ngoài
+  - Điều chỉnh batch, lịch đồng bộ và giới hạn song song theo điểm nghẽn
+  - Phân biệt độ sẵn sàng portal với tình trạng của hệ thống được hiển thị
+  - Thiết lập cảnh báo và hướng dẫn xử lý cho từng khả năng nền tảng
+- level1: Nâng cấp
+  level2:
+  - Quản lý phiên bản Backstage cùng tập package tương thích
+  - Đọc release notes, thay đổi API và hướng dẫn migration
+  - Rà soát plugin cộng đồng hoặc plugin nội bộ trước nâng cấp
+  - Đánh giá mức ổn định API và thay đổi của hệ thống frontend
+  - Di chuyển nội dung legacy sang frontend hoặc backend system phù hợp
+  - Kiểm thử migration cơ sở dữ liệu, auth và permission policy
+  - Nâng cấp trong môi trường thử rồi triển khai theo phạm vi tăng dần
+  - Lưu ảnh triển khai, bản sao dữ liệu và kế hoạch quay lại đã kiểm chứng
+- level1: Quản trị nền tảng
+  level2:
+  - Vận hành developer portal như một sản phẩm nội bộ
+  - Khảo sát nhu cầu và chọn hành trình người dùng ưu tiên
+  - Thiết kế lộ trình chuẩn (golden path) cho dịch vụ mới
+  - Quy định chủ sở hữu cho entity, template, plugin và tài liệu
+  - Thiết lập chuẩn metadata và kiểm tra mức đầy đủ catalog
+  - Đánh giá scorecard hoặc tiêu chuẩn phần mềm qua plugin hoặc công cụ được chọn
+  - Thu nhận phản hồi và đo mức sử dụng từng khả năng
+  - Đánh giá thời gian hoàn thành tác vụ thay vì chỉ đếm số entity
+  - Quản lý ngoại lệ, thay đổi tiêu chuẩn và kế hoạch ngừng tính năng
+- level1: Xử lý sự cố
+  level2:
+  - Chẩn đoán lỗi cài dependency, phiên bản Node.js hoặc Yarn không phù hợp
+  - Xử lý cấu hình sai, biến môi trường thiếu và base URL không khớp
+  - Chẩn đoán đăng nhập thất bại, callback lỗi hoặc sign-in resolver không tìm thấy user
+  - Phân biệt lỗi 401, 403 và quyền của dịch vụ tích hợp
+  - Điều tra entity không xuất hiện, processing lỗi hoặc nguồn bị trùng
+  - Xử lý discovery không đồng bộ và credential SCM hết hạn
+  - Chẩn đoán template không hiển thị, action chưa đăng ký hoặc task thất bại
+  - Xử lý TechDocs không build, không publish hoặc trả nội dung cũ
+  - Điều tra search thiếu kết quả hoặc trả dữ liệu không đúng quyền
+  - Chẩn đoán plugin lỗi do annotation, endpoint hoặc khác phiên bản
+  - Xử lý migration cơ sở dữ liệu, pool kết nối và tác vụ chạy lặp
+  - Khoanh vùng lỗi portal, kết nối trung gian và hệ thống ngoài trước phục hồi
+- level1: Thực hành
+  level2:
+  - Khởi tạo Backstage lab và quản lý cấu hình bằng Git
+  - Mô hình hóa hệ thống Java với Component, API, Resource và chủ sở hữu
+  - Tự động nạp catalog từ repository và kiểm chứng cập nhật metadata
+  - Kết nối đăng nhập tổ chức và kiểm thử hai vai trò truy cập
+  - Viết template tạo dịch vụ Java với catalog descriptor và tài liệu ban đầu
+  - Bổ sung custom action có kiểm thử và kiểm soát tác dụng phụ
+  - Build TechDocs trong CI rồi phục vụ từ kho tài liệu dùng chung
+  - Tích hợp trạng thái pipeline hoặc Kubernetes vào trang entity
+  - Đóng gói, triển khai staging và kiểm tra các luồng tự phục vụ
+  - Diễn tập lỗi tích hợp, nâng cấp và phục hồi portal với bằng chứng

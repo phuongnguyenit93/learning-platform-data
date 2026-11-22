@@ -1,0 +1,3 @@
+menuLevel1: Optional.orElseThrow
+menuLevel2: orElseThrow trên OptionalInt, OptionalLong và OptionalDouble
+status: WRITTEN

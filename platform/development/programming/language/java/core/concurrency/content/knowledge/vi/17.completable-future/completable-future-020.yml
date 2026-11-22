@@ -1,3 +1,0 @@
-menuLevel1: CompletableFuture
-menuLevel2: 'exceptionallyCompose(): phục hồi bằng một CompletionStage bất đồng bộ'
-status: WRITTEN

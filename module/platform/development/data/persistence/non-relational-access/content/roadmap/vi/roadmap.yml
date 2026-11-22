@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-nosql
+  title: Tổng quan NoSQL
+  purpose: Hiểu các mô hình dữ liệu phi quan hệ và chọn cách truy cập phù hợp.
+  objectives:
+  - '- Phân biệt document, key-value, wide-column và graph.'
+  - '- Chọn mô hình theo truy vấn và nhu cầu mở rộng.'
+- id: thiet-ke-du-lieu
+  title: Thiết kế dữ liệu
+  purpose: Tổ chức dữ liệu theo cách đọc/ghi thực tế của từng hệ quản trị.
+  objectives:
+  - '- Thiết kế document với embed và reference.'
+  - '- Xác định key, partition và quan hệ đồ thị.'
+- id: ket-noi-java
+  title: Kết nối Java
+  purpose: Thiết lập ứng dụng Java truy cập các hệ NoSQL bằng driver hoặc Spring Data.
+  objectives:
+  - '- Cấu hình client, xác thực và timeout.'
+  - '- Phân biệt driver trực tiếp, template và repository.'
+- id: document-key-value
+  title: Document & Key-Value
+  purpose: Thực hiện thao tác cơ bản trên document store và key-value store.
+  objectives:
+  - '- CRUD document bằng MongoDB Java driver hoặc Spring Data.'
+  - '- Đọc/ghi key Redis và xác định TTL phù hợp.'
+- id: wide-column-graph
+  title: Wide-Column & Graph
+  purpose: Tiếp cận truy cập dữ liệu theo partition và quan hệ đồ thị.
+  objectives:
+  - '- Dùng CQL/driver để đọc ghi dữ liệu Cassandra theo partition key.'
+  - '- Dùng Cypher/Java driver truy vấn node và relationship Neo4j.'
+- id: truy-van-index
+  title: Truy vấn & Index
+  purpose: Xây dựng truy vấn có điều kiện và tránh đọc dữ liệu không cần thiết.
+  objectives:
+  - '- Dùng tham số, filter và projection khi truy vấn.'
+  - '- Tạo/chọn index và xem kế hoạch thực thi thích hợp.'
+- id: nhat-quan-giao-dich
+  title: Nhất quán & Giao dịch
+  purpose: Hiểu bảo đảm dữ liệu của từng hệ trước khi xử lý cập nhật.
+  objectives:
+  - '- Phân biệt atomicity, consistency và transaction theo engine.'
+  - '- Thiết kế retry có kiểm soát và thao tác idempotent.'
+- id: hieu-nang-an-toan
+  title: Hiệu năng & An toàn
+  purpose: Vận hành truy cập NoSQL ổn định khi dữ liệu và lưu lượng tăng.
+  objectives:
+  - '- Áp dụng pagination/batch và theo dõi độ trễ truy vấn.'
+  - '- Bảo vệ credentials và kiểm thử tích hợp đường đọc/ghi.'

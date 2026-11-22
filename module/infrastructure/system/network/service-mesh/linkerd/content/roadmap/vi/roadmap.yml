@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-linkerd
+  title: Tổng quan Linkerd
+  purpose: Hiểu Linkerd giải quyết các nhu cầu kết nối dịch vụ trên Kubernetes.
+  objectives:
+  - Nêu lợi ích về quan sát, bảo mật và độ tin cậy.
+  - Phân biệt service mesh với ứng dụng.
+- id: kien-truc-linkerd
+  title: Kiến trúc Linkerd
+  purpose: Nhận biết vai trò của control plane và proxy trong luồng giao tiếp.
+  objectives:
+  - Mô tả data plane proxy và control plane.
+  - Vẽ đường đi yêu cầu giữa hai pod.
+- id: cai-dat-kiem-tra
+  title: Cài đặt & kiểm tra
+  purpose: Làm quen quy trình đưa Linkerd vào cụm Kubernetes.
+  objectives:
+  - Nêu các bước cài CLI và control plane.
+  - Dùng linkerd check để xác minh trạng thái.
+- id: dua-dich-vu-vao-mesh
+  title: Đưa dịch vụ vào mesh
+  purpose: Hiểu cách proxy được đưa vào workload để xử lý lưu lượng.
+  objectives:
+  - Áp dụng annotation inject cho một deployment.
+  - Kiểm tra pod đã được gắn proxy.
+- id: telemetry-quan-sat
+  title: Telemetry & quan sát
+  purpose: Dùng số liệu từ mesh để đánh giá giao tiếp giữa dịch vụ.
+  objectives:
+  - Đọc request rate, success rate và latency.
+  - Quan sát luồng dịch vụ bằng Linkerd Viz.
+- id: mtls-danh-tinh
+  title: mTLS & danh tính
+  purpose: Hiểu cách Linkerd mã hóa và xác thực giao tiếp trong mesh.
+  objectives:
+  - Giải thích mTLS giữa các workload đã mesh.
+  - Kiểm tra trạng thái bảo vệ kết nối.
+- id: chinh-sach-do-tin-cay
+  title: Chính sách & độ tin cậy
+  purpose: Kiểm soát lưu lượng và giảm tác động của lỗi tạm thời.
+  objectives:
+  - Phân biệt cho phép và từ chối bằng policy.
+  - Nêu khi nào dùng retry hoặc timeout.
+- id: thuc-hanh-xu-ly-su-co
+  title: Thực hành xử lý sự cố
+  purpose: Tổng hợp thao tác quan sát, bảo mật và kiểm tra liên lạc.
+  objectives:
+  - Triển khai hai dịch vụ và xác nhận traffic.
+  - Dùng metrics, check và policy để tìm lỗi.

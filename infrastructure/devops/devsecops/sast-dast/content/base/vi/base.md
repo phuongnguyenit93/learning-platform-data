@@ -1,7 +1,0 @@
-# DevOps DevSecOps SAST DAST
-
-SAST (Static Application Security Testing) và DAST (Dynamic Application Security Testing) là hai kỹ thuật bổ trợ để phát hiện rủi ro bảo mật ứng dụng. SAST phân tích mã nguồn hoặc biểu diễn mã mà không cần chạy hệ thống, phù hợp với việc phát hiện sớm trong quá trình lập trình; DAST quan sát ứng dụng đang hoạt động từ bên ngoài để tìm dấu hiệu sai cấu hình và điểm yếu qua giao diện HTTP/API. Kết quả của cả hai là tín hiệu cần được xác minh, không phải bằng chứng rằng hệ thống đã an toàn hoàn toàn.
-
-Module dành cho lập trình viên, QA, DevOps và người học DevSecOps đã quen Git, CI/CD và ứng dụng web. Bạn sẽ bắt đầu từ phân biệt SAST/DAST, hiểu các lỗi thường gặp và cách công cụ SAST theo dõi dữ liệu, sau đó thiết lập quét mã, chuẩn bị phạm vi DAST và chạy OWASP ZAP Baseline. Phần tiếp theo tập trung vào kiểm thử đã xác thực trên môi trường được cấp quyền, phân loại cảnh báo, sửa lỗi, kiểm thử hồi quy và xây dựng security gate trong pipeline. Đối với active scan, chỉ thử trên hệ thống sở hữu hoặc được ủy quyền rõ ràng vì quá trình quét có thể làm thay đổi dữ liệu hay ảnh hưởng dịch vụ.
-
-Hãy thực hành với một ứng dụng web mẫu trong môi trường kiểm thử: chạy SAST trước khi merge, chạy DAST baseline sau khi deploy staging, tổng hợp phát hiện và kiểm tra lại sau khi sửa. Kết thúc module, bạn có thể chọn thời điểm quét phù hợp, đọc báo cáo bảo mật và thiết kế vòng phản hồi liên tục cho đội phát triển.

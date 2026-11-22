@@ -1,0 +1,295 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Quản lý phát hành là gì và tạo giá trị cho người dùng như thế nào
+  - Phân biệt xây dựng, triển khai và phát hành tính năng
+  - Quan hệ giữa quản lý phát hành, CI/CD và quản lý thay đổi
+  - Phân biệt phiên bản mã nguồn, phiên bản gói và phiên bản đang phục vụ
+  - Thuật ngữ ứng viên phát hành, chuyển môi trường, quay lui và triển khai bản sửa mới
+  - Những thành phần của một bản phát hành có thể kiểm chứng
+  - Phạm vi module và lộ trình theo dõi một bản phát hành xuyên suốt
+- level1: Vòng đời phát hành
+  level2:
+  - Từ yêu cầu thay đổi đến ứng viên phát hành
+  - Từ ứng viên đạt điều kiện đến triển khai môi trường đích
+  - Từ triển khai thành công đến xác nhận người dùng có thể sử dụng
+  - Mô tả trạng thái chờ, đang chạy, bị chặn, hủy và hoàn tất
+  - Xác định điều kiện vào và ra của từng giai đoạn
+  - Phân biệt một lần chạy pipeline với một bản phát hành
+  - Giữ bằng chứng và kết quả xuyên suốt vòng đời
+- level1: Vai trò và trách nhiệm
+  level2:
+  - Xác định người chịu trách nhiệm cho kết quả phát hành
+  - Phân chia trách nhiệm giữa phát triển, kiểm thử và vận hành
+  - Làm rõ vai trò của chủ sản phẩm và nhóm hỗ trợ
+  - Xác định ai được chuẩn bị, phê duyệt, thực hiện và xác nhận
+  - Thiết lập người thay thế và đường liên hệ khi có sự cố
+  - Quy định quyền dừng hoặc hủy bản phát hành
+  - Tránh trách nhiệm bỏ trống khi công việc đi qua nhiều nhóm
+- level1: Chính sách phát hành
+  level2:
+  - Chọn phát hành theo lịch hay theo nhu cầu
+  - Phân loại thay đổi theo phạm vi và mức độ rủi ro
+  - Thiết kế điều kiện kiểm soát tương xứng với loại thay đổi
+  - Quy định khung thời gian phát hành và giai đoạn hạn chế thay đổi
+  - Xác định tiêu chí sẵn sàng và tiêu chí dừng
+  - Quy định cách xử lý ngoại lệ có thời hạn
+  - Quản lý thời gian hỗ trợ và kết thúc hỗ trợ phiên bản
+  - Giữ chính sách rõ ràng mà không tạo thủ tục vượt nhu cầu
+- level1: Phạm vi thay đổi
+  level2:
+  - Liệt kê tính năng, sửa lỗi và thay đổi kỹ thuật sẽ phát hành
+  - Liên kết yêu cầu với pull request, commit và gói đầu ra
+  - Phát hiện thay đổi ngoài dự kiến trong phạm vi bản phát hành
+  - Xác định phụ thuộc bắt buộc giữa các thay đổi
+  - Phân biệt hoàn tất phát triển với đủ điều kiện phát hành
+  - Xử lý thay đổi bị rút khỏi ứng viên
+  - Chốt phạm vi và kiểm soát thay đổi sau thời điểm chốt
+- level1: Lập kế hoạch
+  level2:
+  - Xác định mục tiêu, thời điểm và đối tượng nhận bản phát hành
+  - Đánh giá thời gian triển khai, xác minh và khôi phục
+  - Kiểm tra năng lực hạ tầng và khả năng trực hỗ trợ
+  - Lập thứ tự các bước có phụ thuộc
+  - Chuẩn bị điều kiện tiên quyết và người thực hiện từng bước
+  - Lập kế hoạch cho tình huống thất bại hoặc quá thời gian
+  - Quy định mốc quyết định tiếp tục hay dừng
+  - Diễn tập kế hoạch trước các thay đổi có ảnh hưởng lớn
+- level1: Mã nguồn và phiên bản
+  level2:
+  - Liên kết nhánh phát triển với chiến lược chuẩn bị bản phát hành
+  - Dùng tag và commit để xác định chính xác nguồn được xây dựng
+  - Chọn quy ước phiên bản phù hợp loại sản phẩm
+  - Phân biệt phiên bản ổn định, thử nghiệm và ứng viên phát hành
+  - Quản lý phiên bản khi nhiều dòng sản phẩm còn được hỗ trợ
+  - Kiểm soát thay đổi trên nhánh bảo trì và nhánh phát hành
+  - Ngăn tag hoặc phiên bản bị dùng lại cho nội dung khác
+  - Đối chiếu phiên bản công bố với phiên bản chứa trong gói
+- level1: Ứng viên phát hành
+  level2:
+  - Tạo ứng viên từ nguồn và phụ thuộc đã xác định
+  - Xác định một ứng viên bằng phiên bản, commit và mã băm gói
+  - Gắn cấu hình xây dựng cùng bằng chứng kiểm thử vào ứng viên
+  - Chuyển cùng một gói đã kiểm chứng qua các môi trường
+  - Phân biệt thay cấu hình môi trường với xây dựng lại gói
+  - Tạo ứng viên mới khi nội dung đầu ra thay đổi
+  - Quy định thời hạn sử dụng và điều kiện loại bỏ ứng viên
+- level1: Gói phát hành
+  level2:
+  - Xác định thành phần cần có trong một gói phát hành
+  - Tổ chức JAR, container image, tài nguyên tĩnh và tệp triển khai khi phù hợp
+  - Lập manifest liên kết phiên bản của các thành phần
+  - Lưu checksum và định danh bất biến của từng gói
+  - Quản lý gói trong kho có kiểm soát quyền truy cập
+  - Giữ đủ gói và cấu hình cần thiết cho khôi phục
+  - Quy định lưu giữ và dọn dẹp mà không làm mất khả năng truy vết
+  - Phân biệt gói đã tải lên với gói đã sẵn sàng cho người dùng
+- level1: Điều kiện chất lượng
+  level2:
+  - Xác định bộ kiểm tra bắt buộc cho từng loại phát hành
+  - Đối chiếu kiểm thử đơn vị, tích hợp và kiểm thử chấp nhận
+  - Xác minh khả năng khởi động và kiểm tra khói của ứng viên
+  - Đánh giá hiệu năng và giới hạn tài nguyên khi thay đổi có liên quan
+  - Kiểm tra hồi quy ở các luồng nghiệp vụ quan trọng
+  - Xử lý kiểm thử không ổn định và kết quả thiếu bằng chứng
+  - Ngăn sử dụng kết quả kiểm tra của một gói khác
+  - Lưu kết quả kiểm tra để quyết định phát hành có thể được đối chiếu
+- level1: Rủi ro phát hành
+  level2:
+  - Ước lượng phạm vi ảnh hưởng và nhóm người dùng có thể bị tác động
+  - Đánh giá khả năng phát hiện lỗi và thời gian khôi phục
+  - Nhận diện thay đổi khó đảo ngược
+  - Phân tích nguy cơ do phụ thuộc, dữ liệu và cấu hình
+  - Chọn biện pháp giảm rủi ro theo từng thay đổi cụ thể
+  - Xác định dấu hiệu phải dừng trước khi bắt đầu triển khai
+  - Cập nhật đánh giá khi phạm vi hoặc điều kiện thực tế thay đổi
+- level1: Nguồn gốc gói
+  level2:
+  - Truy vết gói đầu ra về mã nguồn và quá trình xây dựng
+  - Kiểm tra tính toàn vẹn bằng mã băm và chữ ký khi được sử dụng
+  - Phân biệt xác minh chữ ký với đánh giá mức tin cậy của bên ký
+  - Quản lý thông tin thành phần phần mềm bằng SBOM khi cần
+  - Đối chiếu kết quả kiểm tra phụ thuộc với đúng ứng viên
+  - Bảo vệ danh tính và quyền của hệ thống xây dựng
+  - Ngăn gói không xác định nguồn được đưa vào luồng phát hành
+- level1: Môi trường và cấu hình
+  level2:
+  - Xác định vai trò của môi trường thử nghiệm, tiền sản xuất và sản xuất
+  - Nhận diện khác biệt môi trường có thể làm sai kết quả kiểm chứng
+  - Tách cấu hình triển khai khỏi nội dung gói
+  - Quản lý cấu hình theo phiên bản và kiểm tra thay đổi
+  - Cấp bí mật theo đúng môi trường và phạm vi sử dụng
+  - Kiểm tra cấu hình bắt buộc trước khi khởi động
+  - Phát hiện sai lệch giữa cấu hình dự kiến và cấu hình đang chạy
+  - Lưu bằng chứng triển khai mà không làm lộ thông tin bí mật
+- level1: Tương thích
+  level2:
+  - Xác định hợp đồng cần giữ với bên sử dụng và dịch vụ liên quan
+  - Đánh giá tương thích API, định dạng dữ liệu và cấu hình
+  - Thiết kế giai đoạn phiên bản cũ và mới cùng hoạt động
+  - Kiểm tra tương thích ngược và tương thích xuôi theo từng hợp đồng
+  - Quản lý thay đổi phá vỡ tương thích và thông báo chuyển đổi
+  - Xác định thứ tự cập nhật bên cung cấp và bên sử dụng
+  - Lập kế hoạch ngừng hỗ trợ hợp đồng cũ
+  - Đối chiếu ma trận phiên bản được phép cùng vận hành
+- level1: Thay đổi dữ liệu
+  level2:
+  - Liên kết phiên bản ứng dụng với phiên bản lược đồ dữ liệu
+  - Phân biệt thay đổi có thể đảo với thay đổi mất dữ liệu
+  - Thiết kế thay đổi theo các bước mở rộng, chuyển đổi và thu gọn
+  - Giữ ứng dụng cũ và mới tương thích trong thời gian chuyển tiếp
+  - Chuẩn bị sao lưu và kiểm tra khả năng phục hồi
+  - Diễn tập migration với khối lượng dữ liệu đại diện
+  - Quản lý thời gian khóa, thời gian chạy và nguy cơ gián đoạn
+  - Kiểm tra việc bổ sung dữ liệu nền và đối chiếu kết quả
+  - Xác định cách khôi phục khi mã đã quay lui nhưng dữ liệu đã thay đổi
+- level1: Chiến lược triển khai
+  level2:
+  - Đánh giá triển khai thay thế toàn bộ theo thời gian gián đoạn cho phép
+  - Triển khai cuốn chiếu và theo dõi phiên bản cũ mới cùng tồn tại
+  - Triển khai hai môi trường song song và chuyển lưu lượng
+  - Triển khai canary cho một phần lưu lượng hoặc nhóm người dùng
+  - Mở rộng dần phạm vi theo các điều kiện đã định
+  - Chọn chiến lược theo kiến trúc, chi phí và khả năng khôi phục
+  - Quản lý phiên làm việc và yêu cầu đang xử lý khi chuyển phiên bản
+  - Phân biệt triển khai thử với gửi lưu lượng thực tới phiên bản mới
+- level1: Bật tắt tính năng
+  level2:
+  - Tách thời điểm triển khai mã khỏi thời điểm mở tính năng
+  - Thiết kế cờ tính năng và giá trị mặc định an toàn
+  - Chọn nhóm người dùng hoặc tỷ lệ nhận tính năng
+  - Phân biệt cờ phát hành, cờ vận hành và cấu hình sản phẩm
+  - Kiểm tra các tổ hợp cờ cần được hỗ trợ
+  - Xử lý lỗi khi dịch vụ cấu hình cờ không sẵn sàng
+  - Xác định chủ sở hữu, thời hạn và kế hoạch xóa cờ
+  - Phân biệt tắt tính năng với quay lui phiên bản ứng dụng
+- level1: Tự động hóa
+  level2:
+  - Biểu diễn các giai đoạn phát hành thành pipeline có trạng thái rõ ràng
+  - Truyền định danh ứng viên bất biến giữa các công việc
+  - Tự động kiểm tra điều kiện tiên quyết và dừng khi không đạt
+  - Làm cho thao tác có thể chạy lại mà không tạo tác dụng phụ trùng
+  - Phân biệt thử lại một bước với bắt đầu một bản phát hành mới
+  - Quản lý thời gian chờ, kết quả không rõ và bước bị gián đoạn
+  - Thu thập bằng chứng từ pipeline vào hồ sơ bản phát hành
+  - Kiểm thử chính quy trình tự động hóa trước khi dùng cho sản xuất
+- level1: Điều phối phát hành
+  level2:
+  - Ngăn hai lần triển khai cùng sửa một môi trường đích
+  - Phân biệt khóa theo ứng dụng, môi trường và tài nguyên dùng chung
+  - Xử lý ứng viên cũ hoàn tất sau ứng viên mới
+  - Quản lý hủy pipeline khi công việc triển khai đã bắt đầu
+  - Phát hiện trạng thái thực khi pipeline mất kết nối
+  - Ngăn thao tác công bố bị lặp khi công việc được chạy lại
+  - Đồng bộ kết quả giữa hệ thống triển khai và hồ sơ phát hành
+- level1: Phê duyệt và quyền
+  level2:
+  - Xác định thay đổi nào cần phê duyệt theo chính sách
+  - Trình bày ứng viên, bằng chứng và rủi ro để người duyệt quyết định
+  - Ràng buộc phê duyệt với đúng gói và phạm vi thay đổi
+  - Quy định khi nào phê duyệt hết hiệu lực
+  - Áp dụng quyền tối thiểu cho tài khoản và hệ thống phát hành
+  - Tách trách nhiệm khi mức rủi ro hoặc yêu cầu tổ chức cần
+  - Quản lý quyền khẩn cấp có thời hạn và dấu vết sử dụng
+- level1: Thực hiện phát hành
+  level2:
+  - Đọc checklist và xác nhận điều kiện trước khi bắt đầu
+  - Đối chiếu gói, môi trường, cấu hình và phiên bản dữ liệu
+  - Thực hiện các bước theo thứ tự đã được kiểm chứng
+  - Theo dõi tiến độ cùng trạng thái thực của ứng dụng
+  - Kiểm soát thay đổi phát sinh trong thời gian triển khai
+  - Dừng an toàn khi điều kiện thực tế khác kế hoạch
+  - Ghi nhận người thực hiện, thời điểm và kết quả từng bước
+  - Phân biệt hoàn tất công việc triển khai với hoàn tất phát hành
+- level1: Xác minh sau triển khai
+  level2:
+  - Kiểm tra phiên bản thực sự được phục vụ tại môi trường đích
+  - Kiểm tra sức khỏe, mức sẵn sàng và luồng nghiệp vụ quan trọng
+  - Đối chiếu lỗi, độ trễ và lưu lượng trước sau thay đổi
+  - Theo dõi chỉ dấu nghiệp vụ để phát hiện lỗi không làm ứng dụng ngừng chạy
+  - Kiểm tra cấu hình cờ và nhóm người dùng thực sự nhận tính năng
+  - Xác định khoảng quan sát trước khi mở rộng hoặc kết thúc
+  - Dùng ngưỡng dừng đã định để quyết định tiếp tục hay khôi phục
+  - Lưu kết quả xác minh và xác nhận tình trạng phát hành
+- level1: Khôi phục
+  level2:
+  - Phân biệt quay lui phiên bản, triển khai bản sửa mới và hành động bù trừ
+  - Xác định điều kiện kích hoạt kế hoạch khôi phục
+  - Đối chiếu khả năng tương thích trước khi dùng lại phiên bản cũ
+  - Khôi phục gói cùng cấu hình liên quan theo phạm vi cần thiết
+  - Xử lý dữ liệu hoặc tác dụng phụ không thể tự đảo ngược
+  - Giảm phạm vi ảnh hưởng bằng cờ tính năng hoặc chuyển lưu lượng
+  - Xác minh dịch vụ và nghiệp vụ sau khi khôi phục
+  - Ghi lại trạng thái cuối để lần chạy tiếp theo không dựa vào giả định cũ
+  - Diễn tập và đo thời gian khôi phục thực tế
+- level1: Bản vá khẩn cấp
+  level2:
+  - Xác định tiêu chí để dùng luồng phát hành khẩn cấp
+  - Tạo bản vá từ đúng phiên bản cần sửa
+  - Giữ bộ kiểm tra tối thiểu phù hợp với phạm vi lỗi
+  - Tổ chức phê duyệt và quyền thực hiện theo chính sách khẩn cấp
+  - Đưa bản vá qua các môi trường cần thiết mà vẫn truy vết được
+  - Hợp nhất thay đổi trở lại các nhánh còn được duy trì
+  - Xác minh và tổng kết sau khi dịch vụ ổn định
+  - Ngăn luồng khẩn cấp trở thành cách bỏ qua kiểm soát thường xuyên
+- level1: Nhiều thành phần
+  level2:
+  - Lập manifest phát hành cho backend, frontend và cấu hình liên quan
+  - Chọn phát hành độc lập hay phối hợp theo mức phụ thuộc thực tế
+  - Xác định thứ tự triển khai các thành phần
+  - Kiểm tra tổ hợp phiên bản trong giai đoạn chuyển tiếp
+  - Quản lý tình huống chỉ một phần thành phần triển khai thành công
+  - Khôi phục theo phạm vi nhỏ nhất vẫn giữ đúng hợp đồng
+  - Tránh buộc mọi dịch vụ cùng một phiên bản khi không có nhu cầu
+  - Phân biệt phát hành dịch vụ đang chạy với phân phối thư viện hoặc sản phẩm cài đặt
+- level1: Ghi chú phát hành
+  level2:
+  - Viết ghi chú theo thay đổi có ý nghĩa với người nhận
+  - Phân loại tính năng, sửa lỗi, thay đổi phá vỡ tương thích và việc ngừng hỗ trợ
+  - Liên kết thay đổi với yêu cầu và hướng dẫn liên quan
+  - Phân biệt ghi chú cho người dùng với nhật ký kỹ thuật
+  - Viết hướng dẫn nâng cấp và điều kiện cần chuẩn bị
+  - Nêu rõ vấn đề đã biết và cách xử lý tạm thời
+  - Tự động tổng hợp dữ liệu nhưng vẫn kiểm tra nội dung trước khi công bố
+  - Giữ ghi chú gắn với đúng phiên bản và gói đã phát hành
+- level1: Truyền thông
+  level2:
+  - Xác định nhóm cần được thông báo trước, trong và sau phát hành
+  - Chuẩn bị nội dung về thời gian, ảnh hưởng và thao tác người dùng cần làm
+  - Thống nhất kênh cập nhật tình trạng và người chịu trách nhiệm
+  - Thông báo trì hoãn, hủy hoặc khôi phục theo tình trạng thực tế
+  - Cung cấp thông tin cần thiết cho nhóm hỗ trợ
+  - Đóng thông báo bằng kết quả xác minh và vấn đề còn tồn tại
+- level1: Hồ sơ và cải tiến
+  level2:
+  - Tổ chức hồ sơ liên kết phạm vi, ứng viên, phê duyệt và kết quả
+  - Truy vết từ phiên bản đang chạy về nguồn và bằng chứng phát hành
+  - Đo thời gian chờ, thời gian thực hiện và tần suất phát hành
+  - Theo dõi bản phát hành gây lỗi và thời gian phục hồi theo định nghĩa thống nhất
+  - Phân biệt tương quan chỉ số với nguyên nhân của sự cố
+  - Tổng kết bản phát hành và chuyển phát hiện thành hành động cải tiến
+  - Cập nhật checklist và tự động hóa từ lỗi đã quan sát
+  - Kiểm tra hiệu quả cải tiến bằng các bản phát hành tiếp theo
+- level1: Lỗi thường gặp
+  level2:
+  - Xây dựng lại gói cho từng môi trường rồi coi là cùng ứng viên
+  - Dùng nhãn latest hoặc tag thay đổi được làm định danh duy nhất
+  - Công bố thành công chỉ dựa vào trạng thái pipeline
+  - Quay lui mã mà bỏ qua thay đổi dữ liệu hoặc cấu hình
+  - Phê duyệt một ứng viên nhưng triển khai một gói khác
+  - Chạy lại công việc làm công bố hoặc migration bị thực hiện trùng
+  - Để nhiều pipeline ghi đè phiên bản trên cùng môi trường
+  - Không giữ gói cũ hoặc không thử kế hoạch khôi phục
+  - Quên dọn cờ tính năng và duy trì nhánh bảo trì cần thiết
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập kế hoạch phát hành một ứng dụng Java với phạm vi rõ ràng
+  - Tạo ứng viên có phiên bản, mã băm và manifest truy vết được
+  - Thiết kế pipeline chuyển cùng gói qua môi trường thử nghiệm và sản xuất
+  - Xây dựng điều kiện chất lượng cùng hồ sơ bằng chứng
+  - Diễn tập thay đổi dữ liệu tương thích với hai phiên bản ứng dụng
+  - Mô phỏng triển khai từng phần và quyết định mở rộng hoặc dừng
+  - Tách việc mở tính năng khỏi việc triển khai bằng cờ có chủ sở hữu
+  - Xử lý lần chạy gián đoạn mà không tạo tác dụng phụ trùng
+  - Diễn tập khôi phục và luồng bản vá khẩn cấp
+  - Hoàn thiện ghi chú, checklist và báo cáo sau phát hành

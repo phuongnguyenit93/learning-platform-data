@@ -1,18 +1,8 @@
 # learning-platform-data
 
-This repository contains the learning modules used by
-[`java-learning`](https://github.com/phuongnguyenit93/java-learning).
+Content modules live in `module/`; AI authoring instructions live in `module-generate-agent/`.
 
-Content is organized under `infrastructure/`, `integration/`, and `platform/`.
-The `java-learning` repository includes this repository as the `module/` Git
-submodule, preserving existing script paths such as `java-learning/module/...`.
+This repository is mounted at `java-learning/learning-platform-data` as a Git submodule.
+The main build tooling and module generation scripts live in the parent `java-learning` repository.
 
-Clone the parent project together with this content:
-
-```bash
-git clone --recurse-submodules https://github.com/phuongnguyenit93/java-learning.git
-```
-
-When updating content directly here, commit and push it to this repository.
-Then commit the updated `module` submodule pointer in `java-learning` when
-the parent project should use the new content version.
+Clone using `git clone --recurse-submodules` and update the submodule pointer in the parent when a new data revision is ready.

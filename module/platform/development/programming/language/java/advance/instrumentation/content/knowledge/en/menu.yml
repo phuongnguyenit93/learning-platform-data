@@ -1,0 +1,241 @@
+menu:
+- level1: Bức tranh instrumentation
+  level2:
+  - Instrumentation là gì và vì sao công cụ cần chèn mã quan sát vào chương trình
+  - Java agent chạy trong cùng JVM với ứng dụng và có vòng đời như thế nào
+  - Phân biệt theo dõi bằng lấy mẫu với thu thập dữ liệu bằng mã được chèn
+  - 'Các ứng dụng: đếm lời gọi, đo thời gian, theo dõi lỗi và độ bao phủ'
+  - Phân biệt biến đổi ngoại tuyến, biến đổi lúc nạp và thay đổi lớp đã nạp
+  - Vai trò của java.lang.instrument, Attach API, Class-File API và JVM TI
+  - Ranh giới giữa API đăng ký biến đổi với công cụ thực sự đọc, sửa bytecode
+  - Tính đúng đắn của ứng dụng, chi phí quan sát và giới hạn của dữ liệu thu thập
+  - 'Kiến thức cần chuẩn bị: vòng đời lớp, bytecode, class loader, module và xử lý đồng thời'
+- level1: Nền tảng class file
+  level2:
+  - Tệp class là biểu diễn nhị phân có thể tồn tại dưới dạng byte trong bộ nhớ
+  - Major version, minor version và tương thích với JVM đích
+  - Tên lớp nội bộ, descriptor của trường, phương thức và kiểu mảng
+  - Constant pool và tham chiếu đến lớp, trường, phương thức được gọi
+  - Code attribute, local variables, operand stack và các lệnh trả về
+  - Nhãn nhảy, bảng xử lý ngoại lệ và StackMapTable
+  - Constructor <init>, class initializer <clinit> và trạng thái this chưa khởi tạo
+  - Annotation, synthetic, bridge, lambda và mã do trình biên dịch sinh
+  - Line number, local variable metadata và giới hạn liên hệ bytecode với mã nguồn
+  - Dùng javap để đọc bytecode trước và sau khi chèn mã
+- level1: Agent khi khởi động
+  level2:
+  - Đóng gói agent JAR và cấu trúc META-INF/MANIFEST.MF
+  - Premain-Class và hai chữ ký hợp lệ của premain
+  - -javaagent:jarpath=options và cách nhận chuỗi agentArgs
+  - Nhận Instrumentation từ JVM và giữ tham chiếu dùng cho vòng đời agent
+  - Thứ tự premain trước main và trường hợp nhiều -javaagent
+  - Khởi tạo cấu hình, helper và transformer trước khi ứng dụng chạy
+  - Lỗi nạp agent, sai chữ ký và ngoại lệ không được bắt có thể làm JVM không khởi động
+  - Launcher-Agent-Class trong executable JAR và vai trò agentmain
+  - Phân biệt Main-Class, Premain-Class, Agent-Class và Launcher-Agent-Class
+  - Thử một agent chỉ ghi dấu mốc để quan sát thứ tự khởi động
+- level1: Attach vào JVM
+  level2:
+  - Attach API và module jdk.attach có vai trò gì
+  - Khám phá tiến trình bằng VirtualMachine.list và VirtualMachineDescriptor
+  - Gắn vào JVM bằng VirtualMachine.attach với định danh đã xác nhận
+  - VirtualMachine.loadAgent và đường dẫn agent JAR trong môi trường của JVM đích
+  - Agent-Class, chữ ký agentmain và truyền agentArgs
+  - Khởi tạo agent khi ứng dụng đã chạy và các lớp có thể đã được nạp
+  - Phân biệt attach thành công, nạp agent thành công và biến đổi lớp thành công
+  - detach kết nối điều khiển không đồng nghĩa với gỡ agent khỏi JVM
+  - Quyền hệ điều hành, container, self-attach và khả năng hỗ trợ của nhà cung cấp
+  - Cảnh báo nạp agent động, EnableDynamicAgentLoading và chính sách theo phiên bản
+  - AttachNotSupportedException, AgentLoadException và AgentInitializationException
+- level1: Khả năng Instrumentation
+  level2:
+  - Manifest khai báo khả năng khác với khả năng JVM thực sự hỗ trợ
+  - Can-Retransform-Classes và isRetransformClassesSupported
+  - Can-Redefine-Classes và isRedefineClassesSupported
+  - Can-Set-Native-Method-Prefix và isNativeMethodPrefixSupported
+  - isModifiableClass khác với kiểm tra khả năng chung của agent
+  - Primitive class, array class và những lớp không thể sửa
+  - isModifiableModule và điều kiện trước khi thay đổi quan hệ module
+  - Chọn chức năng thay thế hoặc bỏ qua có báo cáo khi khả năng không được hỗ trợ
+- level1: Hợp đồng transformer
+  level2:
+  - ClassFileTransformer và thời điểm callback được gọi trước khi lớp được định nghĩa
+  - Hai dạng transform có và không có tham số Module
+  - Ý nghĩa của loader, className, classBeingRedefined và ProtectionDomain
+  - Nhận diện bootstrap loader qua loader null
+  - Lọc lớp theo tên, bộ nạp, module và nguồn mã trước khi phân tích bytecode
+  - Trả null khi không đổi và trả mảng byte mới khi có biến đổi
+  - Không sửa trực tiếp classfileBuffer do JVM cung cấp
+  - Phân biệt định nghĩa lần đầu với redefine hoặc retransform qua ngữ cảnh callback
+  - IllegalClassFormatException và ngoại lệ transformer không bảo đảm ngăn nạp lớp
+  - Loại trừ lớp của agent, helper và công cụ ghi log để tránh tự chèn mã
+  - Quản lý dữ liệu chẩn đoán mà không làm callback phụ thuộc vào lớp đang được nạp
+- level1: Chuỗi biến đổi
+  level2:
+  - addTransformer với canRetransform false hoặc true
+  - Kết quả của transformer trước trở thành đầu vào của transformer sau
+  - Thứ tự bốn nhóm transformer Java, native và khả năng retransformation
+  - Thứ tự đăng ký bên trong từng nhóm
+  - Điều gì xảy ra khi một transformer không đổi hoặc ném ngoại lệ
+  - Biến đổi xác định theo đầu vào và khả năng chịu được nhiều lần xử lý
+  - Không giả định mảng byte đầu vào luôn giống bản class trên đĩa
+  - Giữ tương thích khi nhiều agent cùng chỉnh một phương thức
+  - removeTransformer và khả năng callback đang chạy vẫn tiếp tục
+  - Gỡ transformer không tự khôi phục các lớp đã được biến đổi
+- level1: Class-File API
+  level2:
+  - java.lang.classfile là API chính thức từ JDK 24 và yêu cầu tương thích phiên bản
+  - ClassFile.parse, ClassModel và cách đọc cây thành phần của lớp
+  - MethodModel, CodeModel và chọn đúng phương thức bằng tên cùng descriptor
+  - Model bất biến, phân tích trì hoãn và lưu ý khi chia sẻ giữa các luồng
+  - ClassBuilder, MethodBuilder, CodeBuilder và việc giữ lại phần không thay đổi
+  - ClassTransform, MethodTransform, CodeTransform và ghép các phép biến đổi
+  - Chèn lệnh gọi helper thay vì viết lại toàn bộ thuật toán của ứng dụng
+  - Quản lý vị trí biến cục bộ, nhãn nhảy và đường đi ngoại lệ
+  - Tạo stack map và giải quyết quan hệ kế thừa bằng ClassHierarchyResolver
+  - Chọn bộ phân giải phù hợp class loader để tránh nạp lớp ngoài ý muốn
+  - Giữ thông tin debug, thuộc tính chuẩn và thuộc tính không nhận diện
+  - ClassFile.verify, kiểm tra lại byte sinh ra và giới hạn của xác minh cấu trúc
+- level1: Thiết kế điểm đo
+  level2:
+  - Chọn điểm đo theo câu hỏi cần trả lời thay vì chèn vào mọi phương thức
+  - Ghi sự kiện bắt đầu và kết thúc một lời gọi
+  - Đo khoảng thời gian bằng nguồn thời gian đơn điệu
+  - Phân biệt mọi lệnh return với các đường thoát do ngoại lệ
+  - Xử lý ngoại lệ phát sinh từ lời gọi hoặc lệnh khác mà không có athrow trực tiếp
+  - Bảo toàn giá trị trả về và đối tượng ngoại lệ gốc
+  - Chèn mã vào constructor sau khi this có trạng thái hợp lệ
+  - Phương thức abstract, native, synchronized và các trường hợp không có Code
+  - Đếm lời gọi lồng nhau, đệ quy và giữ cặp sự kiện nhất quán
+  - Không suy ra thời gian hoàn thành tác vụ bất đồng bộ từ lúc phương thức trả future
+  - Hạn chế dữ liệu đối số, chuỗi hóa đối tượng và nguy cơ helper gọi lại mã ứng dụng
+  - Xuất số đo qua bộ đếm, hàng đợi sự kiện hoặc JFR Event tùy mục tiêu
+- level1: Retransformation
+  level2:
+  - Vì sao đăng ký transformer sau khi attach chưa thay đổi các lớp đã nạp
+  - Tìm lớp đích, kiểm tra isModifiableClass và yêu cầu retransformClasses
+  - Điều kiện manifest cùng khả năng JVM trước khi retransformation
+  - Dữ liệu ban đầu được lấy từ lần định nghĩa hoặc redefine gần nhất
+  - Tái sử dụng kết quả transformer không hỗ trợ retransformation mà không gọi lại
+  - Gọi lại các transformer hỗ trợ retransformation theo đúng thứ tự
+  - Constant pool, thứ tự phương thức và thuộc tính có thể khác bản byte đã lưu
+  - Giới hạn thay đổi thân phương thức so với thêm trường, thêm phương thức hoặc đổi kế thừa
+  - Ràng buộc với NestHost, NestMembers, Record và PermittedSubclasses
+  - Frame đang chạy tiếp tục dùng mã cũ; lời gọi mới dùng định nghĩa mới
+  - Trường static, đối tượng hiện hữu và class initializer không được khởi tạo lại
+  - Xử lý nhiều lớp như một tập và trường hợp không lớp nào được cài nếu yêu cầu thất bại
+  - Thiết kế bật, tắt điểm đo bằng cấu hình và retransformation có kiểm soát
+- level1: Redefinition
+  level2:
+  - redefineClasses thay định nghĩa bằng byte được cung cấp qua ClassDefinition
+  - Chọn redefine hay retransform theo nguồn byte và mục tiêu thay đổi
+  - Transformer đã đăng ký vẫn tham gia xử lý dữ liệu redefine
+  - Kiểm tra khả năng redefine và khả năng sửa của từng lớp
+  - Những thay đổi cấu trúc không được hỗ trợ theo hợp đồng JVM hiện hành
+  - Lớp, đối tượng và trạng thái đang tồn tại được giữ như thế nào
+  - Lời gọi đang chạy khác với lời gọi bắt đầu sau khi redefine
+  - Thay đồng thời các lớp phụ thuộc và đánh giá kết quả toàn tập
+  - Khôi phục mã cần có định nghĩa tương thích và vẫn chịu ảnh hưởng chuỗi transformer
+  - Phân biệt sửa mã khi chạy với nạp một phiên bản lớp bằng class loader mới
+- level1: Class loader và helper
+  level2:
+  - Lớp agent được nạp bởi system class loader và thuộc unnamed module
+  - Vì sao mã đã chèn có thể không nhìn thấy helper của agent
+  - Định danh lớp gồm tên cùng class loader và lỗi trùng tên giữa các bộ nạp
+  - appendToBootstrapClassLoaderSearch và Boot-Class-Path
+  - appendToSystemClassLoaderSearch và yêu cầu với system class loader tùy chỉnh
+  - Helper ở bootstrap chỉ liên kết với các lớp mà bootstrap có thể nạp
+  - Tách helper tối thiểu khỏi phần agent có nhiều phụ thuộc
+  - Tên package riêng và tránh chiếm nhầm lớp hoặc tài nguyên của ứng dụng
+  - Thêm JAR vào đường tìm kiếm không sửa một tham chiếu đã phân giải thất bại trước đó
+  - Không dùng class loader để nạp lại chính lớp đang được biến đổi
+  - Quản lý tham chiếu đến Class, ClassLoader và cache để không giữ bộ nạp đã hết vòng đời
+- level1: Instrumentation và module
+  level2:
+  - Named module, unnamed module và khả năng đọc lớp helper
+  - Đối số Module trong transformer giúp xác định lớp thuộc module nào
+  - Quan hệ đọc bổ sung mà JVM thiết lập cho module chứa lớp được biến đổi
+  - Phân biệt reads, exports và opens
+  - redefineModule với extraReads, extraExports và extraOpens
+  - Bổ sung uses, provides và kiểm tra điều kiện dịch vụ
+  - Kiểm tra isModifiableModule và xử lý UnmodifiableModuleException
+  - Các quan hệ bổ sung không phải thao tác thu hồi quyền truy cập
+  - Chỉ mở đúng package và đúng module cần cho helper hoặc phản chiếu
+  - Phân biệt thay module bằng Instrumentation với cấu hình --add-modules, --add-reads, --add-opens
+- level1: Khảo sát khi chạy
+  level2:
+  - getAllLoadedClasses trả ảnh chụp các lớp đã được JVM nạp
+  - getInitiatedClasses phản ánh bộ nạp khởi xướng, không chỉ bộ nạp định nghĩa
+  - Bootstrap loader, hidden class và array class trong kết quả khảo sát
+  - Phân biệt lớp được liệt kê với lớp có thể được sửa
+  - Lọc tập lớp để lập kế hoạch biến đổi và ghi nhận lớp bỏ qua
+  - getObjectSize trả ước lượng kích thước phụ thuộc cách triển khai
+  - Kích thước của một đối tượng khác với tổng đồ thị hoặc retained size
+  - So sánh kích thước trong cùng cấu hình mà không coi số đo là hằng số của Java
+  - Chi phí và vòng đời tham chiếu khi lặp lại việc khảo sát lớp
+- level1: Native và JVM TI
+  level2:
+  - Phương thức native không có bytecode để chèn trực tiếp
+  - Bọc native bằng phương thức Java khi định nghĩa lớp lần đầu
+  - setNativeMethodPrefix và Can-Set-Native-Method-Prefix
+  - Tiền tố riêng cho mỗi transformer và cơ chế thử phân giải native
+  - Vì sao thêm wrapper khi lớp đã nạp chịu giới hạn thay đổi cấu trúc
+  - Java agent khác với thư viện agent native dùng -agentlib hoặc -agentpath
+  - 'JVM TI: capabilities, giai đoạn hoạt động và ClassFileLoadHook ở mức tổng quan'
+  - Ranh giới lựa chọn Java Instrumentation, JVM TI, debugger và công cụ lấy mẫu
+- level1: Đồng thời và hiệu năng
+  level2:
+  - Transformer có thể nhận lời gọi đồng thời từ nhiều luồng nạp lớp
+  - Khởi tạo helper trước và phòng nạp lớp đệ quy, class circularity hoặc deadlock
+  - Bảo vệ trạng thái chia sẻ mà không khóa kéo dài đường nạp lớp
+  - Chốt cấu hình nhất quán trong khi đổi bộ lọc hoặc bật tắt điểm đo
+  - Giới hạn cấp phát, phân tích bytecode và ghi log trong callback
+  - Không thực hiện I/O chậm trên luồng gọi điểm đo
+  - Hàng đợi có giới hạn, lấy mẫu sự kiện và chính sách khi quá tải
+  - Ảnh hưởng đến thời gian khởi động, JIT, inlining, GC và độ trễ
+  - Tránh giữ đối tượng ứng dụng trong dữ liệu đo lâu hơn vòng đời cần thiết
+  - Đo overhead bằng nhóm chạy có agent và không có agent trong cùng điều kiện
+  - Đánh giá tính đúng đắn bên cạnh thông lượng và phân vị độ trễ
+- level1: Đóng gói và triển khai
+  level2:
+  - Tách agent entry point, transformer, helper và phần thu thập dữ liệu
+  - Phụ thuộc của agent, xung đột phiên bản và cô lập tên lớp thư viện
+  - Phiên bản bytecode agent, bytecode helper và phiên bản ứng dụng đích
+  - Chọn Class-File API trên JDK hỗ trợ và phương án cho JDK thấp hơn
+  - Không phụ thuộc các lớp xử lý bytecode nội bộ không được JDK hỗ trợ
+  - Agent JAR độc lập, executable JAR và class path hoặc module path của ứng dụng
+  - Kiểm tra java.instrument, jdk.attach và các module cần thiết trong runtime tùy chỉnh
+  - Cấu hình -javaagent qua trình chạy hoặc JAVA_TOOL_OPTIONS với phạm vi rõ ràng
+  - Kiểm tra nguồn gốc agent, nội dung JAR và phạm vi dữ liệu được thu thập
+  - Khả năng cùng tồn tại với nhiều agent, coverage tool và chế độ CDS hoặc AOT
+  - Phân biệt vô hiệu hóa chức năng, gỡ transformer và kết thúc tiến trình
+- level1: Kiểm thử và chẩn đoán
+  level2:
+  - Kiểm thử bộ lọc bằng tên lớp, descriptor, class loader và module
+  - Biến đổi byte trong bài kiểm thử trước khi cài agent vào JVM thử nghiệm
+  - Lưu byte đầu vào/đầu ra có chọn lọc và đọc lại bằng javap
+  - Xác minh cấu trúc với ClassFile.verify rồi kiểm tra nạp, chạy trên JVM
+  - Bảo toàn kết quả, ngoại lệ, trạng thái và số lần gọi phương thức ứng dụng
+  - Bộ ca constructor, nhánh điều kiện, nhiều return, ngoại lệ và phương thức synchronized
+  - Kiểm thử bridge, synthetic, lambda, record, sealed class và nhiều class loader
+  - Kiểm tra nhiều lần retransform, redefine và thay đổi thứ tự agent
+  - Tái hiện thiếu helper, sai module, VerifyError, ClassFormatError và LinkageError
+  - Phân biệt lỗi khởi động premain, lỗi agentmain và lỗi bytecode đã cài
+  - Kiểm tra bỏ đăng ký trong khi callback đang chạy và ngừng thu thập có thứ tự
+  - Ghi ma trận JDK, JVM, cách khởi động và khả năng được hỗ trợ
+- level1: Thực nghiệm agent
+  level2:
+  - Tạo agent premain tối thiểu và quan sát thời điểm chạy trước main
+  - Liệt kê lớp đã nạp cùng bộ nạp và khả năng sửa của từng lớp
+  - Viết transformer chỉ ghi nhận lớp đích và trả null
+  - Dùng Class-File API để chèn một lời gọi helper rồi kiểm chứng bytecode
+  - Đo thời gian phương thức cho cả đường trả về và đường ném ngoại lệ
+  - Attach agent vào một JVM thử nghiệm và biến đổi lớp đã nạp bằng retransformation
+  - So sánh kết quả của transformer có và không có khả năng retransformation
+  - Redefine thân phương thức khi một lời gọi cũ vẫn đang chạy
+  - Tạo tình huống helper không thấy được rồi sửa bằng bố trí class loader phù hợp
+  - Thử module có đóng gói mạnh và bổ sung đúng quan hệ cần thiết
+  - So sánh getObjectSize của các đối tượng trong cùng cấu hình JVM
+  - Chạy hai transformer nối tiếp và kiểm chứng thứ tự cùng ảnh hưởng của removeTransformer
+  - Đo overhead và khả năng phục hồi khi phần xuất sự kiện bị chậm
+  - Báo cáo giả thuyết, bằng chứng bytecode, kết quả chạy và giới hạn của agent

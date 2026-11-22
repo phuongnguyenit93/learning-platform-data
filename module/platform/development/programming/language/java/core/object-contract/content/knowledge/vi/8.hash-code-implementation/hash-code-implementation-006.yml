@@ -1,0 +1,3 @@
+menuLevel1: Cài đặt hashCode
+menuLevel2: Objects.hash() cho nhiều trường và khác biệt với hashCode() của một trường
+status: WRITTEN

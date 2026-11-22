@@ -1,7 +1,0 @@
-# Observability Logging Storage Analysis Loki Stack
-
-Grafana Loki là hệ thống tập trung log mã nguồn mở, thiết kế để lưu trữ và truy vấn log với chi phí hợp lý. Khác với các hệ thống lập chỉ mục toàn bộ nội dung log, Loki lập chỉ mục metadata của log stream thông qua labels; các log lines được nén và lưu thành chunks trong object storage hoặc filesystem ở môi trường thử nghiệm. Grafana Alloy hoặc một log collector gửi dữ liệu vào Loki, còn Grafana và LogQL cung cấp cách khám phá, lọc và phân tích dữ liệu.
-
-Module dành cho người đã hiểu log ứng dụng, biết cấu hình dịch vụ và có kiến thức cơ bản về Docker hoặc Kubernetes. Lộ trình đi từ kiến trúc write/read path và deployment modes đến ingestion pipeline, chiến lược labels/cardinality và structured metadata. Tiếp theo là object storage, schema và retention; người học thực hành LogQL để lọc nội dung, parse JSON/logfmt và tạo metric từ log. Các mốc cuối tập trung vào multi-tenancy, authentication proxy, giới hạn ingestion và vận hành hệ thống.
-
-Sau khi hoàn thành, bạn có thể triển khai Loki thử nghiệm, gửi log từ collector, thiết kế labels có cardinality phù hợp, truy vấn bằng LogQL và cấu hình thời hạn lưu. Bạn cũng có thể chẩn đoán lỗi ingest/query và phân biệt vấn đề về labels, storage hay tenant. Loki không tích hợp sẵn lớp authentication đầy đủ, vì vậy endpoint cần được bảo vệ bằng reverse proxy hoặc giải pháp tương đương; không dùng labels có giá trị biến thiên cao như request ID, user ID hay trace ID vì dễ tạo cardinality explosion.

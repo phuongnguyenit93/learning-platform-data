@@ -1,0 +1,3 @@
+menuLevel1: Dữ liệu ngoài SQL
+menuLevel2: '@DataCassandraTest, @DataCouchbaseTest hoặc @DataLdapTest khi ứng dụng có tích hợp'
+status: WRITTEN

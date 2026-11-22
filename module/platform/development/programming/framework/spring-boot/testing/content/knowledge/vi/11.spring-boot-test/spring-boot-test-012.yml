@@ -1,0 +1,3 @@
+menuLevel1: '@SpringBootTest'
+menuLevel2: Tiêu chí dùng full context thay cho unit test hoặc test slice
+status: WRITTEN

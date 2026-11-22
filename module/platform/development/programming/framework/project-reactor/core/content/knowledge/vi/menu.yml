@@ -1,0 +1,494 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Project Reactor Core là gì và bài toán xử lý dữ liệu theo luồng
+  - Vì sao cần lập trình phản ứng khi ứng dụng có nhiều tác vụ I/O
+  - Phân biệt đồng bộ, bất đồng bộ, chặn và không chặn
+  - Quan hệ giữa lập trình phản ứng, Reactive Streams và Project Reactor
+  - Vai trò của Mono, Flux, toán tử, Scheduler và Context
+  - Mô hình dữ liệu đi xuôi và nhu cầu truyền ngược trong chuỗi xử lý
+  - Phân biệt chuỗi phản ứng với Java Stream và CompletableFuture
+  - Phân biệt xử lý đồng thời với xử lý song song
+  - Quan hệ của Reactor Core với Reactor Netty, Spring WebFlux và reactor-test
+  - Khi nào nên dùng Reactor và khi nào cách xử lý tuần tự đã phù hợp
+  - Kiến thức tiên quyết và lộ trình học từ mô hình tín hiệu đến thiết kế ứng dụng
+- level1: Reactive Streams
+  level2:
+  - Hợp đồng giữa Publisher, Subscriber, Subscription và Processor
+  - Trình tự onSubscribe, onNext và tín hiệu kết thúc
+  - Ý nghĩa của onComplete, onError và tính duy nhất của tín hiệu kết thúc
+  - Yêu cầu dữ liệu bằng request(n) và cơ chế điều tiết ngược (backpressure)
+  - Nhu cầu hữu hạn, nhu cầu không giới hạn và quy tắc không phát vượt nhu cầu
+  - Hủy đăng ký bằng cancel và giới hạn của việc hủy tác vụ đang chạy
+  - Quy tắc không phát giá trị null và cách biểu diễn dữ liệu vắng mặt
+  - Tuần tự hóa tín hiệu và an toàn khi nguồn phát từ nhiều luồng thực thi
+  - Phân biệt giao thức Reactive Streams với mô hình Java Flow
+  - Giới hạn bảo đảm của giao thức đối với bộ nhớ, tải hệ thống và tác động phụ
+- level1: Thiết lập
+  level2:
+  - Khai báo reactor-core trong Gradle và Maven
+  - Quản lý phiên bản đồng bộ bằng Reactor BOM
+  - Sử dụng phiên bản Reactor do Spring Boot quản lý
+  - Kiểm tra yêu cầu JDK và khác biệt API giữa các dòng phiên bản
+  - Chuẩn bị JUnit Jupiter và reactor-test cho ví dụ thực hành
+  - Tổ chức chương trình Java thuần sử dụng Mono và Flux
+  - Viết chuỗi xử lý đầu tiên và quan sát kết quả
+  - Đọc Javadoc, sơ đồ marble và bảng lựa chọn toán tử
+  - Nhận diện API đã lỗi thời khi đọc ví dụ hoặc tài liệu cũ
+- level1: Mono và Flux
+  level2:
+  - 'Mono<T>: không hoặc một giá trị rồi kết thúc'
+  - 'Flux<T>: từ không đến nhiều giá trị, hữu hạn hoặc vô hạn'
+  - Mono<Void> và hợp đồng chỉ biểu diễn việc hoàn thành
+  - Phân biệt Mono<List<T>> với Flux<T>
+  - Chuỗi rỗng, chuỗi lỗi và chuỗi không bao giờ kết thúc
+  - Phân biệt kiểu Publisher khai báo với số lượng tín hiệu thực tế
+  - Chuyển Mono thành Flux và Flux thành Mono theo đúng ngữ nghĩa
+  - Ý nghĩa của next, single, singleOrEmpty và last
+  - Kiểu generic, Tuple và mô hình dữ liệu trong chuỗi phản ứng
+  - Tính bất biến của chuỗi toán tử và lỗi bỏ quên giá trị trả về
+- level1: Đăng ký và thực thi
+  level2:
+  - Phân biệt giai đoạn lắp ráp, đăng ký và phát tín hiệu
+  - Vì sao mô tả chuỗi chưa đồng nghĩa với thực hiện công việc
+  - Các biến thể subscribe và trách nhiệm xử lý dữ liệu, lỗi, kết thúc
+  - Disposable được trả về khi subscribe và cách quản lý vòng đời
+  - BaseSubscriber và các điểm mở rộng hookOnSubscribe, hookOnNext, hookFinally
+  - Chủ động điều khiển request và cancel trong BaseSubscriber
+  - Nhiều lượt đăng ký và việc thực thi lặp lại nguồn
+  - Phân biệt trạng thái theo từng đăng ký với trạng thái dùng chung
+  - Vì sao subscribe lồng nhau dễ làm mất luồng lỗi và quyền hủy
+  - Ai sở hữu việc subscribe ở biên ứng dụng và trong framework
+- level1: Tạo nguồn cơ bản
+  level2:
+  - Tạo giá trị biết trước bằng just và thời điểm giá trị được tính
+  - Biểu diễn giá trị có thể vắng mặt bằng justOrEmpty
+  - Tạo Flux từ mảng, Iterable và khoảng số bằng range
+  - Tạo Flux từ Java Stream và cung cấp Stream mới theo từng đăng ký
+  - Tạo nguồn empty, error và never
+  - Trì hoãn tính giá trị bằng fromSupplier và fromCallable
+  - Biểu diễn tác vụ không có giá trị trả về bằng fromRunnable
+  - Tạo lại Publisher theo từng đăng ký bằng defer
+  - Phân biệt just, fromSupplier, fromCallable và defer
+  - Chuyển Publisher tương thích sang Mono hoặc Flux bằng from
+  - Tạo nguồn lỗi trễ bằng Supplier<Throwable>
+- level1: Tạo nguồn tùy chỉnh
+  level2:
+  - Sinh dữ liệu đồng bộ từng bước bằng Flux.generate
+  - Quản lý trạng thái theo đăng ký và dọn trạng thái trong generate
+  - SynchronousSink và giới hạn số lần next trong một lượt sinh
+  - Chuyển API callback hoặc listener sang Flux.create
+  - FluxSink và các tín hiệu next, error, complete
+  - Chọn Flux.push khi nguồn chỉ phát từ một luồng thực thi
+  - Phân biệt create với push và với việc tự tạo luồng thực thi
+  - Phản hồi nhu cầu bằng onRequest và kiểm tra trạng thái hủy
+  - Dọn listener bằng onCancel và onDispose
+  - Chọn OverflowStrategy khi nối nguồn không hỗ trợ backpressure
+  - Tạo Mono từ callback bằng Mono.create và MonoSink
+  - Tránh vòng lặp chặn và phát tín hiệu sau khi nguồn đã kết thúc
+- level1: Biến đổi đồng bộ
+  level2:
+  - Biến đổi từng phần tử bằng map
+  - Chuyển kiểu bằng cast và lọc theo kiểu bằng ofType
+  - Gắn chỉ số bằng index và xử lý dữ liệu theo vị trí
+  - Kết hợp lọc, biến đổi và kết thúc sớm bằng handle
+  - Tránh trả về null trong map và sử dụng mapNotNull khi phù hợp
+  - Thêm dữ liệu đầu hoặc cuối bằng startWith và concatWithValues
+  - Tách và biểu diễn tín hiệu bằng materialize
+  - Khôi phục chuỗi tín hiệu bằng dematerialize
+  - Mở rộng dữ liệu dạng cây hoặc đồ thị bằng expand và expandDeep
+  - Chọn biến đổi thuần và tách tác động phụ khỏi hàm ánh xạ
+- level1: Biến đổi bất đồng bộ
+  level2:
+  - Vì sao gọi hàm trả về Publisher cần phép làm phẳng
+  - Phân biệt map với flatMap khi kết quả là Mono hoặc Flux
+  - Mono.flatMap và Mono.flatMapMany theo số lượng kết quả
+  - Flux.flatMap và khả năng xen kẽ kết quả giữa các nguồn con
+  - Giữ thứ tự bằng concatMap
+  - Đăng ký đồng thời nhưng phát đúng thứ tự bằng flatMapSequential
+  - So sánh flatMap, concatMap và flatMapSequential
+  - Điều khiển concurrency và prefetch cho các nguồn con
+  - Chuyển dữ liệu Iterable thành nhiều phần tử bằng flatMapIterable
+  - Thay thế nguồn con cũ bằng switchMap
+  - Phân biệt hủy nguồn con với hoàn tác tác động phụ đã thực hiện
+  - Phạm vi xử lý lỗi ở nguồn cha và bên trong từng nguồn con
+- level1: Lọc và lựa chọn
+  level2:
+  - Lọc đồng bộ bằng filter và bất đồng bộ bằng filterWhen
+  - Loại phần tử trùng bằng distinct và distinctUntilChanged
+  - Lấy hoặc bỏ số phần tử bằng take và skip
+  - Lấy hoặc bỏ các phần tử cuối bằng takeLast và skipLast
+  - Lấy hoặc bỏ theo điều kiện bằng takeWhile và skipWhile
+  - Điều khiển điểm dừng bằng takeUntil và takeUntilOther
+  - Bỏ dữ liệu theo nguồn kích hoạt bằng skipUntilOther
+  - Chọn phần tử theo vị trí bằng elementAt
+  - Lấy một phần tử bằng next, single và last với hợp đồng tương ứng
+  - Lấy mẫu sự kiện bằng sample và sampleTimeout
+  - Giữ sự kiện đầu mỗi khoảng thời gian bằng sampleFirst
+  - Nhận diện dữ liệu bị loại, việc hủy nguồn và chi phí giữ trạng thái khi lọc
+- level1: Phối hợp nhiều nguồn
+  level2:
+  - Nối tuần tự nhiều nguồn bằng concat và concatWith
+  - Trộn dữ liệu theo thời điểm phát bằng merge và mergeWith
+  - Đăng ký sớm nhưng giữ thứ tự nguồn bằng mergeSequential
+  - Ghép theo vị trí bằng zip và zipWith
+  - Kết hợp giá trị mới nhất bằng combineLatest
+  - Phân biệt zip với combineLatest về thời điểm phát và dữ liệu được giữ
+  - Kết hợp nguồn chính với giá trị phụ mới nhất bằng withLatestFrom
+  - Kết hợp Mono phụ thuộc giá trị bằng zipWhen
+  - Chọn nguồn thắng cuộc bằng firstWithSignal và firstWithValue
+  - Phối hợp nguồn chứa nguồn bằng switchOnNext
+  - Phối hợp tác vụ qua tín hiệu kết thúc bằng when, whenDelayError và and
+  - Kết hợp theo khoảng tồn tại của phần tử bằng join và groupJoin
+  - Ảnh hưởng của nguồn rỗng, lỗi hoặc vô hạn đến kết quả phối hợp
+  - Trì hoãn lỗi bằng các biến thể DelayError khi cần thu nhận kết quả còn lại
+- level1: Tổng hợp dữ liệu
+  level2:
+  - Thu toàn bộ phần tử bằng collectList và giới hạn bộ nhớ
+  - Thu dữ liệu có sắp xếp bằng collectSortedList và sort
+  - Tạo ánh xạ bằng collectMap và collectMultimap
+  - Tùy biến bộ chứa bằng collect và Java Collector
+  - Tính kết quả cuối bằng reduce và reduceWith
+  - Phát kết quả trung gian bằng scan và scanWith
+  - Đếm phần tử bằng count
+  - Kiểm tra điều kiện bằng all, any, hasElement và hasElements
+  - So sánh hai chuỗi bằng sequenceEqual
+  - Xử lý đầu vào rỗng và chọn giá trị khởi tạo khi tổng hợp
+  - Vì sao không thể thu toàn bộ một nguồn vô hạn vào bộ nhớ
+- level1: Chia lô và phân nhóm
+  level2:
+  - Phân biệt buffer, window và groupBy theo kiểu dữ liệu đầu ra
+  - Gom theo số lượng bằng buffer
+  - Tạo các lô chồng lấn hoặc cách quãng bằng tham số skip
+  - Gom theo thời gian và số lượng bằng bufferTimeout
+  - Gom theo điều kiện bằng bufferUntil và bufferWhile
+  - Gom theo tín hiệu mở hoặc đóng bằng bufferWhen
+  - Chia thành các Flux con bằng window
+  - Chọn biến thể window theo kích thước, thời gian hoặc điều kiện
+  - Phân nhóm theo khóa bằng groupBy và tiêu thụ GroupedFlux
+  - Nguy cơ treo hoặc tăng bộ nhớ khi số nhóm lớn và mức tiêu thụ không đủ
+  - Quản lý nhu cầu, lỗi và hủy cho luồng cha cùng các luồng con
+- level1: Rỗng và hoàn tất
+  level2:
+  - Biểu diễn không có kết quả mà không dùng null
+  - Cấp giá trị mặc định bằng defaultIfEmpty
+  - Chuyển sang nguồn dự phòng bằng switchIfEmpty
+  - Dùng defer để trì hoãn công việc trong nhánh dự phòng
+  - Bỏ dữ liệu và chỉ quan tâm kết thúc bằng ignoreElements
+  - Chuyển tiếp sau hoàn tất bằng then, thenReturn và thenMany
+  - Chờ tác vụ chỉ có tín hiệu kết thúc bằng thenEmpty
+  - Giữ giá trị gốc và chờ công việc phụ bằng delayUntil
+  - Vì sao zip hoặc zipWhen có thể không gọi hàm ghép khi nguồn rỗng
+  - Chọn Optional hoặc singleOptional khi cần biểu diễn vắng mặt như một giá trị
+- level1: Xử lý lỗi
+  level2:
+  - onError kết thúc nguồn và ý nghĩa của việc thay thế nguồn khi phục hồi
+  - Phân biệt ngoại lệ ném khi lắp ráp với lỗi được phát trong chuỗi
+  - Trả giá trị dự phòng bằng onErrorReturn
+  - Chuyển nguồn khi lỗi bằng onErrorResume
+  - Biến lỗi thành hoàn tất bằng onErrorComplete
+  - Chuyển đổi ngoại lệ bằng onErrorMap và bảo toàn nguyên nhân
+  - Quan sát lỗi bằng doOnError mà không thay đổi kết quả
+  - Giới hạn phục hồi theo loại lỗi hoặc Predicate
+  - Đặt xử lý lỗi bên trong flatMap để cô lập lỗi từng phần tử
+  - Giới hạn và tác động lan truyền của onErrorContinue cùng onErrorStop
+  - Phân biệt lỗi nghiệp vụ, lỗi hạ tầng và lỗi lập trình để chọn chính sách
+  - Nhận diện lỗi nghiêm trọng và xử lý ngoại lệ qua tiện ích Exceptions
+- level1: Thử lại và lặp lại
+  level2:
+  - Retry là đăng ký lại nguồn sau lỗi, không tiếp tục từ phần tử lỗi
+  - Thử lại có giới hạn bằng retry
+  - Mô tả chính sách bằng retryWhen và Retry
+  - So sánh Retry.max, Retry.fixedDelay và Retry.backoff
+  - Giới hạn số lần, lọc ngoại lệ và xử lý khi cạn lượt thử
+  - Điều chỉnh backoff, jitter và Scheduler cho việc thử lại
+  - Quan sát RetrySignal và các điểm mở rộng doBeforeRetry, doAfterRetry
+  - Tạo lại công việc bằng defer để mỗi lần đăng ký thực hiện lần thử mới
+  - Lặp sau hoàn tất bằng repeat và repeatWhen
+  - Thực hiện lại khi Mono rỗng bằng repeatWhenEmpty
+  - Phối hợp timeout với retry và xác định giới hạn cho từng lần hoặc toàn tác vụ
+  - Tính lũy đẳng, tác động phụ lặp lại và hủy trong lúc đợi lần thử kế tiếp
+- level1: Backpressure
+  level2:
+  - Phân biệt tốc độ nguồn, tốc độ tiêu thụ và nhu cầu đang chờ
+  - Request được truyền và biến đổi qua chuỗi toán tử như thế nào
+  - Điều khiển nhu cầu thủ công bằng BaseSubscriber
+  - Request không giới hạn từ các cách subscribe thông dụng
+  - Prefetch và cơ chế yêu cầu bổ sung của toán tử
+  - Điều tiết request theo lô bằng limitRate
+  - Giới hạn tổng nhu cầu bằng take(n, true) và phân biệt với điều tiết request theo lô
+  - Đệm dữ liệu bằng onBackpressureBuffer và lựa chọn giới hạn dung lượng
+  - Loại dữ liệu bằng onBackpressureDrop
+  - Chỉ giữ giá trị mới nhất bằng onBackpressureLatest
+  - Báo lỗi khi quá tải bằng onBackpressureError
+  - Chọn chính sách khi nguồn ngoài không thể giảm tốc
+  - Phân biệt backpressure với giới hạn mức đồng thời và giới hạn tần suất
+  - Chi phí bộ nhớ, độ trễ và quan sát dữ liệu bị loại khi quá tải
+- level1: Vòng đời và tác động phụ
+  level2:
+  - Quan sát dữ liệu bằng doOnNext mà không thay thế phép biến đổi
+  - Quan sát đăng ký và nhu cầu bằng doOnSubscribe và doOnRequest
+  - Phân biệt Mono.doOnSuccess với doOnNext khi Mono kết thúc rỗng
+  - Quan sát hoàn tất và lỗi bằng doOnComplete và doOnError
+  - Phân biệt doOnTerminate với doAfterTerminate
+  - Xử lý hủy bằng doOnCancel
+  - Dọn dẹp theo SignalType bằng doFinally
+  - Quan sát tổng hợp tín hiệu bằng doOnEach
+  - Thứ tự callback khi lắp nhiều toán tử quan sát trong chuỗi
+  - Quản lý nhóm Disposable và thay thế tác vụ bằng Disposables
+  - Giới hạn của cancel với tác vụ chặn và công việc bên ngoài Reactor
+  - Phân biệt kết thúc luồng, hủy đăng ký và hoàn tác tác động phụ
+- level1: Scheduler
+  level2:
+  - Scheduler là bộ lập lịch và đồng hồ cho tác vụ phản ứng
+  - Phân biệt Scheduler, Worker, Thread và ExecutorService
+  - Thực thi ngay trên luồng hiện tại bằng Schedulers.immediate
+  - Chọn Schedulers.single cho công việc cần một luồng dùng chung
+  - Chọn Schedulers.parallel cho công việc tính toán
+  - Chọn Schedulers.boundedElastic cho tác vụ chặn cần cô lập
+  - Giới hạn số luồng, hàng đợi và thời gian chờ trên boundedElastic
+  - Chế độ boundedElastic dùng virtual thread trên Java 21 và điều kiện kích hoạt
+  - Tạo Scheduler riêng bằng newSingle, newParallel và newBoundedElastic
+  - Tích hợp ExecutorService bằng Schedulers.fromExecutorService
+  - Phân biệt Scheduler dùng chung với Scheduler do ứng dụng sở hữu
+  - Dọn Worker, Scheduler và quản lý vòng đời tài nguyên lập lịch
+- level1: Chuyển luồng thực thi
+  level2:
+  - Luồng thực thi mặc định khi chưa chỉ định Scheduler
+  - publishOn chuyển nơi xử lý tín hiệu cho phần chuỗi phía sau
+  - subscribeOn điều khiển nơi đăng ký và tương tác với nguồn
+  - So sánh publishOn với subscribeOn theo hướng truyền tín hiệu
+  - Ảnh hưởng của vị trí publishOn trong chuỗi
+  - Tác động của nhiều subscribeOn và chi phí chuyển luồng không cần thiết
+  - Toán tử tự chọn Scheduler và cách truyền Scheduler tường minh
+  - Tách công việc I/O chặn khỏi luồng chuyên xử lý không chặn
+  - Vì sao chuyển Scheduler chưa tự tạo xử lý song song cho từng phần tử
+  - Nhận diện luồng NonBlocking và lỗi gọi block trên single hoặc parallel
+  - Đọc dấu vết luồng để xác minh nơi thực thi của từng giai đoạn
+- level1: Xử lý song song
+  level2:
+  - Phân biệt flatMap có concurrency với ParallelFlux
+  - Chia dữ liệu thành các rail bằng parallel
+  - Phân phối công việc lên Scheduler bằng runOn
+  - Xử lý và tổng hợp kết quả trên từng rail
+  - Hợp nhất ParallelFlux về Flux bằng sequential
+  - Thứ tự dữ liệu khi hợp nhất kết quả song song
+  - Chọn mức song song theo CPU và bản chất công việc
+  - Tránh trạng thái mutable dùng chung trong các phép biến đổi
+  - Quản lý prefetch, hàng đợi và chi phí chuyển luồng
+  - Trường hợp song song hóa làm chậm hơn và cách kiểm chứng bằng đo đạc
+- level1: Thời gian
+  level2:
+  - Tạo tín hiệu trễ bằng Mono.delay
+  - Tạo chuỗi định kỳ bằng Flux.interval và lưu ý nhu cầu dữ liệu
+  - Trì hoãn đăng ký bằng delaySubscription
+  - Trì hoãn phần tử bằng delayElement hoặc delayElements
+  - Chờ công việc phụ hoàn thành bằng delayUntil theo từng giá trị
+  - Áp thời hạn chờ bằng timeout và lựa chọn nguồn dự phòng
+  - Lấy hoặc bỏ dữ liệu trong khoảng thời gian bằng take và skip
+  - Đo khoảng cách tín hiệu bằng elapsed và gắn thời điểm bằng timestamp
+  - Đo thời gian bằng timed và khai thác các giá trị trong Timed
+  - Lấy mẫu và giới hạn mật độ tín hiệu theo thời gian
+  - Chọn Scheduler làm đồng hồ và tránh nhầm thời gian xử lý với thời gian sự kiện
+- level1: Nguồn nóng và chia sẻ
+  level2:
+  - Phân biệt nguồn lạnh và nguồn nóng theo thời điểm tạo dữ liệu
+  - just ghi nhận giá trị sớm và defer tạo lại công việc khi đăng ký
+  - Tác động của nhiều người đăng ký lên nguồn lạnh
+  - Chuyển nguồn sang cơ chế chia sẻ bằng publish
+  - ConnectableFlux và quyền chủ động bắt đầu bằng connect
+  - Tự kết nối theo ngưỡng người đăng ký bằng autoConnect
+  - Tự kết nối và ngắt theo số người nhận bằng refCount
+  - Khoảng chờ trước ngắt kết nối với refCount theo thời gian
+  - Chia sẻ nguồn bằng share và phân biệt với lưu lại dữ liệu
+  - Nhu cầu của nhiều người nhận và tác động của người nhận chậm
+  - Người đăng ký đến muộn, tín hiệu kết thúc và hành vi kết nối lại
+  - Biến đổi một nguồn dùng chung trong phạm vi publish(Function)
+- level1: Lưu và phát lại
+  level2:
+  - Phân biệt replay, cache và share theo vòng đời nguồn
+  - Tạo ConnectableFlux phát lại dữ liệu bằng replay
+  - Giới hạn lịch sử phát lại theo số lượng và thời gian
+  - Lưu kết quả Mono bằng cache
+  - Lưu dữ liệu Flux bằng cache và giới hạn dung lượng
+  - Thời hạn cache cho giá trị, lỗi và kết quả rỗng của Mono
+  - Đăng ký đồng thời khi cache chưa có dữ liệu hoặc vừa hết hạn
+  - Tác động của lưu cache đến việc hủy và số lần gọi nguồn
+  - Đánh giá cacheInvalidateIf và cacheInvalidateWhen khi cần vô hiệu hóa Mono
+  - Tránh giữ dữ liệu người dùng hoặc tài nguyên quá lâu trong cache dùng chung
+- level1: Sinks
+  level2:
+  - Sinks là cầu nối phát tín hiệu chủ động và quan hệ với Publisher
+  - Sinks.One và Sinks.Empty cho một kết quả hoặc chỉ tín hiệu kết thúc
+  - Sinks.Many và các chính sách unicast, multicast, replay
+  - Chọn unicast().onBackpressureBuffer cho một người nhận
+  - Chọn multicast().onBackpressureBuffer cho nhiều người nhận
+  - So sánh directAllOrNothing và directBestEffort khi nhu cầu khác nhau
+  - Chọn replay().all, limit hoặc latest theo yêu cầu lịch sử
+  - Phát tín hiệu bằng tryEmitNext, tryEmitValue, tryEmitComplete và tryEmitError
+  - Đọc Sinks.EmitResult và xử lý tràn bộ đệm, kết thúc hoặc thiếu người nhận
+  - Phân biệt tryEmit với emit và vai trò của EmitFailureHandler
+  - Xử lý cạnh tranh giữa nhiều luồng phát và giới hạn của busyLooping
+  - Đưa Sinks ra ngoài qua asFlux hoặc asMono
+  - Vòng đời người đăng ký, autoCancel và giữ dữ liệu trước đăng ký
+  - Sinks.unsafe và trách nhiệm tuần tự hóa tín hiệu khi tự bảo đảm an toàn
+  - Nhận diện Processor cũ và định hướng chuyển sang Sinks
+- level1: Reactor Context
+  level2:
+  - Context là dữ liệu gắn với từng đăng ký và vì sao cần thay cho trạng thái theo luồng
+  - Phân biệt Context bất biến với ContextView chỉ đọc
+  - Ghi dữ liệu bằng contextWrite
+  - Đọc dữ liệu trễ bằng deferContextual
+  - Biến đổi theo ngữ cảnh bằng transformDeferredContextual
+  - Hướng truyền Context và ảnh hưởng của vị trí contextWrite
+  - Phạm vi Context trong flatMap và các chuỗi con
+  - Quản lý khóa, dữ liệu vắng mặt và giá trị mặc định
+  - Truyền mã định danh yêu cầu, thông tin người dùng và dữ liệu truy vết
+  - Tích hợp Micrometer Context Propagation và ThreadLocalAccessor
+  - Chụp trạng thái ThreadLocal bằng contextCapture
+  - Phân biệt chế độ khôi phục giới hạn với automatic context propagation
+  - Bật hoặc tắt truyền ngữ cảnh tự động bằng Hooks và quản lý ranh giới đăng ký
+  - Ngăn rò rỉ dữ liệu giữa các yêu cầu khi luồng thực thi được tái sử dụng
+- level1: Quản lý tài nguyên
+  level2:
+  - Cấp phát và giải phóng tài nguyên theo đăng ký bằng using
+  - So sánh dọn tài nguyên sớm và muộn trong using
+  - Quản lý tài nguyên bất đồng bộ bằng usingWhen
+  - Các nhánh dọn dẹp khi hoàn tất, báo lỗi và bị hủy trong usingWhen
+  - Xử lý lỗi trong bước dọn tài nguyên và ảnh hưởng lên kết quả
+  - Giải phóng phần tử bị loại bằng doOnDiscard
+  - Phân biệt discard hợp lệ với tín hiệu bị drop ngoài giao thức
+  - Tương tác giữa filter, buffer, prefetch, hủy và dữ liệu cần giải phóng
+  - Yêu cầu dọn dẹp lũy đẳng với đối tượng dùng đếm tham chiếu
+  - Quản lý tệp, kết nối, listener và tài nguyên ngoài vòng đời bộ nhớ Java
+- level1: Tái sử dụng chuỗi
+  level2:
+  - Tách chuỗi toán tử thành hàm có kiểu đầu vào và đầu ra rõ ràng
+  - Áp dụng công thức biến đổi khi lắp ráp bằng transform
+  - Áp dụng công thức theo từng đăng ký bằng transformDeferred
+  - Chọn transformDeferredContextual khi công thức phụ thuộc Context
+  - Chuyển sang kiểu trừu tượng khác bằng as
+  - Phân biệt tái sử dụng mô tả Publisher với chia sẻ kết quả thực thi
+  - Dùng defer để trì hoãn việc tạo tác vụ trong các hàm hỗ trợ
+  - Cô lập trạng thái mutable theo từng đăng ký
+  - Xây dựng các đoạn xử lý chung cho ghi log, lỗi và chính sách thử lại
+  - Giữ công thức dễ kiểm thử và tránh che giấu thao tác subscribe
+- level1: Tích hợp mã hiện có
+  level2:
+  - Bao lời gọi đồng bộ có thể ném ngoại lệ bằng fromCallable
+  - Cô lập lời gọi chặn bằng subscribeOn với boundedElastic
+  - Phân biệt bọc tác vụ chặn với chuyển tác vụ thành I/O không chặn
+  - Chuyển CompletableFuture hoặc CompletionStage thành Mono
+  - Trì hoãn tạo Future theo từng đăng ký và quản lý việc hủy
+  - Chuyển Mono thành CompletableFuture bằng toFuture
+  - Chuyển API callback, listener và sự kiện vào nguồn phản ứng
+  - Chuyển Flux sang Iterable hoặc Stream tại biên cần xử lý chặn
+  - Ý nghĩa và giới hạn của block, blockOptional, blockFirst và blockLast
+  - Giới hạn thời gian khi bắt buộc chờ kết quả đồng bộ
+  - Tác động của việc block hoặc chuyển đổi nhiều lần lên số lượt đăng ký
+  - Thiết kế ranh giới giữa mã tuần tự và mã phản ứng để giữ luồng lỗi và quyền hủy
+- level1: Kiểm thử hành vi
+  level2:
+  - Xác định hợp đồng dữ liệu, kết thúc, lỗi, thời gian và nhu cầu trước khi kiểm thử
+  - Kiểm thử Mono và Flux bằng StepVerifier
+  - Kiểm tra đối tượng và thứ tự tín hiệu bằng các phép xác nhận phù hợp
+  - Kiểm tra request theo từng đợt và hành vi khi hủy
+  - Kiểm tra toán tử thời gian bằng thời gian ảo
+  - Điều khiển nguồn đầu vào bằng TestPublisher
+  - Kiểm chứng nhánh dự phòng bằng PublisherProbe
+  - Kiểm tra Context và việc dọn tài nguyên
+  - Kiểm tra nguồn nóng, nhiều người đăng ký và tác động phụ lặp lại
+  - Cô lập Scheduler, Hooks và trạng thái toàn cục giữa các bài kiểm thử
+  - Giới hạn phạm vi kiểm thử đơn vị và chuyển sang kiểm thử tích hợp khi có hạ tầng
+- level1: Gỡ lỗi
+  level2:
+  - Vì sao stack trace bất đồng bộ khó chỉ ra nơi lắp ráp chuỗi
+  - Đọc tín hiệu, request và cancel bằng log
+  - Gắn mốc định vị bằng checkpoint
+  - Chọn checkpoint có mô tả hoặc kèm stack trace theo chi phí chấp nhận được
+  - Bật thông tin lắp ráp bằng Hooks.onOperatorDebug
+  - Sử dụng ReactorDebugAgent và phân biệt với chế độ debug toàn cục
+  - Đặt tên chuỗi để xác định giai đoạn xảy ra lỗi
+  - Chẩn đoán chuỗi không chạy do chưa đăng ký hoặc bỏ quên toán tử trả về
+  - Chẩn đoán zip không phát, Context không thấy hoặc nguồn phát sai thời điểm
+  - Chẩn đoán bế tắc do groupBy, nhu cầu thiếu hoặc lời gọi chặn
+  - Phát hiện lời gọi chặn không phù hợp bằng BlockHound
+- level1: Hooks và mở rộng
+  level2:
+  - Phân biệt callback cục bộ với Hooks tác động toàn cục
+  - Quan sát tín hiệu dư bằng onNextDropped và onErrorDropped
+  - Can thiệp lỗi toán tử bằng onOperatorError
+  - Can thiệp lúc lắp ráp bằng onEachOperator và onLastOperator
+  - Quản lý Hooks theo khóa và khôi phục bằng các phương thức reset tương ứng
+  - Tác động của Hooks lên mọi luồng trong cùng tiến trình
+  - Quan sát tín hiệu bằng tap, SignalListener và SignalListenerFactory
+  - Thay thế hoặc trang trí Scheduler qua Schedulers.Factory khi có nhu cầu hạ tầng
+  - Trang trí Subscriber bằng Operators.lift và các ràng buộc giao thức
+  - Ưu tiên điểm mở rộng công khai và kiểm thử tương thích theo phiên bản
+- level1: Quan sát vận hành
+  level2:
+  - Phân biệt log, chỉ số đo lường và truy vết phân tán
+  - Vai trò của mô-đun reactor-core-micrometer
+  - Đặt name và tag cho giai đoạn cần quan sát
+  - Thu chỉ số Publisher bằng tap với Micrometer.metrics
+  - Quan sát vòng đời tác vụ qua Micrometer.observation
+  - Đo tác vụ Scheduler bằng Micrometer.timedScheduler
+  - Theo dõi trạng thái hoàn tất, lỗi, hủy và thời gian xử lý
+  - Theo dõi nhu cầu dữ liệu và dấu hiệu nghẽn trong chuỗi
+  - Giới hạn số giá trị nhãn để tránh chi phí cardinality quá lớn
+  - Liên kết mã định danh yêu cầu giữa Reactor Context, log và observation
+  - Phân biệt API đo lường hiện hành với API metrics cũ khi nâng cấp
+- level1: Cơ chế nâng cao
+  level2:
+  - Chuỗi Subscriber bên trong và quá trình đăng ký ngược qua các toán tử
+  - CorePublisher, CoreSubscriber và điểm mở rộng phục vụ Context
+  - Operator fusion và mục tiêu giảm hàng đợi hoặc chi phí truyền phần tử
+  - Phân biệt fusion đồng bộ với fusion bất đồng bộ
+  - Vai trò của Fuseable, QueueSubscription và ConditionalSubscriber
+  - Tối ưu nguồn đơn giá trị và tác động lên đường thực thi
+  - Tách khả năng fusion hoặc che định danh nguồn bằng hide
+  - Quan sát cấu trúc chuỗi bằng Scannable và các thuộc tính vận hành
+  - Tạo toán tử riêng từ tổ hợp toán tử có sẵn trước khi mở rộng lớp nền
+  - Trách nhiệm truyền request, cancel, lỗi và Context khi tự viết toán tử
+  - Kiểm chứng tuân thủ Reactive Streams bằng TCK khi triển khai Publisher riêng
+  - Phân biệt hợp đồng API công khai với chi tiết nội bộ có thể đổi theo phiên bản
+- level1: Hiệu năng
+  level2:
+  - Xác định nút nghẽn CPU, I/O, hàng đợi hay người tiêu thụ chậm
+  - Cân bằng thông lượng, độ trễ, mức đồng thời và giới hạn tài nguyên
+  - Điều chỉnh concurrency, prefetch và kích thước lô bằng đo đạc
+  - Đánh giá chi phí publishOn, chuyển luồng và tạo Scheduler
+  - Kiểm soát bộ nhớ của collect, sort, distinct, groupBy, cache và replay
+  - Chọn buffer hữu hạn và chính sách loại dữ liệu theo yêu cầu nghiệp vụ
+  - Đánh giá chi phí log, debug, Hooks và truyền Context
+  - Tránh giữ trạng thái mutable hoặc tham chiếu lớn trong lambda dùng chung
+  - So sánh nguồn đơn giá trị, nguồn đồng bộ và nguồn bất đồng bộ trong phép đo
+  - Phân biệt microbenchmark với kiểm thử tải của cả ứng dụng
+  - Kiểm tra tài nguyên được giải phóng sau hoàn tất, lỗi và hủy
+- level1: Thiết kế ứng dụng
+  level2:
+  - Chọn hợp đồng Mono, Flux hoặc Mono<Void> theo ý nghĩa nghiệp vụ
+  - Giữ chuỗi xử lý xuyên suốt các lớp và để biên ứng dụng sở hữu subscribe
+  - Tách phép biến đổi thuần khỏi tác động phụ và truy cập hạ tầng
+  - Thiết kế nhánh rỗng, lỗi và hủy như các kết quả cần được xử lý
+  - Giới hạn mức đồng thời theo năng lực thực của hệ thống phụ thuộc
+  - Thiết kế timeout, thử lại và tính lũy đẳng như một chính sách thống nhất
+  - Truyền dữ liệu theo yêu cầu bằng Context với phạm vi rõ ràng
+  - Tránh chia sẻ cache hoặc nguồn nóng ngoài chủ đích nghiệp vụ
+  - Xử lý tác vụ tách rời mà vẫn quản lý lỗi, vòng đời và tài nguyên
+  - Giữ thứ tự nghiệp vụ mà không hy sinh mức đồng thời ngoài nhu cầu
+  - Tiêu chí đọc hiểu và rà soát một chuỗi phản ứng trước khi đưa vào vận hành
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng chuỗi kiểm tra và biến đổi dữ liệu với Mono và Flux
+  - Phối hợp nhiều nguồn dữ liệu với yêu cầu giữ hoặc không giữ thứ tự
+  - Xử lý theo lô với giới hạn số lượng và thời gian
+  - Xây dựng dịch vụ tra cứu có cache, nhánh dự phòng và thời hạn lưu
+  - Chuyển API listener thành Flux có hủy và dọn tài nguyên
+  - Phát sự kiện qua Sinks cho nhiều người nhận với tốc độ khác nhau
+  - Cô lập dịch vụ chặn và giới hạn mức đồng thời của các lời gọi
+  - Xây dựng chính sách timeout, backoff và thử lại có giới hạn
+  - Truyền mã định danh yêu cầu qua Context và theo dõi toàn bộ chuỗi
+  - Quản lý tài nguyên bất đồng bộ trên các nhánh hoàn tất, lỗi và hủy
+  - Viết bộ kiểm thử chứng minh dữ liệu, lỗi, backpressure và thời gian
+  - Phân tích và cải tiến một chuỗi có block, subscribe lồng nhau hoặc bộ đệm không giới hạn

@@ -1,3 +1,0 @@
-menuLevel1: CompletableFuture
-menuLevel2: Thời hạn HTTP request so với timeout và cancellation của CompletableFuture
-status: WRITTEN

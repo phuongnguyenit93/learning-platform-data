@@ -1,0 +1,2125 @@
+menu:
+- slug: facade-overview
+  title: Tổng quan Facade
+  childs:
+  - slug: facade-overview-001
+    title: Mẫu mặt tiền (Facade) là gì và mục đích đơn giản hóa việc dùng phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-overview-002
+    title: Vị trí của Facade trong nhóm mẫu thiết kế cấu trúc (Structural Patterns)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-overview-003
+    title: Phân hệ (subsystem) là gì và vì sao có thể khó sử dụng trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-overview-004
+    title: Phân biệt giao diện sử dụng đơn giản với chức năng bên trong bị cắt giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-overview-005
+    title: Mối liên hệ giữa Facade, bên sử dụng và các thành phần phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-overview-006
+    title: Những tình huống phù hợp để cân nhắc Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-overview-007
+    title: Những tình huống chưa cần thêm Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-overview-008
+    title: Lợi ích kỳ vọng và giới hạn của một lớp truy cập đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-overview-009
+    title: Bản đồ thuật ngữ và lộ trình học từ cấu trúc đến kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: problem-statement
+  title: Vấn đề cần giải quyết
+  childs:
+  - slug: problem-statement-001
+    title: Nhận diện bên sử dụng phải hiểu quá nhiều lớp và thao tác cấp thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-statement-002
+    title: Phân tích trình tự khởi tạo và gọi nhiều thành phần phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-statement-003
+    title: Nhận diện mã điều phối bị sao chép ở nhiều bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-statement-004
+    title: Đánh giá ảnh hưởng khi chi tiết phân hệ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-statement-005
+    title: Phân biệt độ phức tạp của chức năng với độ khó của giao diện sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-statement-006
+    title: Xác định trường hợp sử dụng phổ biến cần một điểm truy cập rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-statement-007
+    title: So sánh gọi trực tiếp phân hệ với gọi qua một thao tác cấp cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: problem-statement-008
+    title: Đặt mục tiêu đơn giản hóa theo nhu cầu thực tế thay vì thêm tầng cho đủ mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: roles-structure
+  title: Vai trò và cấu trúc
+  childs:
+  - slug: roles-structure-001
+    title: Vai trò của bên sử dụng (Client) trong mẫu Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-structure-002
+    title: Trách nhiệm của lớp Facade đối với giao diện cấp cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-structure-003
+    title: Trách nhiệm của các lớp phân hệ trong thực hiện chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-structure-004
+    title: Quan hệ tham chiếu và ủy quyền giữa Facade với phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-structure-005
+    title: Vì sao phân hệ không cần phụ thuộc ngược vào Facade để hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-structure-006
+    title: Phân biệt lớp Facade cụ thể với giao diện trừu tượng tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-structure-007
+    title: Đọc sơ đồ lớp và hướng phụ thuộc của một thiết kế Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-structure-008
+    title: Phân biệt cấu trúc mẫu với quy tắc đặt tên lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-structure-009
+    title: Nhận diện một thiết kế có ý định Facade dù tên lớp không chứa Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interaction-flow
+  title: Luồng tương tác
+  childs:
+  - slug: interaction-flow-001
+    title: Theo dõi một yêu cầu từ Client qua Facade tới các thành phần phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-flow-002
+    title: Thiết lập thứ tự gọi dựa trên yêu cầu của thao tác cấp cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-flow-003
+    title: Truyền dữ liệu và ghép kết quả giữa các bước xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-flow-004
+    title: Xác định nơi kiểm tra điều kiện đầu vào của hợp đồng Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-flow-005
+    title: Phân biệt xử lý thành công, dừng giữa chừng và hoàn tất một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-flow-006
+    title: Theo dõi đường trả kết quả hoặc báo lỗi tới bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-flow-007
+    title: Đọc sơ đồ trình tự để kiểm tra trách nhiệm của từng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interaction-flow-008
+    title: So sánh mức hiểu biết mà Client cần có trước và sau khi thêm Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: implementation-example
+  title: Ví dụ triển khai
+  childs:
+  - slug: implementation-example-001
+    title: Xây dựng ví dụ chuyển đổi tài liệu với các thành phần đọc, chuyển đổi và lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: implementation-example-002
+    title: Quan sát mã bên sử dụng khi phải gọi trực tiếp từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: implementation-example-003
+    title: Xác định thao tác cấp cao theo nhu cầu chuyển đổi tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: implementation-example-004
+    title: Thiết kế lớp Facade và hợp đồng đầu vào, đầu ra ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: implementation-example-005
+    title: Kết nối các thành phần phân hệ bằng kết hợp đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: implementation-example-006
+    title: Triển khai điều phối mà vẫn giữ xử lý chuyên môn trong phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: implementation-example-007
+    title: Chuyển bên sử dụng sang gọi qua Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: implementation-example-008
+    title: Bổ sung nhánh lỗi và thu hồi tài nguyên của ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: implementation-example-009
+    title: Kiểm thử kết quả và đối chiếu hành vi trước, sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: implementation-example-010
+    title: Đánh giá ví dụ có thực sự giảm kiến thức cấp thấp mà Client phải biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: subsystem-boundaries
+  title: Ranh giới phân hệ
+  childs:
+  - slug: subsystem-boundaries-001
+    title: Xác định phạm vi phân hệ mà Facade đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subsystem-boundaries-002
+    title: Chọn mức trừu tượng phù hợp giữa thao tác cấp cao và chi tiết kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subsystem-boundaries-003
+    title: Phân biệt ranh giới phân hệ với một lớp, một thư viện hoặc một tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subsystem-boundaries-004
+    title: Quyết định phần nào cần được che khỏi giao diện sử dụng thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subsystem-boundaries-005
+    title: Giữ khả năng truy cập chức năng nâng cao khi có nhu cầu chính đáng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subsystem-boundaries-006
+    title: Phân biệt đơn giản hóa truy cập với cấm mọi truy cập trực tiếp vào phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subsystem-boundaries-007
+    title: Sử dụng phạm vi truy cập và ranh giới mô-đun khi cần bảo vệ chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subsystem-boundaries-008
+    title: Nhận diện ranh giới quá rộng gom nhiều phân hệ không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subsystem-boundaries-009
+    title: Kiểm chứng ranh giới bằng các trường hợp sử dụng cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interface-design
+  title: Thiết kế giao diện
+  childs:
+  - slug: interface-design-001
+    title: Đặt tên thao tác theo ý định của bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-002
+    title: Chọn tập thao tác đủ cho các nhu cầu phổ biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-003
+    title: Phân biệt một điểm truy cập thống nhất với bắt buộc chỉ có một phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-004
+    title: Thiết kế tham số phù hợp mức trừu tượng của Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-005
+    title: Sử dụng đối tượng yêu cầu khi giúp diễn đạt hợp đồng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-006
+    title: Chọn giá trị mặc định mà không che giấu quyết định quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-007
+    title: Phân biệt thao tác tiện lợi với khả năng cấu hình chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-008
+    title: Giữ giao diện gắn kết thay vì sao chép toàn bộ API cấp thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-009
+    title: Đánh giá khả năng khám phá và sử dụng sai của hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-010
+    title: Kiểm chứng giao diện từ mã của một bên sử dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: responsibilities-orchestration
+  title: Trách nhiệm và điều phối
+  childs:
+  - slug: responsibilities-orchestration-001
+    title: Giữ Facade tập trung vào cung cấp cách dùng phân hệ đơn giản hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-orchestration-002
+    title: Phân biệt điều phối thao tác với cài đặt thuật toán của phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-orchestration-003
+    title: Xác định nơi đặt quy tắc nghiệp vụ và bất biến dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-orchestration-004
+    title: Tránh sao chép logic đã thuộc trách nhiệm của thành phần bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-orchestration-005
+    title: Đánh giá kiểm tra đầu vào nào thuộc hợp đồng cấp cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-orchestration-006
+    title: Phân biệt Facade với lớp xử lý mọi yêu cầu của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-orchestration-007
+    title: Nhận diện thao tác phối hợp quá nhiều trách nhiệm không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-orchestration-008
+    title: Tách phần điều phối phức tạp khi đã có trách nhiệm độc lập rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: responsibilities-orchestration-009
+    title: Giữ một luồng nhiều bước dễ hiểu mà không chia nhỏ cơ học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-contracts
+  title: Dữ liệu và hợp đồng
+  childs:
+  - slug: data-contracts-001
+    title: Xác định dữ liệu tối thiểu mà bên sử dụng cần cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-002
+    title: Chọn kiểu kết quả có ý nghĩa với thao tác cấp cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-003
+    title: Phân biệt trả đối tượng phân hệ với trả mô hình dữ liệu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-004
+    title: Nhận diện việc làm lộ kiểu nội bộ gây phụ thuộc ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-005
+    title: Ánh xạ dữ liệu tại ranh giới mà không thêm chuyển đổi dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-006
+    title: Ghi rõ điều kiện đầu vào, đầu ra và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-007
+    title: Biểu diễn kết quả vắng mặt, hoàn tất một phần và trạng thái không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-008
+    title: Giữ ngữ nghĩa nhất quán khi nhiều thành phần dùng khái niệm khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-009
+    title: Đánh giá chi phí sao chép và quyền sở hữu dữ liệu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: initialization-lifecycle
+  title: Khởi tạo và vòng đời
+  childs:
+  - slug: initialization-lifecycle-001
+    title: Phân biệt Facade tự tạo phân hệ với nhận đối tượng từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-lifecycle-002
+    title: Sử dụng truyền phụ thuộc để làm rõ cộng tác viên của Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-lifecycle-003
+    title: Xác định nơi kết nối và cấu hình các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-lifecycle-004
+    title: Phân biệt vòng đời của Facade với vòng đời của tài nguyên phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-lifecycle-005
+    title: Lựa chọn chia sẻ hay tạo mới đối tượng theo nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-lifecycle-006
+    title: Giữ quyền sở hữu rõ ràng đối với thành phần do Facade tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-lifecycle-007
+    title: Kiểm chứng thứ tự khởi tạo và điều kiện sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-lifecycle-008
+    title: Tránh biến Facade thành nơi tra cứu phụ thuộc toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initialization-lifecycle-009
+    title: Vì sao Facade không bắt buộc phải triển khai dưới dạng Singleton
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-results
+  title: Lỗi và kết quả
+  childs:
+  - slug: errors-and-results-001
+    title: Xác định các lỗi mà một thao tác cấp cao có thể gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-results-002
+    title: Phân biệt chuyển tiếp lỗi gốc với chuyển sang lỗi theo hợp đồng Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-results-003
+    title: Giữ nguyên nhân và ngữ cảnh cần thiết khi ánh xạ ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-results-004
+    title: Tránh nuốt lỗi hoặc trả thành công khi một bước bắt buộc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-results-005
+    title: Biểu diễn kết quả hoàn tất một phần theo yêu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-results-006
+    title: Thiết kế đường dọn dẹp khi lỗi xuất hiện giữa các bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-results-007
+    title: Đánh giá khả năng thử lại dựa trên tác dụng phụ của thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-results-008
+    title: Giữ thông báo lỗi hữu ích mà không lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-results-009
+    title: Kiểm chứng các đường lỗi có thể xảy ra từ từng thành phần phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-results-010
+    title: Giữ hợp đồng báo lỗi ổn định khi thay thế thành phần bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources-transactions
+  title: Tài nguyên và giao dịch
+  childs:
+  - slug: resources-transactions-001
+    title: Xác định nơi mở, sử dụng và đóng tài nguyên của một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-transactions-002
+    title: Thu hồi tài nguyên khi thành công, thất bại hoặc bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-transactions-003
+    title: Phân biệt tập hợp nhiều lời gọi với một giao dịch có tính nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-transactions-004
+    title: Chọn ranh giới giao dịch theo yêu cầu nhất quán và cơ chế thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-transactions-005
+    title: Đánh giá dữ liệu đã thay đổi khi một bước sau đó thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-transactions-006
+    title: Thiết kế thao tác bù đắp khi hệ thống cần và có khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-transactions-007
+    title: Tránh giả định Facade tự bảo đảm quay lui cho mọi thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-transactions-008
+    title: Kiểm chứng quyền sở hữu tài nguyên khi Client vẫn dùng trực tiếp phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-transactions-009
+    title: Đánh giá chi phí giữ tài nguyên trong một thao tác điều phối dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-and-concurrency
+  title: Trạng thái và đồng thời
+  childs:
+  - slug: state-and-concurrency-001
+    title: Phân biệt Facade không giữ trạng thái với Facade theo phiên hoặc quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-concurrency-002
+    title: Xác định trạng thái thuộc một lần gọi và trạng thái được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-concurrency-003
+    title: Tránh giữ dữ liệu tạm của yêu cầu trong đối tượng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-concurrency-004
+    title: Đánh giá tính an toàn luồng của các thành phần phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-concurrency-005
+    title: Phân biệt Facade không có trạng thái với toàn bộ luồng thực thi an toàn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-concurrency-006
+    title: Quản lý thứ tự thao tác khi phân hệ có vòng đời hoặc trạng thái riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-concurrency-007
+    title: Đánh giá khả năng gọi lại và xử lý lặp của thao tác cấp cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-concurrency-008
+    title: Kiểm chứng nhiều bên sử dụng cùng một Facade hoặc phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-concurrency-009
+    title: Giữ cơ chế đồng bộ đúng nơi thay vì khóa mọi thao tác theo thói quen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-facades-layers
+  title: Nhiều Facade và phân tầng
+  childs:
+  - slug: multiple-facades-layers-001
+    title: Cung cấp các Facade khác nhau cho những nhóm nhu cầu riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-facades-layers-002
+    title: Phân biệt nhiều giao diện gắn kết với một Facade chứa mọi thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-facades-layers-003
+    title: Tổ chức Facade theo chức năng hoặc phạm vi phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-facades-layers-004
+    title: Sử dụng Facade ở ranh giới tầng khi giúp giảm kiến thức cần biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-facades-layers-005
+    title: Đánh giá Facade gọi Facade trong một kiến trúc nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-facades-layers-006
+    title: Kiểm soát phụ thuộc vòng và chuỗi chuyển tiếp khó theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-facades-layers-007
+    title: Giữ trách nhiệm của mỗi lớp truy cập cấp cao có ý nghĩa độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-facades-layers-008
+    title: Nhận diện lúc cần gộp hoặc loại bỏ một tầng Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-facades-layers-009
+    title: Kiểm chứng quyền truy cập nâng cao mà không phá mục đích đơn giản hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: principle-relations
+  title: Liên hệ nguyên tắc
+  childs:
+  - slug: principle-relations-001
+    title: Giảm mức phụ thuộc của Client vào chi tiết phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-002
+    title: Duy trì tính gắn kết của giao diện cấp cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-003
+    title: Liên hệ nguyên tắc một trách nhiệm với phạm vi Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-004
+    title: Áp dụng phân tách giao diện theo nhu cầu của các bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-005
+    title: Đảo chiều phụ thuộc khi cần thay thế phân hệ hoặc hỗ trợ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-006
+    title: Liên hệ che giấu thông tin với việc ổn định điểm truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-007
+    title: Ưu tiên kết hợp đối tượng khi Facade ủy quyền cho các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-008
+    title: Liên hệ nguyên tắc biết ít về cộng tác viên với cách Client sử dụng Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: principle-relations-009
+    title: Đánh giá sự đánh đổi thay vì coi Facade là cách tự động đạt mọi nguyên tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: related-patterns
+  title: Phân biệt mẫu liên quan
+  childs:
+  - slug: related-patterns-001
+    title: Phân biệt Facade và Adapter theo mục đích đơn giản hóa hoặc chuyển đổi giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-002
+    title: Phân biệt Facade và Proxy theo vai trò truy cập và đại diện đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-003
+    title: Phân biệt Facade và Decorator theo cách thêm hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-004
+    title: Phân biệt Facade và Mediator theo quan hệ cộng tác giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-005
+    title: Phân biệt Facade và Abstract Factory theo sử dụng hoặc tạo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-006
+    title: Phân biệt Facade với một lớp dịch vụ ứng dụng theo trách nhiệm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-007
+    title: Phân biệt Facade với Front Controller trong tiếp nhận và phân phối yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-008
+    title: Phân biệt Facade với API Gateway ở ranh giới hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-009
+    title: Nhận diện một thành phần có thể đồng thời đảm nhiệm nhiều vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-010
+    title: Kết hợp Facade với Adapter khi tích hợp một phân hệ có giao diện khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: related-patterns-011
+    title: Tránh nhận diện mẫu chỉ dựa vào sơ đồ lớp hoặc tên gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: legacy-integration
+  title: Tích hợp hệ thống cũ
+  childs:
+  - slug: legacy-integration-001
+    title: Đặt điểm truy cập ổn định trước phân hệ có giao diện khó dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-002
+    title: Gom các chuỗi gọi lặp lại từ bên sử dụng hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-003
+    title: Che chi tiết thư viện bên ngoài bằng hợp đồng phù hợp nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-004
+    title: Đánh giá mức cần thiết của chuyển đổi mô hình và thuật ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-005
+    title: Phân biệt dùng Facade với trách nhiệm của lớp chống lan truyền mô hình bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-006
+    title: Chuyển từng nhóm bên sử dụng mà không yêu cầu thay thế toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-007
+    title: Giữ chức năng nâng cao chưa được bao phủ qua đường truy cập rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-008
+    title: Thay thế dần thành phần bên dưới và kiểm chứng tính tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: legacy-integration-009
+    title: Quản lý phạm vi bảo trì khi Facade phải hỗ trợ nhiều phiên bản phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: remote-boundaries
+  title: Ranh giới từ xa
+  childs:
+  - slug: remote-boundaries-001
+    title: Phân biệt Facade trong tiến trình với điểm truy cập qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-boundaries-002
+    title: Đánh giá chi phí độ trễ khi một thao tác cấp cao gọi nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-boundaries-003
+    title: Giảm trao đổi quá chi tiết mà vẫn giữ hợp đồng có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-boundaries-004
+    title: Xử lý thời gian chờ (timeout), hủy yêu cầu và giới hạn thời gian toàn thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-boundaries-005
+    title: Đánh giá việc thử lại theo khả năng xử lý lặp và tác dụng phụ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-boundaries-006
+    title: Phân biệt giao dịch cục bộ với phối hợp thay đổi trên nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-boundaries-007
+    title: Theo dõi yêu cầu xuyên các bước bằng ngữ cảnh tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-boundaries-008
+    title: Giữ bảo mật và phân quyền theo ranh giới tin cậy thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-boundaries-009
+    title: Tránh biến bài toán Facade đơn giản thành yêu cầu phân tán không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: facade-testing
+  title: Kiểm thử Facade
+  childs:
+  - slug: facade-testing-001
+    title: Xác định hợp đồng cấp cao và hành vi quan sát được cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-002
+    title: Kiểm thử đơn vị cho phần điều phối có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-003
+    title: Kiểm tra tham số và quan hệ thứ tự khi chúng thuộc yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-004
+    title: Tránh khóa kiểm thử vào mọi lời gọi nội bộ không thuộc hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-005
+    title: Sử dụng đối tượng thay thế cho phụ thuộc khó kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-006
+    title: Kiểm thử tích hợp với các thành phần phân hệ thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-007
+    title: Kiểm chứng kết quả tương đương trước và sau khi thêm Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-008
+    title: Bao phủ lỗi từng bước, hoàn tất một phần và dọn dẹp tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-009
+    title: Kiểm thử trạng thái và truy cập đồng thời khi thiết kế có yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-010
+    title: Kiểm chứng hợp đồng khi thay một phiên bản phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: facade-testing-011
+    title: Đánh giá việc dùng Facade có giúp mã bên sử dụng dễ hiểu và dễ kiểm thử hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: benefits-costs
+  title: Lợi ích và chi phí
+  childs:
+  - slug: benefits-costs-001
+    title: Đánh giá mức giảm kiến thức mà bên sử dụng cần biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benefits-costs-002
+    title: Xác định phần phụ thuộc được chuyển từ Client vào Facade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benefits-costs-003
+    title: Phân biệt giảm ảnh hưởng thay đổi với xóa bỏ mọi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benefits-costs-004
+    title: Đánh giá độ ổn định của giao diện trước thay đổi phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benefits-costs-005
+    title: Cân nhắc chi phí duy trì thêm lớp và ánh xạ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benefits-costs-006
+    title: Phân tích nguy cơ hạn chế tính linh hoạt của chức năng nâng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benefits-costs-007
+    title: Đánh giá chi phí hiệu năng theo đường chạy và cơ chế gọi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benefits-costs-008
+    title: Nhận diện điểm truy cập tập trung đang trở thành điểm nghẽn thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: benefits-costs-009
+    title: Quyết định giữ, tách hoặc bỏ Facade theo giá trị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Biến Facade thành lớp trung tâm chứa toàn bộ logic hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Sao chép nguyên API cấp thấp mà không đơn giản hóa cách sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Thêm lớp chỉ chuyển tiếp một lời gọi mà chưa tạo giá trị rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Đưa thuật toán chuyên môn của phân hệ vào lớp điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Để lộ kiểu nội bộ làm bên sử dụng vẫn phụ thuộc sâu vào phân hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Dùng Singleton hoặc trạng thái toàn cục như yêu cầu mặc định của mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Tạo nhiều tầng Facade chuyển tiếp nhưng không có trách nhiệm riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Nuốt lỗi để giao diện trông đơn giản hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Giả định một thao tác cấp cao luôn nguyên tử hoặc tự có cơ chế quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Xem Facade như ranh giới bảo mật mà không có kiểm soát tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-011
+    title: Cấm mọi truy cập nâng cao dù hợp đồng cấp cao chưa đáp ứng nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-012
+    title: Áp dụng Facade cho phân hệ đã dễ dùng mà không có vấn đề cần giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refactoring-process
+  title: Quy trình tái cấu trúc
+  childs:
+  - slug: refactoring-process-001
+    title: Khảo sát mã Client và các chuỗi gọi phân hệ đang lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-002
+    title: Chọn một trường hợp sử dụng có phạm vi và lợi ích rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-003
+    title: Ghi nhận hành vi, tác dụng phụ và ngoại lệ hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-004
+    title: Thiết lập kiểm thử bảo vệ trước khi di chuyển điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-005
+    title: Tạo giao diện cấp cao và kết nối các phụ thuộc cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-006
+    title: Di chuyển từng luồng sử dụng sang Facade theo bước nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-007
+    title: Giữ đường tương thích trong giai đoạn các bên sử dụng chưa chuyển hết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-008
+    title: Kiểm chứng các đường thành công, lỗi và thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-009
+    title: Rà soát phụ thuộc còn bị làm lộ qua dữ liệu hoặc kiểu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refactoring-process-010
+    title: Đánh giá lợi ích thực tế và dừng khi mục tiêu đơn giản hóa đã đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evolution-compatibility
+  title: Tiến hóa và tương thích
+  childs:
+  - slug: evolution-compatibility-001
+    title: Thay đổi cài đặt phân hệ trong khi giữ hợp đồng Facade ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-compatibility-002
+    title: Phân biệt thay đổi nội bộ với thay đổi hành vi mà bên sử dụng quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-compatibility-003
+    title: Bổ sung thao tác mới theo nhu cầu mà không mở rộng trách nhiệm tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-compatibility-004
+    title: Quản lý cấu hình và giá trị mặc định khi phân hệ phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-compatibility-005
+    title: Duy trì ngữ nghĩa lỗi, kết quả và tác dụng phụ qua các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-compatibility-006
+    title: Loại bỏ thao tác cũ bằng lộ trình chuyển đổi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-compatibility-007
+    title: Tách Facade khi các nhóm nhu cầu phát triển theo hướng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-compatibility-008
+    title: Cập nhật tài liệu và kiểm thử hợp đồng theo trách nhiệm hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evolution-compatibility-009
+    title: Nhận diện lúc phân hệ đã đơn giản hơn và không còn cần tầng truy cập cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenario-and-practice
+  title: Tình huống và thực hành
+  childs:
+  - slug: scenario-and-practice-001
+    title: Thiết kế Facade khởi động và dừng một hệ thống nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-002
+    title: Thiết kế Facade chuyển đổi tài liệu qua nhiều thành phần kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-003
+    title: Đơn giản hóa việc sử dụng thư viện có nhiều bước cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-004
+    title: Tạo giao diện truy xuất và tổng hợp dữ liệu cho một nhu cầu cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-005
+    title: Đánh giá một luồng đặt hàng để phân biệt Facade với điều phối nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-006
+    title: So sánh phương án dùng Adapter và Facade cho cùng một thư viện bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-007
+    title: Xử lý lỗi giữa chừng và xác minh tài nguyên được thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-008
+    title: Thay một thành phần phân hệ mà không đổi mã Client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-009
+    title: Tách một Facade quá rộng thành các giao diện có mục đích rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-010
+    title: Rà soát ví dụ có tên Facade nhưng chỉ là lớp chuyển tiếp dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-011
+    title: Lập sơ đồ lớp, sơ đồ trình tự và hợp đồng cho một thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-and-practice-012
+    title: Giải thích quyết định có hoặc không dùng Facade bằng vấn đề, lợi ích và đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

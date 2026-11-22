@@ -1,7 +1,0 @@
-# Support Document Markdown Flexmark
-
-flexmark-java là thư viện Java dùng để phân tích và xử lý tài liệu Markdown theo hướng CommonMark, đồng thời hỗ trợ nhiều cú pháp mở rộng. Thư viện tạo cây cú pháp trừu tượng (AST) có thông tin vị trí từ nguồn, cho phép chương trình chuyển tài liệu sang HTML, duyệt các thành phần như heading hoặc link, và chuẩn hóa lại văn bản Markdown. Module này tập trung vào luồng xử lý tài liệu bằng mã Java, không yêu cầu xây dựng một trình soạn thảo Markdown hoàn chỉnh.
-
-Roadmap một cấp gồm tám mốc: làm quen Markdown và CommonMark, thêm dependency flexmark-java, xây dựng Parser và quan sát AST, sau đó kết xuất HTML bằng HtmlRenderer. Người học tiếp tục cấu hình options và các extensions như tables hoặc strikethrough, duyệt node bằng visitor, sử dụng Formatter để chuẩn hóa tài liệu rồi tích hợp vào ứng dụng với bộ kiểm thử các trường hợp biên. Khi xử lý Markdown do người dùng nhập, cần đánh giá rủi ro raw HTML và URL, đồng thời bổ sung cơ chế lọc HTML thích hợp ở lớp hiển thị thay vì mặc định tin rằng chuyển đổi Markdown đã bảo đảm an toàn.
-
-Module phù hợp với người đã biết Java, Maven hoặc Gradle và cú pháp Markdown cơ bản. Sau khi hoàn thành, bạn có thể xây dựng một công cụ nhỏ đọc Markdown, phân tích AST, kết xuất HTML, bật extensions có kiểm soát, trích xuất cấu trúc tài liệu và kiểm chứng kết quả để phục vụ các tính năng tài liệu trong hệ thống.

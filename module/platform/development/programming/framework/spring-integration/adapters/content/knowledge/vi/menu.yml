@@ -1,0 +1,630 @@
+menu:
+- level1: Khái niệm adapter
+  level2:
+  - Vai trò của channel adapter trong kiến trúc messaging
+  - Luồng inbound đưa dữ liệu vào MessageChannel
+  - Luồng outbound gửi message đến hệ thống ngoài
+  - Phân biệt adapter một chiều và gateway hai chiều
+  - Adapter so với service activator và transformer
+  - Ánh xạ message với tài nguyên hoặc giao thức bên ngoài
+  - Vòng đời endpoint và trạng thái hoạt động
+  - Tiêu chí chọn adapter cho một integration flow
+- level1: Kiểu endpoint
+  level2:
+  - MessageSource và MessageHandler trong adapter
+  - Event-driven consumer trên SubscribableChannel
+  - Polling consumer trên PollableChannel
+  - SourcePollingChannelAdapter cho nguồn dữ liệu
+  - ConsumerEndpointFactoryBean và endpoint ẩn
+  - Endpoint ID và tên bean nội bộ
+  - SmartLifecycle và thứ tự khởi động
+  - Endpoint composite và inner bean
+  - Liên kết adapter với channel đầu vào đầu ra
+- level1: Tạo integration flow
+  level2:
+  - IntegrationFlow bằng Java DSL
+  - '@InboundChannelAdapter cho nguồn polling'
+  - '@ServiceActivator làm điểm kết thúc outbound'
+  - '@MessagingGateway gọi integration flow'
+  - Cấu hình adapter bằng XML namespace
+  - Đăng ký adapter như một bean độc lập
+  - Bridge giữa adapter và channel khác
+  - Chọn input-channel và output-channel
+  - Định tuyến flow qua nhiều endpoint
+- level1: Poller
+  level2:
+  - Trigger fixed-rate cho polling adapter
+  - Trigger fixed-delay và khác biệt với fixed-rate
+  - Trigger cron cho lịch lấy dữ liệu
+  - initial-delay và thời điểm chạy lần đầu
+  - receive-timeout khi nguồn không có dữ liệu
+  - max-messages-per-poll giới hạn một chu kỳ
+  - Long polling cho nguồn có thao tác chờ
+  - task-executor và xử lý polling bất đồng bộ
+  - Poller error-channel khi tác vụ thất bại
+  - Transaction advice trên poller
+  - Thay đổi poller động bằng Control Bus
+- level1: Adapter file
+  level2:
+  - File inbound channel adapter đọc thư mục
+  - File outbound channel adapter ghi tệp
+  - File tail adapter đọc tệp đang tăng trưởng
+  - File inbound gateway kết hợp đọc và phản hồi
+  - File outbound gateway thao tác hệ thống tệp
+  - FileListFilter theo tên mẫu và phần mở rộng
+  - RecursiveDirectoryScanner cho thư mục lồng nhau
+  - MetadataStore chống đọc lặp cùng một tệp
+  - FileHeaders và đường dẫn tệp trong message
+  - Temporary file suffix và thao tác nguyên tử
+  - File locking khi nhiều tiến trình cùng đọc
+- level1: Adapter FTP
+  level2:
+  - FTP session factory và kết nối máy chủ
+  - FTP inbound adapter lấy tệp từ máy chủ
+  - FTP outbound adapter đẩy tệp lên máy chủ
+  - FTP outbound gateway thao tác request-reply
+  - Thư mục từ xa và thư mục cục bộ
+  - FTP filter và cơ chế đánh dấu tệp đã lấy
+  - Chế độ active passive và yêu cầu mạng
+  - Cache session và quản lý vòng đời kết nối
+  - Retry reconnect và xử lý lỗi FTP
+  - Xóa hoặc giữ tệp từ xa sau khi lấy
+- level1: Adapter SFTP
+  level2:
+  - SFTP inbound adapter với khóa SSH
+  - SFTP outbound adapter tải tệp lên
+  - SFTP outbound gateway cho thao tác từ xa
+  - Known hosts và xác minh máy chủ
+  - Private key passphrase và xác thực
+  - RemoteFileTemplate thực hiện thao tác SFTP
+  - SFTP streaming để xử lý không lưu tệp
+  - Rename tệp từ xa sau khi tải thành công
+  - ConcurrentMetadataStore cho nhiều consumer
+  - Retry context khi kết nối SFTP gián đoạn
+- level1: Adapter SMB
+  level2:
+  - SMB inbound adapter đọc thư mục chia sẻ
+  - SMB outbound adapter ghi vào Windows share
+  - SMB outbound gateway thao tác tài nguyên
+  - Xác thực domain user và credential
+  - SMB session factory và cache session
+  - Đường dẫn UNC và ánh xạ thư mục
+  - Streaming file qua SMB
+  - Filter và metadata cho tệp SMB
+  - Xử lý lock và lỗi quyền truy cập
+  - Đảm bảo idempotency khi quét share
+- level1: Adapter HTTP
+  level2:
+  - HTTP inbound channel adapter nhận request
+  - HTTP outbound channel adapter gửi one-way request
+  - HTTP inbound gateway nhận request-reply
+  - HTTP outbound gateway gọi dịch vụ và nhận reply
+  - HttpRequestHandlingEndpoint và ánh xạ method
+  - HttpMessageHandler và HttpRequestExecutingMessageHandler
+  - Mapping path method query và header
+  - Payload JSON form-data và multipart
+  - HTTP status code và response entity
+  - Timeout retry và circuit breaker cho HTTP
+  - Xác thực TLS OAuth2 và credential
+  - HTTP error channel và xử lý lỗi từ xa
+- level1: Adapter WebFlux
+  level2:
+  - WebFlux inbound channel adapter
+  - WebFlux outbound channel adapter
+  - WebFlux inbound gateway cho request-reply
+  - WebFlux outbound gateway gọi reactive service
+  - Reactive types và backpressure
+  - WebClient và cấu hình connection
+  - Ánh xạ request response trong WebFlux
+  - Streaming response bằng Flux
+  - Timeout retry trong reactive flow
+  - Xử lý lỗi không chặn luồng
+- level1: Adapter WebSocket
+  level2:
+  - WebSocket inbound channel adapter
+  - WebSocket outbound channel adapter
+  - WebSocket session và connection ID
+  - WebSocket message mapper
+  - STOMP over WebSocket và broker relay
+  - Broadcast message đến nhiều session
+  - Đóng session và xử lý disconnect
+  - Heartbeat và phát hiện kết nối hỏng
+  - Kiểm soát kích thước payload
+  - Xác thực người dùng trên WebSocket
+- level1: Adapter TCP
+  level2:
+  - TCP inbound channel adapter
+  - TCP outbound channel adapter
+  - TCP inbound gateway request-reply
+  - TCP outbound gateway request-reply
+  - ConnectionFactory và quản lý socket
+  - Serializer và deserializer khung dữ liệu
+  - Length header và delimiter codec
+  - Connection ID và correlation header
+  - Client mode và server mode
+  - Retry reconnect và failover
+  - Single-use connection và shared connection
+  - Xử lý timeout socket và partial message
+- level1: Adapter UDP
+  level2:
+  - UDP inbound channel adapter
+  - UDP outbound channel adapter
+  - Unicast và multicast datagram
+  - UDP message header và địa chỉ nguồn
+  - Datagram packet size và giới hạn payload
+  - Socket timeout và lifecycle
+  - Chuyển đổi byte array sang payload
+  - Xử lý mất gói và tính không bảo đảm
+  - Broadcast trên mạng nội bộ
+  - Kiểm thử UDP bằng test channel
+- level1: Adapter JMS
+  level2:
+  - JMS inbound channel adapter polling
+  - JMS message-driven channel adapter
+  - JMS outbound channel adapter
+  - JMS inbound gateway request-reply
+  - JMS outbound gateway request-reply
+  - JmsTemplate và ConnectionFactory
+  - Destination queue topic và destination name
+  - Message-driven container và concurrency
+  - JMS message converter
+  - Session acknowledgment và transaction
+  - Temporary reply destination
+  - Redelivery và dead-letter queue
+  - Header mapping giữa JMS và Spring Message
+- level1: Adapter AMQP
+  level2:
+  - AMQP inbound channel adapter
+  - AMQP outbound channel adapter
+  - AMQP inbound gateway
+  - AMQP outbound gateway
+  - RabbitTemplate và connection factory
+  - Queue exchange binding và routing key
+  - Message-driven container và prefetch
+  - AMQP message converter
+  - Publisher confirms và returns
+  - Manual acknowledgment và retry
+  - Dead-letter exchange và requeue
+  - Header mapping với Rabbit message
+- level1: Adapter Kafka
+  level2:
+  - Kafka inbound channel adapter
+  - Kafka message-driven channel adapter
+  - Kafka outbound channel adapter
+  - Kafka inbound gateway request-reply
+  - Kafka outbound gateway request-reply
+  - Consumer group và partition assignment
+  - KafkaMessageDrivenChannelAdapter
+  - KafkaTemplate và producer factory
+  - Record message converter
+  - Offset commit và acknowledgment
+  - Error handler và dead-letter topic
+  - Batch listener và record listener
+  - Concurrency và thứ tự trong partition
+  - Exactly-once và transaction producer
+- level1: Adapter MQTT
+  level2:
+  - MQTT inbound message-driven adapter
+  - MQTT outbound channel adapter
+  - MQTT client factory và broker URL
+  - Topic expression và topic header
+  - QoS retain và clean session
+  - Automatic reconnect và completion timeout
+  - Last will và keep alive
+  - Payload conversion cho MQTT message
+  - Subscription pattern và wildcard topic
+  - Delivery token và xác nhận publish
+  - Xử lý duplicate message theo QoS
+- level1: Adapter STOMP
+  level2:
+  - STOMP inbound channel adapter
+  - STOMP outbound channel adapter
+  - STOMP client session
+  - Destination prefix và subscription
+  - Message converter cho STOMP
+  - Heart-beat và reconnect
+  - Broker relay và application destination
+  - User destination và session mapping
+  - ACK NACK và subscription mode
+  - Xử lý frame lỗi từ broker
+- level1: Adapter XMPP
+  level2:
+  - XMPP message inbound adapter
+  - XMPP message outbound adapter
+  - XMPP presence inbound adapter
+  - XMPP presence outbound adapter
+  - Connection factory và authentication
+  - Chat room và conversation address
+  - Message payload và extension
+  - Presence subscription và trạng thái
+  - Reconnect khi XMPP connection mất
+  - Xử lý stanza lỗi
+- level1: Adapter ZeroMQ
+  level2:
+  - ZeroMQ inbound channel adapter
+  - ZeroMQ outbound channel adapter
+  - ZeroMQ socket type và pattern
+  - Connect bind và endpoint address
+  - Multipart message và frame
+  - Serialization payload
+  - High-water mark và backpressure
+  - Socket lifecycle và thread safety
+  - Timeout retry và reconnect
+  - Đảm bảo thứ tự trong message stream
+- level1: Adapter Mail
+  level2:
+  - Mail receiving channel adapter
+  - Mail sending channel adapter
+  - IMAP và POP3 inbound
+  - SMTP outbound và JavaMailSender
+  - SearchTerm lọc thư đến
+  - Mail headers và cấu trúc MIME
+  - Attachment và multipart message
+  - Mark as read và xóa thư
+  - Polling mail folder
+  - Authentication TLS và connection timeout
+  - Retry khi mail server tạm thời lỗi
+- level1: Adapter Feed
+  level2:
+  - Feed inbound channel adapter cho RSS
+  - Feed inbound channel adapter cho Atom
+  - Feed đọc định kỳ bằng poller
+  - Feed headers và metadata bài viết
+  - Feed filter theo thời gian hoặc id
+  - Đảm bảo không phát lại bài đã đọc
+  - HTTP client và conditional request
+  - Xử lý feed lỗi hoặc không hợp lệ
+  - Chuẩn hóa entry thành message payload
+- level1: Adapter Syslog
+  level2:
+  - Syslog inbound channel adapter
+  - UDP TCP và TLS transport cho Syslog
+  - Syslog message payload
+  - Facility severity và priority
+  - Port lắng nghe và bind address
+  - Thread pool cho syslog receiver
+  - Định tuyến log theo header
+  - Giới hạn kích thước datagram
+  - Xử lý malformed syslog message
+  - Đảm bảo an toàn khi nhận log công khai
+- level1: Adapter JDBC
+  level2:
+  - JDBC inbound channel adapter chạy SELECT
+  - JDBC outbound channel adapter chạy DML
+  - JDBC inbound stored procedure adapter
+  - JDBC outbound stored procedure adapter
+  - JDBC outbound gateway trả kết quả
+  - DataSource và JdbcTemplate
+  - RowMapper chuyển ResultSet thành payload
+  - UpdateSqlParameterSource và expression
+  - Polling query và trạng thái đã đọc
+  - MetadataStore cho incremental query
+  - Transaction trên flow JDBC
+  - Locking và tránh lấy trùng bản ghi
+  - Batch update và hiệu năng
+- level1: Adapter JPA
+  level2:
+  - JPA inbound channel adapter
+  - JPA outbound channel adapter
+  - JPA retrieving outbound gateway
+  - JPA updating outbound gateway
+  - EntityManagerFactory và persistence context
+  - JpaExecutor và query expression
+  - Parameter source cho JPA query
+  - Flush clear và transaction boundary
+  - Polling entity theo trạng thái
+  - Optimistic locking khi cập nhật
+  - Lazy loading trong message flow
+  - Xử lý lỗi constraint và rollback
+- level1: Adapter R2DBC
+  level2:
+  - R2DBC inbound channel adapter
+  - R2DBC outbound channel adapter
+  - DatabaseClient và ConnectionFactory
+  - Reactive query trả Flux
+  - Reactive update và affected rows
+  - Row mapping trong R2DBC
+  - Backpressure khi đọc nhiều bản ghi
+  - Transaction reactive
+  - Retry connection và transient error
+  - Commit offset sau khi xử lý thành công
+- level1: Adapter MongoDB
+  level2:
+  - MongoDB inbound channel adapter
+  - MongoDB outbound channel adapter
+  - MongoDbOutboundGateway
+  - MongoTemplate và MongoDbFactory
+  - Query expression và collection
+  - MongoDbMessageSource polling
+  - Query fields sort và limit
+  - MetadataStore trong MongoDB
+  - Reactive MongoDB adapter
+  - Write concern và transaction
+  - Xử lý duplicate key và retry
+- level1: Adapter Cassandra
+  level2:
+  - Cassandra outbound channel adapter
+  - CassandraMessageHandler
+  - CqlTemplate và session factory
+  - Prepared statement và parameter binding
+  - Partition key trong message flow
+  - Consistency level và timeout
+  - Batch statement và logged batch
+  - Mapping payload sang row
+  - Retry unavailable và timeout
+  - Thiết kế idempotent khi ghi Cassandra
+- level1: Adapter Redis
+  level2:
+  - Redis inbound channel adapter
+  - Redis queue inbound adapter
+  - Redis store inbound adapter
+  - Redis stream inbound adapter
+  - Redis outbound channel adapter
+  - Redis queue outbound adapter
+  - Redis store outbound adapter
+  - Redis stream outbound adapter
+  - Redis queue inbound gateway
+  - Redis outbound command gateway
+  - Redis connection factory và serializer
+  - Consumer group và stream offset
+  - TTL key và metadata
+  - Pub/Sub so với queue và stream
+- level1: Adapter sự kiện
+  level2:
+  - Nhận Spring ApplicationEvent bằng adapter
+  - Gửi Spring ApplicationEvent từ message
+  - ApplicationEventListeningMessageProducer
+  - ApplicationEventPublishingMessageHandler
+  - Event type và payload mapping
+  - Event multicaster và thread
+  - Transaction-bound application event
+  - Filter event trước khi đưa vào flow
+  - Tránh vòng lặp event và message
+  - Kiểm thử event adapter
+- level1: Adapter JMX
+  level2:
+  - JMX notification-listening adapter
+  - JMX attribute-polling adapter
+  - JMX tree-polling adapter
+  - JMX notification-publishing adapter
+  - JMX operation-invoking adapter
+  - JMX outbound gateway
+  - MBeanServer và ObjectName
+  - Attribute expression và type conversion
+  - Notification filter và handback
+  - Remote JMX connection
+  - Quyền truy cập và bảo mật JMX
+- level1: Adapter Resource
+  level2:
+  - Resource inbound channel adapter
+  - Đọc classpath resource theo poller
+  - ResourcePatternResolver và nhiều tài nguyên
+  - Resource object trong message payload
+  - Resource outbound adapter
+  - Đẩy nội dung message vào resource
+  - Encoding và charset
+  - Đọc stream một lần và đóng resource
+  - Filter resource theo mẫu
+  - Xử lý resource không tồn tại
+- level1: Adapter Stream
+  level2:
+  - Stream inbound channel adapter
+  - Stream outbound channel adapter
+  - InputStream làm message source
+  - OutputStream làm message destination
+  - Reader writer và charset
+  - Đóng stream theo lifecycle
+  - Chuyển đổi byte array và text
+  - Backpressure khi đọc stream dài
+  - Buffer size và hiệu năng
+  - Xử lý IOException trong adapter
+- level1: Adapter RSocket
+  level2:
+  - RSocket inbound gateway
+  - RSocket outbound gateway
+  - Request-response qua RSocket
+  - Fire-and-forget qua RSocket
+  - Request-stream và response-stream
+  - Metadata và route
+  - Payload codec và data mime type
+  - Reconnect và resume
+  - Timeout và cancellation
+  - Reactive backpressure trong RSocket
+- level1: Adapter Web Services
+  level2:
+  - Web service inbound gateway
+  - Web service outbound gateway
+  - SOAP message và WebServiceTemplate
+  - Marshalling và unmarshalling
+  - SOAP action và header
+  - XSD contract và payload root
+  - HTTP transport và endpoint URI
+  - Fault message và lỗi SOAP
+  - Client interceptor và bảo mật
+  - Retry timeout và correlation
+- level1: Adapter GraphQL
+  level2:
+  - GraphQL outbound gateway
+  - GraphQL query và variables
+  - GraphQL mutation từ message
+  - GraphQL response và errors
+  - HTTP transport cho GraphQL
+  - Headers authentication và context
+  - Mapping payload sang request document
+  - Timeout retry và giới hạn truy vấn
+- level1: Adapter Cloud
+  level2:
+  - Apache Camel outbound channel adapter
+  - Apache Camel outbound gateway
+  - Hazelcast inbound channel adapter
+  - Hazelcast outbound channel adapter
+  - Cloud stream bridge trong integration flow
+  - Message broker binder và destination
+  - Distributed metadata store
+  - Cluster membership và topology change
+  - Remote service adapter boundary
+  - Chọn adapter cloud-native phù hợp
+- level1: Adapter Debezium
+  level2:
+  - Debezium inbound channel adapter
+  - Change event payload
+  - Database table và connector configuration
+  - Offset và vị trí log thay đổi
+  - Snapshot so với streaming
+  - Schema change event
+  - Key value và envelope
+  - Error event và dead-letter
+  - Đảm bảo thứ tự theo partition
+  - Idempotency khi phát lại CDC
+- level1: Adapter POJO
+  level2:
+  - POJO inbound channel adapter
+  - POJO outbound channel adapter
+  - MethodInvokingMessageSource
+  - MethodInvokingMessageProcessor
+  - MessageSource polling method
+  - Void method cho outbound handler
+  - Method parameter và payload resolution
+  - Return value và message conversion
+  - Expression adapter
+  - Script adapter
+  - Đăng ký bean nguồn và bean đích
+- level1: Mapping message
+  level2:
+  - Payload mapping theo loại dữ liệu
+  - Message converter cho adapter
+  - Header mapper theo giao thức
+  - Content-type và MimeType
+  - Reply channel trong gateway
+  - Correlation ID giữa request và reply
+  - Message ID và timestamp
+  - Mapping null payload
+  - Mapping lỗi thành ErrorMessage
+  - Giữ ngữ nghĩa message khi qua adapter
+- level1: Header message
+  level2:
+  - HeaderMapper cho inbound message
+  - HeaderMapper cho outbound message
+  - Header không được truyền qua boundary
+  - StandardHeaders và protocol headers
+  - User-defined headers
+  - MessageHeaders.ID và tính bất biến
+  - Header expression
+  - Header enricher trước adapter
+  - Header filter để loại dữ liệu nhạy cảm
+  - Kiểm tra header khi debug flow
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - Payload transformer trước outbound adapter
+  - Message converter dựa trên content type
+  - JSON converter và ObjectMapper
+  - XML converter và namespace
+  - Byte array converter
+  - String và charset converter
+  - Data format của adapter giao thức
+  - Chuyển đổi lỗi không làm mất header
+  - Chuyển đổi streaming payload
+  - Kiểm soát kích thước payload sau chuyển đổi
+- level1: Reliability
+  level2:
+  - Retry advice cho request handler
+  - RetryTemplate và retry policy
+  - BackOffPolicy khi kết nối thất bại
+  - Recoverer sau khi retry hết lượt
+  - RequestHandlerRetryAdvice
+  - Idempotent receiver cho inbound adapter
+  - MetadataStoreSelector
+  - Dead-letter flow cho message lỗi
+  - Resilience khi hệ thống ngoài chậm
+  - Phân biệt retry an toàn và retry gây trùng
+- level1: Error handling
+  level2:
+  - errorChannel mặc định
+  - Private error channel theo flow
+  - ErrorMessage và MessagingException
+  - failedMessage và failedEndpoint
+  - ErrorMessageExceptionTypeRouter
+  - Error flow xử lý bù
+  - Gateway ném lỗi về caller
+  - Poller gửi lỗi đến error-channel
+  - NullChannel để loại bỏ lỗi có chủ đích
+  - Dead-letter channel và quarantine
+  - Logging lỗi không làm mất ngữ cảnh
+- level1: Transactions
+  level2:
+  - Transaction advice cho polling adapter
+  - TransactionSynchronizationFactory
+  - Commit sau khi xử lý outbound thành công
+  - Rollback khi handler downstream thất bại
+  - JMS transaction và acknowledgment
+  - Kafka transaction và offset
+  - JDBC transaction boundary
+  - Transaction-aware MessageStore
+  - Outbox pattern với adapter
+  - Độc lập transaction giữa các hệ thống
+  - Tránh giữ transaction khi gọi dịch vụ chậm
+- level1: Observability
+  level2:
+  - Message history qua các endpoint
+  - Wire tap quan sát message
+  - Integration graph của flow
+  - Metrics cho adapter và channel
+  - Tracing message qua transport boundary
+  - Logging payload có kiểm soát
+  - Control Bus điều khiển adapter
+  - JMX quản trị endpoint runtime
+  - Health indicator cho kết nối ngoài
+  - Correlation log giữa inbound và outbound
+  - Ẩn credential và dữ liệu nhạy cảm
+- level1: Testing
+  level2:
+  - Test channel cho adapter
+  - Spring Integration test utilities
+  - MockIntegrationContext
+  - MessageCollector và kiểm tra output
+  - Testing inbound adapter theo thời gian
+  - Testing outbound adapter bằng mock client
+  - Test gateway request-reply
+  - Kiểm tra header và payload
+  - Test retry và recoverer
+  - Test error flow và dead-letter
+  - Test transaction rollback
+  - Test concurrency và ordering
+- level1: Spring Boot
+  level2:
+  - Starter dependency cho từng adapter
+  - Auto-configuration và bean override
+  - Properties cho connection factory
+  - IntegrationFlow bean trong Boot
+  - Quản lý credential bằng configuration
+  - Profile cho môi trường adapter
+  - Health endpoint và actuator
+  - Thay đổi polling interval qua properties
+  - Exclude auto-configuration không cần thiết
+  - Kiểm tra dependency version tương thích
+- level1: Design patterns
+  level2:
+  - Polling consumer pattern
+  - Event-driven consumer pattern
+  - Gateway request-reply pattern
+  - Competing consumers pattern
+  - Claim check với message store
+  - Idempotent receiver pattern
+  - Aggregator sau nhiều adapter
+  - Resequencer cho message đến lệch thứ tự
+  - Router theo protocol hoặc header
+  - Bridge giữa hai broker
+  - Anti-corruption layer ở biên hệ thống
+- level1: Production
+  level2:
+  - Checklist cấu hình adapter trước triển khai
+  - Timeout cho mọi kết nối từ xa
+  - Retry và backoff theo loại lỗi
+  - Giới hạn concurrency và connection pool
+  - Đảm bảo idempotency khi restart
+  - Giám sát backlog và độ trễ
+  - Quản lý secret và certificate
+  - Shutdown graceful và draining message
+  - Replay message và vận hành dead-letter
+  - Kiểm tra tương thích khi nâng phiên bản
+  - Runbook cho mất kết nối hệ thống ngoài

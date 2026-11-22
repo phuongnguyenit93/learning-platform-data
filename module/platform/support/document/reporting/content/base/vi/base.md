@@ -1,0 +1,5 @@
+# Support Document Reporting
+
+Reporting là quy trình biến dữ liệu thành báo cáo có cấu trúc, giúp người đọc nắm được kết quả, xu hướng và vấn đề cần xử lý. Một báo cáo hữu ích không chỉ trình bày số liệu: các chỉ số phải có định nghĩa nhất quán, dữ liệu phải được kiểm tra và bố cục phải phù hợp với mục đích sử dụng. Trong hệ thống phần mềm, quy trình này có thể được tự động hóa bằng mẫu tài liệu và các công cụ tạo tệp như JasperReports, Apache POI hoặc Google Docs API.
+
+Module dành cho người đã biết dữ liệu cơ bản, SQL/REST và xử lý tệp. Bạn sẽ xác định nhu cầu báo cáo, thu thập và kiểm tra dữ liệu, xây KPI, tạo mẫu tài liệu, trình bày bảng/biểu đồ, xuất PDF/DOCX/XLSX, rồi thiết lập lịch sinh báo cáo. Phần cuối tập trung vào phân quyền, phân phối an toàn, kiểm thử nội dung và giám sát quá trình tạo tệp. Hoàn thành lộ trình, bạn có thể thiết kế một luồng reporting từ dữ liệu nguồn đến báo cáo có thể kiểm tra và sử dụng thực tế.

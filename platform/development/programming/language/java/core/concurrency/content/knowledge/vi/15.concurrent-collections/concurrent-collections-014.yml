@@ -1,3 +1,0 @@
-menuLevel1: Concurrent Collections
-menuLevel2: Giá trị mutable trong ConcurrentHashMap vẫn cần hợp đồng thread safety riêng
-status: WRITTEN

@@ -1,7 +1,0 @@
-# Software Design Design Pattern Behavioral Command
-
-Command là một mẫu thiết kế hành vi dùng để đóng gói yêu cầu hoặc thao tác thành một đối tượng có giao diện thực thi thống nhất. Nhờ đó, thành phần phát sinh yêu cầu không cần phụ thuộc trực tiếp vào lớp thực hiện nghiệp vụ. Kỹ thuật này đặc biệt hữu ích cho nút bấm, menu, lịch sử thao tác, hàng đợi công việc và các hành động cần trì hoãn hoặc hoàn tác.
-
-Module dành cho người học Java đã nắm lớp, interface và đa hình. Bạn sẽ bắt đầu từ bài toán cần tách bên gọi với bên xử lý, tìm hiểu vai trò Client, Invoker, Command và Receiver, rồi tự xây dựng các ConcreteCommand với phương thức `execute()`. Lộ trình tiếp tục với truyền tham số, Macro Command, xếp hàng và ghi lịch sử lệnh; sau đó bổ sung `undo()` hoặc cơ chế lưu trạng thái để hỗ trợ Undo/Redo. Cuối cùng, bạn liên hệ mẫu với `Runnable`, `javax.swing.Action`, `UndoManager` và kiểm thử từng thao tác.
-
-Hãy thử tạo bộ điều khiển đèn với hai lệnh bật/tắt, để một nút bấm đóng vai Invoker và đèn đóng vai Receiver. Mở rộng bằng cách lưu lịch sử, hoàn tác một thay đổi và kiểm tra thực thi lặp không mong muốn. Kết thúc module, bạn có thể thiết kế Command Pattern phù hợp, kiểm soát vòng đời lệnh và nhận ra khi một callback đơn giản sẽ ít phức tạp hơn.

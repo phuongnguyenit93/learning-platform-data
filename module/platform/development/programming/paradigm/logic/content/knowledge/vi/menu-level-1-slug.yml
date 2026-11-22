@@ -1,0 +1,100 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: logic-programming-overview
+  index: 0
+- title: Nền tảng logic
+  slug: logic-foundations
+  index: 1
+- title: Sự kiện, luật, truy vấn
+  slug: facts-rules-queries
+  index: 2
+- title: Hạng thức và biến
+  slug: terms-variables
+  index: 3
+- title: Hợp nhất
+  slug: unification
+  index: 4
+- title: Ngữ nghĩa chương trình
+  slug: program-semantics
+  index: 5
+- title: Hợp giải và suy diễn
+  slug: resolution-inference
+  index: 6
+- title: Quay lui và tìm kiếm
+  slug: backtracking-search
+  index: 7
+- title: Đệ quy quan hệ
+  slug: relational-recursion
+  index: 8
+- title: Danh sách
+  slug: lists
+  index: 9
+- title: Dữ liệu có cấu trúc
+  slug: structured-data
+  index: 10
+- title: Số học và so sánh
+  slug: arithmetic-comparisons
+  index: 11
+- title: Phủ định
+  slug: negation
+  index: 12
+- title: Điều khiển tìm kiếm
+  slug: search-control
+  index: 13
+- title: Thiết kế quan hệ
+  slug: relation-design
+  index: 14
+- title: Thu thập nghiệm
+  slug: solution-collection
+  index: 15
+- title: Siêu lập trình
+  slug: metaprogramming
+  index: 16
+- title: Văn phạm DCG
+  slug: definite-clause-grammars
+  index: 17
+- title: Logic ràng buộc
+  slug: constraint-logic-programming
+  index: 18
+- title: Ghi nhớ truy vấn
+  slug: tabling
+  index: 19
+- title: Datalog
+  slug: datalog
+  index: 20
+- title: Mô hình tập trả lời
+  slug: answer-set-programming
+  index: 21
+- title: Các hướng mở rộng
+  slug: extensions
+  index: 22
+- title: Trạng thái và tác dụng phụ
+  slug: state-side-effects
+  index: 23
+- title: Mô-đun và tổ chức
+  slug: modules-organization
+  index: 24
+- title: Cơ chế thực thi
+  slug: execution-model
+  index: 25
+- title: Kiểm thử
+  slug: testing
+  index: 26
+- title: Gỡ lỗi và quan sát
+  slug: debugging-observability
+  index: 27
+- title: Hiệu năng
+  slug: performance
+  index: 28
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 29
+- title: Ứng dụng tiêu biểu
+  slug: use-cases
+  index: 30
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 31
+- title: Lựa chọn mô hình
+  slug: paradigm-selection
+  index: 32

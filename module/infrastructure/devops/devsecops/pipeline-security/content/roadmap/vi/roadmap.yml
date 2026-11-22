@@ -1,0 +1,49 @@
+roadmap:
+- id: rui-ro-ci-cd
+  title: Rủi ro CI/CD
+  purpose: Hiểu các điểm tấn công trong quy trình từ commit đến deploy để xác định phạm vi phòng vệ.
+  objectives:
+  - '- Vẽ luồng source → build → test → release → deploy.'
+  - '- Nhận diện rủi ro poisoned pipeline và lạm dụng quyền.'
+- id: bao-ve-source-workflow
+  title: Bảo vệ Source & Workflow
+  purpose: Chặn thay đổi trái phép đối với mã nguồn và định nghĩa pipeline.
+  objectives:
+  - '- Cấu hình protected branch, review và status checks.'
+  - '- Kiểm soát quyền sửa workflow, trigger và pull request.'
+- id: runner-execution
+  title: Runner & Execution
+  purpose: Cô lập môi trường chạy job để mã không tin cậy không ảnh hưởng hệ thống khác.
+  objectives:
+  - '- Phân biệt hosted runner và self-hosted runner.'
+  - '- Áp dụng runner tạm thời, giới hạn network và quyền hệ điều hành.'
+- id: iam-secrets-oidc
+  title: IAM, Secrets & OIDC
+  purpose: Cấp danh tính và credential ngắn hạn theo nguyên tắc ít quyền nhất.
+  objectives:
+  - '- Giới hạn quyền token theo job và môi trường.'
+  - '- Dùng OIDC hoặc secrets manager; tránh lộ secret trong logs.'
+- id: dependencies-actions
+  title: Dependencies & Actions
+  purpose: Giảm rủi ro từ phần mở rộng pipeline và đầu vào bên thứ ba.
+  objectives:
+  - '- Pin action/image/dependency theo phiên bản hoặc digest đã kiểm chứng.'
+  - '- Review action bên thứ ba và chặn dependency confusion.'
+- id: security-quality-gates
+  title: Security Quality Gates
+  purpose: Tích hợp kiểm tra bảo mật vào pipeline mà vẫn có quy tắc xử lý kết quả rõ ràng.
+  objectives:
+  - '- Chạy SAST, SCA, secret scan và IaC scan đúng giai đoạn.'
+  - '- Đặt ngưỡng fail build và quy trình xử lý ngoại lệ.'
+- id: artifact-provenance
+  title: Artifact & Provenance
+  purpose: Giữ tính toàn vẹn và khả năng truy xuất nguồn gốc của bản phát hành.
+  objectives:
+  - '- Tạo hash, chữ ký hoặc attestation cho artifact.'
+  - '- Kiểm chứng provenance và nguồn build trước deploy.'
+- id: deploy-gate-audit
+  title: Deploy Gate & Audit
+  purpose: Kiểm soát phát hành và phát hiện hành vi bất thường qua dấu vết pipeline.
+  objectives:
+  - '- Áp dụng approval, protected environment và tách quyền deploy.'
+  - '- Theo dõi audit logs, điều tra sự cố và thu hồi credential.'

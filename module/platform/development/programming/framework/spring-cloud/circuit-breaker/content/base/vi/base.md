@@ -1,0 +1,7 @@
+# Spring Cloud Circuit Breaker
+
+Circuit Breaker là mẫu thiết kế giúp dịch vụ phát hiện một dependency liên tục lỗi hoặc phản hồi quá chậm để tạm thời từ chối những lời gọi mới thay vì tiếp tục tiêu tốn tài nguyên và gây lỗi dây chuyền. Breaker thường chuyển giữa ba trạng thái `CLOSED`, `OPEN` và `HALF_OPEN`, dựa trên số lượng lời gọi, tỷ lệ lỗi hoặc tỷ lệ lời gọi chậm trong một sliding window. Spring Cloud CircuitBreaker cung cấp API chung như `CircuitBreakerFactory` để bọc lời gọi Java, còn Resilience4j là một implementation phổ biến cho cả ứng dụng blocking và reactive.
+
+Roadmap một cấp gồm tám mốc: nhận diện failure cascade và nguyên lý fail fast; mô hình hóa trạng thái breaker; hiểu sliding window và các ngưỡng kích hoạt. Tiếp theo, người học tích hợp starter, sử dụng `CircuitBreakerFactory`, cấu hình Resilience4j theo từng dependency, triển khai fallback phù hợp và bảo vệ pipeline Reactor khi cần. Các mốc cuối tập trung vào phối hợp TimeLimiter, retry, bulkhead và đo lường bằng Actuator/Micrometer; đồng thời giả lập backend lỗi, chậm hoặc hồi phục để kiểm tra state transition và kết quả fallback. Circuit Breaker không thay thế timeout, kiểm soát tải hay xử lý lỗi ở tầng nghiệp vụ.
+
+Module phù hợp với Java/Spring Boot developer đã biết REST API, microservices và cách gọi service qua HTTP. Sau khi hoàn thành, bạn có thể giải thích khi nào breaker mở/đóng, bọc một lời gọi dependency với Spring Cloud, cấu hình ngưỡng Resilience4j, lựa chọn fallback có chủ đích và viết kiểm thử fault injection để đánh giá hành vi hệ thống khi dependency gặp sự cố.

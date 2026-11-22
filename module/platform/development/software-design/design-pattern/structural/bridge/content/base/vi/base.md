@@ -1,0 +1,7 @@
+# Software Design Design Pattern Structural Bridge
+
+Bridge là mẫu thiết kế cấu trúc dùng để tách phần trừu tượng điều khiển hành vi (Abstraction) khỏi phần thực thi (Implementation), cho phép hai phía thay đổi độc lập. Khi một hệ thống có nhiều chiều biến thể, việc dùng kế thừa để tạo lớp cho mọi tổ hợp thường làm số lớp tăng nhanh và gây khó bảo trì. Bridge giải quyết vấn đề bằng cách chuyển một chiều sang các đối tượng triển khai, nối hai hệ phân cấp qua composition và ủy quyền.
+
+Lộ trình một cấp gồm tám mốc: bắt đầu với bài toán bùng nổ lớp con, nhận diện hai chiều thay đổi độc lập, sau đó thiết kế Abstraction, RefinedAbstraction, Implementor và ConcreteImplementor. Tiếp theo, bạn thực hành kết nối bằng composition, hoán đổi các cách triển khai, refactor mã kế thừa, phân biệt Bridge với Adapter và Strategy, rồi kiểm thử các tổ hợp và xem xét đánh đổi thiết kế.
+
+Module dành cho người đã biết Java hoặc một ngôn ngữ hướng đối tượng, interface, kế thừa và đa hình. Sau khi học, bạn có thể xác định khi nào nên dùng Bridge, tự phác họa cấu trúc lớp cho hai chiều biến thể, cài đặt một ví dụ nhỏ không phụ thuộc implementation cụ thể và đánh giá tính mở rộng cũng như độ phức tạp mà mẫu thiết kế mang lại.

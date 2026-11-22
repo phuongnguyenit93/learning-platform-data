@@ -1,0 +1,91 @@
+menu:
+- title: Bức tranh kiểm thử
+  slug: testing-overview
+  index: 0
+- title: Chất lượng và rủi ro
+  slug: quality-and-risk
+  index: 1
+- title: Sai sót và khiếm khuyết
+  slug: defects-and-failures
+  index: 2
+- title: Xác minh và xác nhận
+  slug: verification-and-validation
+  index: 3
+- title: Nguyên tắc kiểm thử
+  slug: testing-principles
+  index: 4
+- title: Đối tượng và căn cứ
+  slug: test-subjects-and-basis
+  index: 5
+- title: Yêu cầu và tiêu chí
+  slug: requirements-and-criteria
+  index: 6
+- title: Quy trình kiểm thử
+  slug: testing-process
+  index: 7
+- title: Vai trò và phối hợp
+  slug: roles-and-collaboration
+  index: 8
+- title: Kiểm thử trong SDLC
+  slug: testing-in-sdlc
+  index: 9
+- title: Kiểm thử tĩnh và động
+  slug: static-and-dynamic-testing
+  index: 10
+- title: Cấp độ và phạm vi
+  slug: levels-and-scope
+  index: 11
+- title: Các loại kiểm thử
+  slug: testing-types
+  index: 12
+- title: Mục đích các lượt chạy
+  slug: run-purposes
+  index: 13
+- title: Ca kiểm thử và bộ kiểm
+  slug: test-cases-and-suites
+  index: 14
+- title: Căn cứ đánh giá
+  slug: evaluation-basis
+  index: 15
+- title: Tư duy thiết kế ca
+  slug: test-design-mindset
+  index: 16
+- title: Dữ liệu kiểm thử
+  slug: test-data
+  index: 17
+- title: Môi trường và cô lập
+  slug: environment-and-isolation
+  index: 18
+- title: Thành phần thay thế
+  slug: test-doubles
+  index: 19
+- title: Assertion và quan sát
+  slug: assertions-and-observation
+  index: 20
+- title: Cấu trúc phép kiểm thử
+  slug: test-structure
+  index: 21
+- title: Thủ công và tự động
+  slug: manual-and-automated-testing
+  index: 22
+- title: Khả năng kiểm thử
+  slug: testability
+  index: 23
+- title: Độ ổn định và tin cậy
+  slug: stability-and-reliability
+  index: 24
+- title: Kết quả và báo lỗi
+  slug: results-and-bug-reports
+  index: 25
+- title: Độ bao phủ và số liệu
+  slug: coverage-and-metrics
+  index: 26
+- title: Cân bằng phạm vi
+  slug: scope-balance
+  index: 27
+- title: Công cụ và tích hợp
+  slug: tools-and-integration
+  index: 28
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 29

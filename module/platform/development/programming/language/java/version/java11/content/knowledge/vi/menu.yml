@@ -1,0 +1,380 @@
+menu:
+- level1: Định hướng
+  level2:
+  - Những năng lực Java 11 tiếp tục được dùng trong Java hiện đại
+  - HTTP, xử lý dữ liệu và khả năng quan sát ứng dụng
+  - Phân biệt hợp đồng API với chi tiết triển khai của JDK
+  - Đọc Javadoc hiện hành và thông tin Since
+  - Thực hành trên JDK được hỗ trợ thay vì phụ thuộc runtime cũ
+  - Lựa chọn công cụ theo mục tiêu chức năng, hiệu năng và vận hành
+- level1: var trong lambda
+  level2:
+  - Khai báo tham số lambda bằng var
+  - Quan hệ giữa var với kiểu đích của lambda
+  - Suy luận kiểu không làm biến trở thành kiểu động
+  - Gắn annotation vào tham số được suy luận
+  - final, annotation và var
+  - Quy tắc dùng var cho toàn bộ tham số của cùng lambda
+  - Yêu cầu dấu ngoặc và các cách khai báo không hợp lệ
+  - Capture, effectively final và phạm vi từ vựng
+  - Lựa chọn var khi giúp làm rõ metadata hoặc ý định
+- level1: Chương trình một tệp
+  level2:
+  - Chạy mã nguồn trực tiếp bằng java launcher
+  - Tổ chức lớp, main và helper trong một tệp
+  - Truyền tham số cho chương trình
+  - Phân biệt tùy chọn launcher với tham số ứng dụng
+  - Khai báo classpath cho dependency cần thiết
+  - Chọn mức ngôn ngữ nguồn theo compiler đang dùng
+  - Shebang trên hệ điều hành hỗ trợ
+  - Ứng dụng tiện ích dòng lệnh và thử nghiệm nhỏ
+  - Khi chuyển từ một tệp sang dự án build có kiểm thử
+- level1: Chuỗi Unicode
+  level2:
+  - String.isBlank và khoảng trắng theo Unicode
+  - strip, stripLeading và stripTrailing
+  - Phân biệt chuỗi rỗng, blank và null
+  - Character.isWhitespace và dữ liệu cần kiểm thử
+  - String.lines và phân tích dòng theo cơ chế lười
+  - Quy tắc LF, CR, CRLF và dòng kết thúc
+  - String.repeat với số lần bằng không, âm và rất lớn
+  - Character.toString(int) và code point
+  - CharSequence.compare và thứ tự từ điển
+  - StringBuilder.compareTo và giới hạn dùng chuỗi khả biến làm key
+  - Pipeline làm sạch văn bản không làm mất ý nghĩa dữ liệu
+  - Kiểm thử tiếng Việt, ký tự bổ sung và khoảng trắng đặc biệt
+- level1: Tiện ích dữ liệu
+  level2:
+  - Predicate.not và phủ định method reference
+  - Kết hợp Predicate.not với Stream.filter
+  - Optional.isEmpty và phân biệt vắng mặt với null
+  - isEmpty của OptionalInt, OptionalLong, OptionalDouble
+  - Collection.toArray(IntFunction) với constructor reference
+  - Kiểu mảng runtime và ArrayStoreException
+  - Overload toArray và trường hợp gọi null bị mơ hồ
+  - TimeUnit.convert(Duration) và chuyển đổi đơn vị
+  - Kiểm thử dữ liệu rỗng, giới hạn số học và kiểu kết quả
+- level1: Tệp văn bản
+  level2:
+  - Path.of với chuỗi đường dẫn hoặc URI
+  - Đường dẫn tương đối, tuyệt đối và file system provider
+  - Files.readString với UTF-8 hoặc Charset tường minh
+  - Files.writeString với CharSequence
+  - Tạo mới, ghi đè và ghi nối bằng OpenOption
+  - Giới hạn bộ nhớ khi đọc toàn bộ tệp
+  - Chọn đọc toàn bộ hoặc xử lý từng phần theo kích thước dữ liệu
+  - Xử lý lỗi encoding, quyền truy cập và tệp không tồn tại
+  - Kiểm thử vòng đọc ghi, nội dung rỗng và dữ liệu Unicode
+- level1: Byte stream
+  level2:
+  - InputStream.readNBytes(int) và giới hạn lượng dữ liệu cần đọc
+  - Đọc đến EOF trước khi đủ số byte yêu cầu
+  - Phân biệt đọc một phần với đọc đủ theo giao thức
+  - ByteArrayOutputStream.writeBytes và ghi mảng byte
+  - InputStream.nullInputStream và nguồn luôn kết thúc
+  - OutputStream.nullOutputStream và đích bỏ dữ liệu
+  - Reader.nullReader, Writer.nullWriter
+  - Hành vi trước, sau close và hợp đồng tài nguyên
+  - Ứng dụng trong kiểm thử, adapter và xử lý dữ liệu tùy chọn
+  - Giới hạn bộ nhớ khi đầu vào không đáng tin
+- level1: Buffer và nén
+  level2:
+  - ByteBuffer.mismatch và chỉ số khác biệt đầu tiên
+  - Mismatch trên các buffer ký tự, kiểu số
+  - position, limit và phần dữ liệu còn lại
+  - Buffer rỗng, prefix và độ dài khác nhau
+  - Deflater với ByteBuffer đầu vào, đầu ra
+  - Inflater với ByteBuffer và cập nhật vị trí
+  - Vòng lặp xử lý khi chưa có đủ đầu vào hoặc đầu ra
+  - Byte order, direct buffer và heap buffer
+  - Kết thúc nén, giải nén và giải phóng tài nguyên
+  - Kiểm thử dữ liệu cắt cụt, dữ liệu hỏng và đầu ra lớn
+- level1: Selector callback
+  level2:
+  - Selector.select với Consumer<SelectionKey>
+  - selectNow và lựa chọn không chặn
+  - select có timeout và xử lý callback
+  - Khác biệt với duyệt selected-key set
+  - Giới hạn đồng bộ và thao tác trong callback
+  - SelectionKey.interestOpsOr
+  - SelectionKey.interestOpsAnd
+  - Thay đổi interest set khi có nhiều luồng
+  - Kiểm thử wakeup, khóa bị hủy và kết nối đóng
+- level1: HTTP Client
+  level2:
+  - java.net.http và client HTTP chuẩn
+  - Vai trò HttpClient, HttpRequest, HttpResponse
+  - Khởi tạo client bằng builder
+  - Tính bất biến và tái sử dụng client
+  - Chia sẻ tài nguyên kết nối giữa nhiều yêu cầu
+  - HTTP/1.1, HTTP/2 và phiên bản được thương lượng
+  - Gửi đồng bộ bằng send
+  - Gửi bất đồng bộ bằng sendAsync
+  - Tách HTTP transport khỏi ánh xạ dữ liệu nghiệp vụ
+  - Quản lý vòng đời client theo JDK và ứng dụng hiện hành
+- level1: HTTP Request
+  level2:
+  - HttpRequest.Builder và quy trình tạo yêu cầu
+  - URI, path, query và mã hóa đúng ngữ cảnh
+  - GET, POST, PUT, DELETE và method tùy biến
+  - header, headers và setHeader
+  - Header nhiều giá trị và quy tắc tên, nội dung
+  - Content-Type, charset và ý nghĩa dữ liệu truyền
+  - Timeout theo yêu cầu
+  - expectContinue và tải nội dung lớn
+  - Lựa chọn HTTP version theo client hoặc request
+  - Builder khả biến và request bất biến
+  - Kiểm thử URI không hợp lệ, header sai và thiếu dữ liệu
+- level1: Request body
+  level2:
+  - BodyPublishers.noBody và yêu cầu không có nội dung
+  - ofString với charset
+  - ofByteArray và phạm vi mảng dữ liệu
+  - ofByteArrays và nhiều phần dữ liệu
+  - ofFile và upload tệp
+  - ofInputStream và cấp lại nguồn khi cần gửi lại
+  - fromPublisher với Flow.Publisher<ByteBuffer>
+  - Độ dài nội dung biết trước hoặc chưa biết
+  - Phân biệt phần body với header mô tả nội dung
+  - Tái phát dữ liệu và yêu cầu có thể retry
+  - Giới hạn kích thước, tài nguyên và tốc độ phát
+- level1: HTTP Response
+  level2:
+  - HttpResponse<T> và kiểu phần thân
+  - statusCode, headers, uri, request và version
+  - HttpHeaders và truy vấn một, nhiều giá trị
+  - Xử lý status nghiệp vụ thay vì chỉ dựa vào lỗi I/O
+  - BodyHandlers.ofString và giải mã charset
+  - ofByteArray và discarding
+  - ofFile, ofFileDownload và đường dẫn đầu ra
+  - BodyHandler tùy biến theo status, header
+  - BodySubscribers.mapping và biến đổi kết quả
+  - Phân biệt nhận header với đọc xong body
+  - Kiểm thử lỗi mã hóa, response rỗng và dữ liệu sai cấu trúc
+- level1: Body streaming
+  level2:
+  - BodyHandlers.ofInputStream và trách nhiệm đóng luồng
+  - BodyHandlers.ofLines và vòng đời Stream
+  - BodyHandlers.ofPublisher và nhu cầu nhận dữ liệu
+  - BodySubscriber với Flow.Subscription
+  - request(n), cancel, onNext, onError, onComplete
+  - List<ByteBuffer> và vòng đời dữ liệu nhận
+  - Backpressure và giới hạn tốc độ xử lý
+  - Đọc hết, hủy hoặc đóng body để trả tài nguyên
+  - Không gom nội dung không giới hạn vào bộ nhớ
+  - Kiểm thử tải lớn, người đọc chậm và ngắt giữa chừng
+- level1: HTTP bất đồng bộ
+  level2:
+  - CompletableFuture<HttpResponse<T>> từ sendAsync
+  - thenApply, thenAccept và thenCompose
+  - Ghép yêu cầu độc lập bằng allOf
+  - Executor của client và ngữ cảnh xử lý bước tiếp theo
+  - Tách công việc CPU dài khỏi luồng xử lý I/O
+  - IOException và lỗi hoàn tất bất thường
+  - HttpTimeoutException và HttpConnectTimeoutException
+  - Phân biệt connect timeout, request timeout và deadline nghiệp vụ
+  - Cancellation, interruption và khả năng phản hồi của transport
+  - Giới hạn số yêu cầu đang xử lý đồng thời
+  - Retry theo tính lặp an toàn và khả năng phát lại body
+  - Kiểm thử máy chủ chậm, mất kết nối và lỗi một phần
+- level1: Cấu hình HTTP
+  level2:
+  - Redirect.NEVER, NORMAL, ALWAYS
+  - previousResponse và chuỗi chuyển hướng
+  - CookieHandler, CookieManager và phạm vi phiên
+  - Authenticator và thông tin xác thực
+  - ProxySelector và lựa chọn proxy
+  - SSLContext, SSLParameters và chứng chỉ
+  - Giữ kiểm tra danh tính máy chủ trong HTTPS
+  - HTTP/2 multiplexing và tài nguyên kết nối
+  - Chính sách header, cookie khi đi qua nhiều đích
+  - Ghi log có kiểm soát mà không làm lộ bí mật
+  - Kiểm thử proxy, redirect và phiên độc lập
+- level1: WebSocket
+  level2:
+  - WebSocket client trong java.net.http
+  - Builder, buildAsync và bước mở kết nối
+  - Listener.onOpen, onClose và onError
+  - Nhận thông điệp text, binary
+  - Phân mảnh, cờ last và lắp ghép nội dung
+  - sendText, sendBinary và thứ tự gửi
+  - Ping, pong và theo dõi kết nối
+  - request(n) và điều tiết lần gọi nhận dữ liệu
+  - CompletionStage từ listener và thời điểm hoàn tất xử lý
+  - Vòng đời ByteBuffer, CharSequence của callback
+  - sendClose, abort và đóng kết nối đúng trạng thái
+  - Timeout, subprotocol và xử lý lỗi bắt tay
+  - Kiểm thử hai chiều, payload lớn và đóng giữa chừng
+- level1: TLS 1.3
+  level2:
+  - TLS 1.3 và mục tiêu bảo vệ kết nối
+  - Vai trò giao thức, cipher suite và thuật toán chữ ký
+  - SSLContext và SSLParameters
+  - Thương lượng giao thức giữa client, server
+  - Chứng chỉ, truststore, key manager và trust manager
+  - Session resumption và key update
+  - Đóng kết nối, close_notify và vòng đời socket
+  - Giới hạn khóa, dữ liệu và chính sách của provider
+  - Chọn cấu hình theo khuyến nghị của JDK hiện hành
+  - Phân tích handshake mà không bỏ kiểm tra chứng chỉ
+  - Kiểm thử chứng chỉ sai, hostname sai và bộ mã không tương thích
+- level1: XDH
+  level2:
+  - X25519, X448 và key agreement theo RFC 7748
+  - Phân biệt trao đổi khóa, chữ ký và mã hóa dữ liệu
+  - KeyPairGenerator và KeyAgreement
+  - NamedParameterSpec cho X25519, X448
+  - XECPublicKey và XECPrivateKey
+  - XECPublicKeySpec, XECPrivateKeySpec và KeyFactory
+  - Truyền public key và tạo bí mật chung
+  - Dẫn xuất khóa theo giao thức thay vì dùng trực tiếp mọi byte bí mật
+  - Xác thực bên trao đổi và chống nhầm danh tính
+  - Vòng đời khóa, randomness và dữ liệu đầu vào
+  - Kiểm thử sai khóa, đầu vào không hợp lệ và khả năng tương tác
+- level1: ChaCha20
+  level2:
+  - ChaCha20 và mô hình stream cipher
+  - ChaCha20-Poly1305 và mã hóa có xác thực
+  - Cipher, SecretKey và lựa chọn provider
+  - ChaCha20ParameterSpec, nonce và counter
+  - Khởi tạo, update và doFinal
+  - Associated data và thẻ xác thực
+  - Quy tắc không dùng lại nonce với cùng khóa
+  - Phân biệt cấu hình ChaCha20 thuần với chế độ AEAD
+  - AEADBadTagException và lỗi dữ liệu bị sửa
+  - Quản lý khóa, định dạng thông điệp và metadata cần truyền
+  - Kiểm thử vòng mã hóa, giải mã, sai khóa và sai nonce
+- level1: Nest-based access
+  level2:
+  - Nest host, nest member và nhóm lớp cùng thực thể mã
+  - Truy cập private giữa các lớp trong cùng nest
+  - Quan hệ với nested class, inner class và interface
+  - NestHost, NestMembers trong class file
+  - Class.getNestHost, getNestMembers, isNestmateOf
+  - Kiểm tra truy cập của reflection và MethodHandles.Lookup
+  - Ranh giới package, class loader và nest hợp lệ
+  - Phân biệt cơ chế JVM với quy tắc truy cập ngôn ngữ
+  - Đóng gói đủ nest host và các lớp cần thiết
+  - Kiểm tra bytecode bằng javap
+  - Tương thích công cụ sinh lớp, instrument và thu gọn artifact
+- level1: Hằng số động
+  level2:
+  - CONSTANT_Dynamic và nhu cầu vật chất hóa hằng số
+  - Phân biệt dynamic constant với invokedynamic
+  - Bootstrap method, tham số tĩnh và kiểu kết quả
+  - Phân giải lười và lệnh ldc
+  - Constant pool và BootstrapMethods
+  - ConstantBootstraps và bootstrap dùng sẵn
+  - nullConstant, primitiveClass, enumConstant, getStaticFinal
+  - BootstrapMethodError và chẩn đoán lỗi phân giải
+  - Ứng dụng trong compiler và thư viện sinh bytecode
+  - Giới hạn giữa khả năng class file với cú pháp Java
+  - Kiểm thử thư viện bytecode với class file hiện hành
+- level1: Flight Recorder
+  level2:
+  - Mô hình sự kiện và bản ghi liên tục có chi phí kiểm soát được
+  - Phân biệt JFR, heap dump, thread dump và profiler lấy mẫu
+  - Event, recording, chunk và repository
+  - Bắt đầu bản ghi bằng cấu hình launcher
+  - jcmd JFR.start, JFR.check, JFR.dump, JFR.stop
+  - Cấu hình default, profile và tệp .jfc
+  - Duration, max age, max size và lưu dữ liệu
+  - Thu bản ghi từ tiến trình đang chạy
+  - Giới hạn chi phí, dữ liệu nhạy cảm và thời gian lưu
+  - Đọc bản ghi bằng công cụ phân tích tương thích
+- level1: JFR API
+  level2:
+  - Recording và điều khiển bản ghi bằng chương trình
+  - Configuration và thiết lập sự kiện
+  - start, stop, dump, copy và close
+  - Thời hạn, đích lưu và ghi khi ứng dụng kết thúc
+  - Event tùy biến và trường dữ liệu
+  - Name, Label, Description và Category
+  - Metadata đơn vị, nội dung và stack trace
+  - begin, end, commit và thời lượng nghiệp vụ
+  - isEnabled, shouldCommit và tránh tính dữ liệu không cần
+  - Threshold và lựa chọn độ chi tiết
+  - EventFactory, ValueDescriptor và sự kiện động
+  - Kiểm thử sự kiện được ghi đúng trường, thời điểm và điều kiện
+- level1: Đọc bản ghi JFR
+  level2:
+  - RecordingFile và duyệt bản ghi theo sự kiện
+  - RecordedEvent và thông tin thời điểm, thời lượng
+  - RecordedThread, RecordedClass và stack trace
+  - Truy vấn trường dữ liệu và metadata
+  - Lọc theo loại, khoảng thời gian và ngữ cảnh
+  - Phân tích CPU, khóa, I/O và GC
+  - Tương quan sự kiện nghiệp vụ với sự kiện JVM
+  - Giới hạn dữ liệu lấy mẫu và bằng chứng nhân quả
+  - Xử lý bản ghi lớn mà không đọc toàn bộ vào bộ nhớ
+  - So sánh trước, sau thay đổi bằng cùng kịch bản tải
+- level1: Heap profiling
+  level2:
+  - Lấy mẫu cấp phát qua JVMTI
+  - SampledObjectAlloc và khả năng hỗ trợ của JVM
+  - SetHeapSamplingInterval và tần suất lấy mẫu
+  - Stack cấp phát, kích thước đối tượng và sai số
+  - Phân biệt tốc độ cấp phát với dữ liệu được giữ lại
+  - Theo dõi đối tượng sống và đã chết
+  - Tương tác với GC và giới hạn suy luận rò rỉ
+  - Quản lý vòng đời agent, callback và dữ liệu mẫu
+  - Thiết kế thí nghiệm giảm allocation có số đo
+  - Đối chiếu dữ liệu mẫu với heap, GC và tải ứng dụng
+- level1: GC độ trễ thấp
+  level2:
+  - ZGC và mục tiêu thu gom với thời gian dừng ngắn
+  - Concurrent marking, relocation và công việc song song với ứng dụng
+  - Ảnh hưởng của allocation rate, live set và heap headroom
+  - Đánh đổi giữa độ trễ, CPU và footprint
+  - Phân biệt thời gian dừng GC với độ trễ toàn yêu cầu
+  - Chọn chế độ ZGC được JDK hiện hành hỗ trợ
+  - Đối chiếu khả năng collector với tài liệu JDK đang triển khai
+  - Đọc unified GC logging
+  - So sánh collector dưới cùng tải và điều kiện phần cứng
+  - Kiểm thử độ trễ đuôi, throughput và allocation stall
+- level1: Epsilon và phép đo
+  level2:
+  - GC không thu hồi và mục đích kiểm thử có kiểm soát
+  - Phân biệt chi phí cấp phát với chi phí thu gom
+  - Chương trình ngắn hoặc lượng cấp phát có thể dự đoán
+  - Dự trù heap theo lượng cấp phát tích lũy
+  - Hành vi khi cạn bộ nhớ và giới hạn kịch bản
+  - Giới hạn khi suy rộng phép đo Epsilon sang collector sản xuất
+  - Bật công cụ theo tùy chọn được JDK hiện hành cung cấp
+  - So sánh footprint và chi phí quản lý trên dữ liệu đại diện
+- level1: Kiểm chứng API
+  level2:
+  - Biên dịch với mức nguồn, API và bytecode được xác định
+  - Đối chiếu Since để phân biệt nguồn gốc API với cải tiến mới
+  - Kiểm tra dependency, compiler plugin và công cụ bytecode
+  - Đóng gói tài nguyên, service provider và metadata cần thiết
+  - Chạy kiểm thử trên đúng JDK dự kiến triển khai
+  - Quản lý truststore, locale, charset và tài nguyên hệ thống
+  - Thay cấu hình phụ thuộc implementation bằng hợp đồng được hỗ trợ
+  - Kiểm tra lỗi startup, linkage và nạp tài nguyên
+- level1: Kiểm thử và tối ưu
+  level2:
+  - Chuỗi, mảng, khoảng chỉ số và các giá trị rỗng
+  - Tệp Unicode, encoding sai và dữ liệu quá lớn
+  - HTTP status, timeout, redirect và lỗi kết nối
+  - Streaming body với bên nhận chậm và hủy giữa chừng
+  - WebSocket phân mảnh, backpressure và đóng kết nối
+  - TLS, XDH và ChaCha20 với đầu vào sai, dữ liệu bị sửa
+  - JFR event, metadata và bản ghi không đầy đủ
+  - So sánh allocation, throughput và độ trễ sau warm-up
+  - Giữ môi trường, dữ liệu và cách đo có thể tái lập
+  - Dựa vào nhiều nguồn bằng chứng trước khi xác định nguyên nhân
+- level1: Thực hành
+  level2:
+  - Tiện ích một tệp xử lý văn bản Unicode
+  - Đọc ghi cấu hình bằng Path.of, Files.readString, writeString
+  - HTTP client tái sử dụng với timeout và xử lý response có kiểu
+  - Upload, download tệp lớn bằng body streaming
+  - Ghép nhiều yêu cầu bất đồng bộ có giới hạn đồng thời
+  - WebSocket client xử lý phân mảnh và điều tiết nhận
+  - Kết nối HTTPS với cấu hình chứng chỉ kiểm chứng được
+  - Trao đổi khóa và mã hóa xác thực trong giao thức thử nghiệm
+  - Quan sát cấu trúc nest và dynamic constant bằng bytecode
+  - Ghi sự kiện nghiệp vụ và phân tích bản ghi JFR
+  - Đo allocation và tác động của collector bằng tải đại diện
+  - Bài tổng hợp trên JDK được hỗ trợ với kiến thức Java 11 còn áp dụng

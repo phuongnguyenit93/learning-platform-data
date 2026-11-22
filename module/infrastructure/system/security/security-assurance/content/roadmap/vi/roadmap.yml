@@ -1,0 +1,57 @@
+roadmap:
+- id: pham-vi-assurance
+  title: Phạm vi & Assurance
+  purpose: Hiểu mục tiêu tạo bằng chứng đáng tin cậy về mức an toàn của hệ thống, không đồng nhất với việc đạt chứng chỉ.
+  objectives:
+  - Phân biệt security assurance, kiểm thử và compliance
+  - Xác định phạm vi hệ thống, dữ liệu và bên liên quan
+  - Đặt mục tiêu bảo đảm gắn với rủi ro nghiệp vụ
+- id: rui-ro-threat-modeling
+  title: Rủi ro & Threat Modeling
+  purpose: Ưu tiên nội dung đánh giá dựa trên tài sản, luồng dữ liệu và các mối đe dọa có thể xảy ra.
+  objectives:
+  - Lập danh sách tài sản và dữ liệu quan trọng
+  - Vẽ data flow và trust boundary của ứng dụng
+  - Xếp hạng rủi ro theo tác động và khả năng xảy ra
+- id: controls-yeu-cau
+  title: Controls & yêu cầu
+  purpose: Chuyển rủi ro thành các yêu cầu và security controls có thể đo lường, có người chịu trách nhiệm.
+  objectives:
+  - Ánh xạ rủi ro với NIST CSF, CIS Controls hoặc ASVS
+  - Viết tiêu chí kiểm chứng cho access control, logging
+  - Chỉ định chủ sở hữu và điều kiện chấp nhận từng control
+- id: secure-sdlc-review
+  title: Secure SDLC & Review
+  purpose: Đưa hoạt động bảo đảm an toàn vào thiết kế, phát triển và triển khai thay vì chỉ kiểm tra cuối kỳ.
+  objectives:
+  - Áp dụng các bước phù hợp từ NIST SSDF
+  - Thực hiện review kiến trúc và thay đổi nhạy cảm
+  - Tích hợp kiểm tra code, dependency và cấu hình CI/CD
+- id: security-verification
+  title: Security Verification
+  purpose: Lựa chọn phương pháp kiểm chứng kỹ thuật để phát hiện lỗ hổng và kiểm tra yêu cầu bảo mật.
+  objectives:
+  - Phân biệt SAST, SCA, DAST và kiểm thử thủ công
+  - Viết test case bảo mật từ yêu cầu ASVS
+  - Ghi nhận giới hạn phạm vi và false positive
+- id: danh-gia-bang-chung
+  title: Đánh giá & bằng chứng
+  purpose: Xây dựng dấu vết đánh giá để người khác có thể tái kiểm tra kết quả security controls.
+  objectives:
+  - Thực hiện examine, interview, test theo NIST 800-53A
+  - Lưu bằng chứng có ngày, phiên bản và phạm vi
+  - Đối chiếu từng control với kết quả và khoảng trống
+- id: findings-remediation
+  title: Findings & Remediation
+  purpose: Biến phát hiện thành hành động giảm rủi ro có thể theo dõi và xác nhận khắc phục.
+  objectives:
+  - Phân loại mức độ theo tác động, khả năng khai thác
+  - Giao owner, thời hạn và biện pháp giảm thiểu
+  - Retest, lưu bằng chứng hoặc ghi nhận risk acceptance
+- id: continuous-assurance
+  title: Continuous Assurance
+  purpose: Theo dõi độ hiệu quả của controls qua thời gian và chuẩn bị đánh giá lặp lại khi hệ thống thay đổi.
+  objectives:
+  - Giám sát control drift, lỗ hổng mới và thay đổi cấu hình
+  - Đo coverage, thời gian xử lý và tồn đọng rủi ro
+  - Dùng OWASP SAMM đánh giá mức trưởng thành và cải tiến

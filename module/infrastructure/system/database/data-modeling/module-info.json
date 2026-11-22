@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "DATABASE_DATA_MODELING"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Rèn kỹ năng chuyển yêu cầu nghiệp vụ thành mô hình dữ liệu rõ ràng, từ thực thể, quan hệ và ràng buộc đến chuẩn hóa, khóa, chỉ mục và lược đồ vật lý. So sánh cách mô hình hóa dữ liệu quan hệ, document, đồ thị và phân tích để lựa chọn cấu trúc phù hợp, dễ tiến hóa và kiểm chứng."
+  }
+}

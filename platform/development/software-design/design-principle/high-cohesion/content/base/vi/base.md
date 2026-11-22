@@ -1,7 +1,0 @@
-# Software Design Design Principle High Cohesion
-
-High Cohesion (tính gắn kết cao) là nguyên tắc thiết kế phần mềm trong đó các dữ liệu và hành vi thuộc cùng một lớp hoặc module liên quan chặt chẽ đến một mục đích rõ ràng. Khi trách nhiệm được gom đúng chỗ, mã nguồn thường dễ hiểu, dễ kiểm thử và ít phải thay đổi những phần không liên quan. High Cohesion không đồng nghĩa với lớp có ít dòng mã; điều quan trọng là các thành phần của lớp cùng phục vụ một vai trò nhất quán.
-
-Module này dành cho người đã có nền tảng Java hướng đối tượng, class, method, encapsulation và kiểm thử cơ bản. Lộ trình bắt đầu bằng việc nhận biết mức gắn kết, xác định ranh giới trách nhiệm và đặt hành vi gần dữ liệu mà nó xử lý. Tiếp theo, bạn sẽ phát hiện các code smell như Large Class, Divergent Change và Feature Envy, rồi thực hành Extract Class hoặc Move Method để làm rõ thiết kế.
-
-Sau khi hoàn thành, bạn có thể phân tích một lớp Java đang ôm nhiều trách nhiệm, đề xuất cách phân tách hợp lý, thực hiện refactoring có kiểm thử và đánh giá lại sự cân bằng giữa High Cohesion với Low Coupling. Nguyên tắc này nên được áp dụng theo bối cảnh: tránh tách lớp quá mức chỉ để đạt một chỉ số hình thức, vì điều đó có thể khiến hệ thống khó theo dõi hơn.

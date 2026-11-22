@@ -1,0 +1,3913 @@
+menu:
+- slug: spring-vault-overview
+  title: Bản đồ Spring Vault
+  childs:
+  - slug: spring-vault-overview-001
+    title: Spring Vault là gì và bài toán quản lý bí mật (secret)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-vault-overview-002
+    title: Thông tin xác thực, khóa mã hóa và cấu hình nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-vault-overview-003
+    title: Quan hệ giữa ứng dụng Spring, thư viện client và máy chủ Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-vault-overview-004
+    title: Secret tĩnh, secret động và vòng đời sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-vault-overview-005
+    title: Xác thực ứng dụng với Vault và phân quyền truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-vault-overview-006
+    title: Phân biệt Spring Vault với Spring Cloud Vault và Spring Security
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-vault-overview-007
+    title: Đối chiếu cách dùng API, PropertySource và repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-vault-overview-008
+    title: Trách nhiệm của thư viện so với trách nhiệm vận hành Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-vault-overview-009
+    title: Lộ trình từ đọc secret đến quản lý vòng đời trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vault-foundations
+  title: Nền tảng Vault
+  childs:
+  - slug: vault-foundations-001
+    title: Secrets engine và vị trí gắn kết (mount path)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-002
+    title: Auth method, role và quan hệ với danh tính ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-003
+    title: Đường dẫn logic, tiền tố API và đường dẫn tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-004
+    title: Token, policy và các quyền được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-005
+    title: Lease ID, TTL và khả năng gia hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-006
+    title: Namespace và ranh giới tổ chức theo phiên bản, gói sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-007
+    title: Seal, unseal và trạng thái sẵn sàng của máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-008
+    title: Storage, mã hóa khi lưu và kết nối TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-009
+    title: Secret được lưu sẵn và thông tin xác thực được cấp theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-010
+    title: Audit log và dấu vết của từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-011
+    title: Vai trò của CLI, HTTP API và thư viện Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-foundations-012
+    title: Đọc cấu trúc phản hồi gồm data, auth, metadata và thông tin lease
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-control
+  title: Phân quyền truy cập
+  childs:
+  - slug: access-control-001
+    title: Policy và nguyên tắc cấp quyền theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-002
+    title: Quyền create, read, update, delete, list và các quyền đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-003
+    title: Khớp đường dẫn policy với mount path thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-004
+    title: Đường dẫn data và metadata của KV phiên bản 2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-005
+    title: Phân biệt xác thực thành công với được phép đọc một secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-006
+    title: Role ở auth method và role ở secrets engine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-007
+    title: Token dùng cho ứng dụng và token dùng cho quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-008
+    title: Quyền lookup, renew và revoke theo vòng đời cần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-009
+    title: Quyền khám phá mount và các API nội bộ mà abstraction có thể gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-010
+    title: Thiết kế policy cho từng dịch vụ và từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-011
+    title: Kiểm chứng trường hợp được phép và bị từ chối trong bài thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-and-dependencies
+  title: Phiên bản và phụ thuộc
+  childs:
+  - slug: versions-and-dependencies-001
+    title: Chọn dòng Spring Vault phù hợp với Java và Spring Framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-002
+    title: Quan hệ giữa Spring Vault, Spring Boot và Spring Cloud release train
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-003
+    title: Khác biệt API giữa dòng 3.x, 4.0 và 4.1 trở lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-004
+    title: Dependency spring-vault-core và các thành phần tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-005
+    title: HTTP client, thư viện JSON và cơ chế chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-006
+    title: Phụ thuộc cho Reactor và client không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-007
+    title: Phụ thuộc SDK riêng của từng phương thức xác thực cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-008
+    title: Phụ thuộc Spring Data khi sử dụng repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-009
+    title: Khóa phiên bản và kiểm tra dependency bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-010
+    title: Đọc API, release notes và tài liệu theo đúng dòng đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-environment
+  title: Môi trường thực hành
+  childs:
+  - slug: practice-environment-001
+    title: Tổ chức một môi trường Vault cục bộ dành cho học tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-002
+    title: Phân biệt máy chủ chế độ dev với cấu hình vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-003
+    title: Khởi tạo dữ liệu mẫu và mount riêng cho bài thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-004
+    title: Chuẩn bị token hoặc role có quyền phù hợp với ví dụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-005
+    title: Đọc, ghi thử bằng CLI để đối chiếu đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-006
+    title: Chuẩn bị chứng thư và truststore cho bài TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-007
+    title: Phân tách cấu hình giữa máy cá nhân, kiểm thử và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-008
+    title: Dữ liệu giả, cấu hình ngoài mã nguồn và phạm vi dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-009
+    title: Kiểm tra kết nối và trạng thái máy chủ trước khi chạy ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-010
+    title: Thiết kế bài thực hành có thể tạo lại và thực hiện độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-architecture
+  title: Kiến trúc client
+  childs:
+  - slug: client-architecture-001
+    title: VaultOperations và hợp đồng truy cập đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-002
+    title: VaultTemplate và các nhóm thao tác chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-003
+    title: VaultEndpoint và VaultEndpointProvider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-004
+    title: ClientAuthentication và việc lấy VaultToken
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-005
+    title: SessionManager và tái sử dụng phiên xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-006
+    title: ClientOptions, cấu hình TLS và HTTP transport
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-007
+    title: VaultClient dựa trên RestClient từ Spring Vault 4.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-008
+    title: ReactiveVaultOperations và thành phần cho mô hình không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-009
+    title: SecretLeaseContainer và việc theo dõi secret có lease
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-010
+    title: PropertySource và repository xây trên các API cốt lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-011
+    title: Vòng đời bean khi khởi tạo, sử dụng và dừng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-architecture-012
+    title: Thiết kế lớp truy cập secret theo nhu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-configuration
+  title: Cấu hình Java
+  childs:
+  - slug: java-configuration-001
+    title: Các bean tối thiểu để đọc được một secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-002
+    title: AbstractVaultConfiguration và các phương thức cần cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-003
+    title: Cấu hình VaultEndpoint theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-004
+    title: Cung cấp ClientAuthentication và tùy chọn xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-005
+    title: Cấu hình SessionManager và TaskScheduler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-006
+    title: Khởi tạo VaultTemplate bằng các constructor phù hợp phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-007
+    title: Tùy chỉnh VaultClient trên các phiên bản có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-008
+    title: EnvironmentVaultConfiguration và nhóm thuộc tính vault.*
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-009
+    title: Lấy cấu hình từ Environment đúng thời điểm khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-010
+    title: Tạo nhiều client cho các đích hoặc danh tính riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-011
+    title: Sử dụng thư viện trong hoặc ngoài ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-configuration-012
+    title: Quản lý đóng client và dừng các tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-and-tls
+  title: HTTP và TLS
+  childs:
+  - slug: http-and-tls-001
+    title: Scheme, host, port và tiền tố của địa chỉ Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-002
+    title: Timeout kết nối, đọc và giới hạn chờ của transport
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-003
+    title: Kết nối dùng lại, connection pool và giới hạn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-004
+    title: Truststore, CA nội bộ và xác minh tên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-005
+    title: Keystore và chứng thư phía client khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-006
+    title: Phân biệt TLS của đường truyền với cert auth method
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-007
+    title: Cấu hình proxy và đường đi mạng tới Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-008
+    title: Namespace header và phạm vi áp dụng cho yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-009
+    title: Kiểm soát đường dẫn và URL tuyệt đối truyền vào client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-010
+    title: Header xác thực và giới hạn của interceptor tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-011
+    title: Kiểm tra cấu hình khi đổi HTTP client hoặc nâng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-and-tls-012
+    title: Chẩn đoán lỗi DNS, TLS handshake và kết nối bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vault-template
+  title: VaultTemplate
+  childs:
+  - slug: vault-template-001
+    title: Đọc dữ liệu bằng read và VaultResponse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-002
+    title: Ghi dữ liệu bằng write và đối tượng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-003
+    title: Xóa theo đường dẫn bằng delete
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-004
+    title: Liệt kê khóa bằng list và xử lý kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-005
+    title: Đọc dữ liệu thành kiểu Java cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-006
+    title: Phản hồi rỗng, dữ liệu không tồn tại và trường bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-007
+    title: Đọc metadata, cảnh báo và thông tin lease trong phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-008
+    title: Chọn nhóm opsFor tương ứng với loại secrets engine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-009
+    title: Callback trong phiên xác thực và ngoài phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-010
+    title: Gọi endpoint chưa có abstraction chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-011
+    title: Ánh xạ lỗi HTTP thành ngoại lệ của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-012
+    title: Tái sử dụng template và giữ cấu hình ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-template-013
+    title: Đối chiếu yêu cầu từ template với HTTP API của Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kv-v1
+  title: KV phiên bản 1
+  childs:
+  - slug: kv-v1-001
+    title: Mô hình một giá trị hiện hành cho mỗi khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v1-002
+    title: VaultKeyValueOperations và lựa chọn KV_1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v1-003
+    title: Mount path và đường dẫn secret tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v1-004
+    title: Ghi Map hoặc đối tượng Java vào một khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v1-005
+    title: Đọc lại dữ liệu và kiểm tra kiểu giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v1-006
+    title: Thay thế dữ liệu và tránh làm mất trường khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v1-007
+    title: Liệt kê khóa theo đường dẫn thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v1-008
+    title: Xóa dữ liệu và phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v1-009
+    title: Phân biệt engine version với phiên bản của một secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v1-010
+    title: Lựa chọn API KV chuyên biệt hoặc thao tác đường dẫn trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kv-v2
+  title: KV phiên bản 2
+  childs:
+  - slug: kv-v2-001
+    title: Phiên bản dữ liệu, thời điểm tạo và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-002
+    title: VaultKeyValueOperations với KV_2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-003
+    title: VaultVersionedKeyValueOperations và kiểu Versioned
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-004
+    title: Đường dẫn logic so với các endpoint data, metadata, delete và destroy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-005
+    title: Đọc phiên bản mới nhất và phiên bản được chỉ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-006
+    title: Ghi phiên bản mới và lấy metadata trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-007
+    title: Check-and-set để phát hiện cập nhật cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-008
+    title: Yêu cầu tạo mới và cập nhật theo phiên bản đã đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-009
+    title: Xử lý CAS không khớp và lựa chọn thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-010
+    title: Đánh dấu xóa phiên bản hiện hành hoặc các phiên bản cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-011
+    title: Khôi phục phiên bản đã đánh dấu xóa bằng undelete
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-012
+    title: Hủy dữ liệu phiên bản bằng destroy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-013
+    title: Xóa metadata và toàn bộ lịch sử của một khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-014
+    title: Giới hạn lịch sử, metadata tùy chỉnh và chính sách xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-015
+    title: Phân biệt dữ liệu bị xóa, bị hủy và khóa chưa tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kv-v2-016
+    title: Đối chiếu put thay thế dữ liệu với cập nhật một phần khi API hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-mapping
+  title: Ánh xạ dữ liệu
+  childs:
+  - slug: data-mapping-001
+    title: VaultResponse, VaultResponseSupport và phần dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-002
+    title: Map lồng nhau, collection và các kiểu giá trị JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-003
+    title: Ánh xạ phản hồi thành DTO thay vì truyền Map xuyên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-004
+    title: Quy ước tên thuộc tính và cấu hình bộ chuyển đổi JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-005
+    title: Kiểu dữ liệu chung và generic khi đọc phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-006
+    title: Xử lý trường thiếu, null và dữ liệu thay đổi cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-007
+    title: Versioned và việc giữ metadata tách khỏi giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-008
+    title: Biểu diễn byte, chuỗi và Base64 theo từng endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-009
+    title: Giới hạn việc in DTO chứa secret ra log hoặc thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-mapping-010
+    title: Kiểm thử ánh xạ bằng dữ liệu giả và phản hồi tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-foundations
+  title: Nền tảng xác thực
+  childs:
+  - slug: authentication-foundations-001
+    title: Bài toán cấp danh tính ban đầu cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-002
+    title: ClientAuthentication và hợp đồng trả về VaultToken
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-003
+    title: VaultToken, LoginToken và dữ liệu vòng đời đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-004
+    title: TokenAuthentication với token được cấp từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-005
+    title: Chọn phương thức xác thực theo môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-006
+    title: Mount path của auth method và role được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-007
+    title: Cung cấp thông tin xác thực từ cấu hình ngoài mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-008
+    title: Tách thông tin đăng nhập Vault khỏi secret cần lấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-009
+    title: Thời điểm đăng nhập và việc tái sử dụng token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-010
+    title: Kiểm tra quyền và khả năng gia hạn của token được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-011
+    title: Phân biệt xác thực ứng dụng với xác thực người dùng cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-foundations-012
+    title: Thiết kế hành vi khi không lấy được thông tin xác thực ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: approle-authentication
+  title: Xác thực AppRole
+  childs:
+  - slug: approle-authentication-001
+    title: RoleId, SecretId và cấu hình ràng buộc của role
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-002
+    title: AppRoleAuthentication và AppRoleAuthenticationOptions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-003
+    title: Cung cấp trực tiếp RoleId và SecretId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-004
+    title: Lấy thông tin theo chế độ pull với danh tính khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-005
+    title: SecretId được response-wrap và bước unwrap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-006
+    title: Kết hợp chế độ push, pull và wrapped theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-007
+    title: TTL, giới hạn số lần dùng và vòng đời SecretId
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-008
+    title: Ràng buộc địa chỉ mạng và các điều kiện ở phía Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-009
+    title: Cấp SecretId mới khi triển khai lại ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-010
+    title: Tách đơn vị cấp danh tính khỏi tiến trình sử dụng secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-011
+    title: Xử lý SecretId sai, hết hạn hoặc đã dùng hết lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approle-authentication-012
+    title: Kiểm thử đăng nhập lại khi danh tính khởi tạo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-and-jwt
+  title: Kubernetes và JWT
+  childs:
+  - slug: kubernetes-and-jwt-001
+    title: KubernetesAuthentication và vai trò của ServiceAccount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-002
+    title: Token được gắn vào Pod và nguồn cung cấp JWT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-003
+    title: Đọc lại token khi cơ chế projected token xoay vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-004
+    title: Role, namespace Kubernetes và tên ServiceAccount được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-005
+    title: Audience, issuer và điều kiện kiểm tra theo cấu hình Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-006
+    title: Phân biệt auth method Kubernetes với auth method JWT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-007
+    title: JwtAuthentication và JwtAuthenticationOptions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-008
+    title: Cung cấp JWT bằng giá trị hoặc supplier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-009
+    title: JWKS, khóa công khai và nguồn xác minh danh tính ở phía Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-010
+    title: Phân biệt TTL của JWT đầu vào với TTL của Vault token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-011
+    title: Xử lý token hết hạn, Pod khởi động lại và đăng nhập lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-and-jwt-012
+    title: Kiểm thử quyền của workload theo namespace và role
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-authentication
+  title: Xác thực cloud
+  childs:
+  - slug: cloud-authentication-001
+    title: AWS IAM và yêu cầu ký để chứng minh danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-002
+    title: Nguồn AWS credentials và quyền của danh tính chạy ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-003
+    title: AWS EC2 và tài liệu nhận dạng từ metadata service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-004
+    title: Nonce và vòng đời đăng nhập lại với AWS EC2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-005
+    title: IMDS và tùy chọn được hỗ trợ theo phiên bản client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-006
+    title: Azure managed identity và metadata của môi trường máy ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-007
+    title: GCP GCE và chứng minh danh tính từ metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-008
+    title: GCP IAM Credentials API và việc ký JWT cho service account
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-009
+    title: GcpIamCredentialsAuthentication và khác biệt với API GCP cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-010
+    title: PCF và danh tính ứng dụng dựa trên chứng thư của nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-011
+    title: Tùy chọn role, auth path và các SDK bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-012
+    title: Giới hạn hỗ trợ reactive của từng cơ chế xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-authentication-013
+    title: Kiểm tra quyền của môi trường cloud và policy Vault riêng biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: certificates-and-accounts
+  title: Chứng thư và tài khoản
+  childs:
+  - slug: certificates-and-accounts-001
+    title: ClientCertificateAuthentication và cert auth method
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificates-and-accounts-002
+    title: Keystore chứa chứng thư cùng khóa riêng của client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificates-and-accounts-003
+    title: Tên role chứng thư và auth mount tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificates-and-accounts-004
+    title: Thay chứng thư đầu vào và thời điểm cần đăng nhập lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificates-and-accounts-005
+    title: UserPasswordAuthentication với userpass
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificates-and-accounts-006
+    title: Dùng cơ chế tương ứng cho LDAP, Okta và RADIUS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificates-and-accounts-007
+    title: GitHubAuthentication và token dùng để chứng minh danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificates-and-accounts-008
+    title: CubbyholeAuthentication và token khởi tạo dùng cho việc nhận token khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificates-and-accounts-009
+    title: Chọn xác thực theo người dùng hay theo danh tính dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificates-and-accounts-010
+    title: Kiểm soát nơi cung cấp mật khẩu, token và khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-and-token-lifecycle
+  title: Phiên và vòng đời token
+  childs:
+  - slug: sessions-and-token-lifecycle-001
+    title: SessionManager và lý do không đăng nhập lại cho từng lần đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-002
+    title: SimpleSessionManager và phạm vi trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-003
+    title: LifecycleAwareSessionManager và lịch gia hạn nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-004
+    title: Token lookup để xác định TTL còn lại và khả năng renew
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-005
+    title: Token dịch vụ, token batch và khả năng quản lý vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-006
+    title: Thời hạn, max TTL và giới hạn gia hạn do máy chủ quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-007
+    title: Đăng nhập lại sau khi token không còn dùng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-008
+    title: AuthenticationListener và AuthenticationErrorListener
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-009
+    title: Đồng bộ nhiều yêu cầu cùng cần một token mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-010
+    title: Thu hồi token khi dừng ứng dụng theo loại token và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-011
+    title: Phân biệt token được client tạo ra với token được quản lý bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-012
+    title: Tác động của token bị thu hồi đến các lease đã tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-013
+    title: Kiểm thử lỗi gia hạn, hết hạn và đóng ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-token-lifecycle-014
+    title: Giữ thông tin token ngoài dữ liệu trả về cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-steps
+  title: Authentication Steps
+  childs:
+  - slug: authentication-steps-001
+    title: Mô tả chuỗi xác thực độc lập với cách thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-steps-002
+    title: AuthenticationSteps và các bước lấy, chuyển đổi, gửi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-steps-003
+    title: AuthenticationStepsFactory ở các phương thức có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-steps-004
+    title: AuthenticationStepsExecutor cho đăng nhập đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-steps-005
+    title: AuthenticationStepsOperator cho đăng nhập reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-steps-006
+    title: Truyền dữ liệu và đường dẫn giữa các bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-steps-007
+    title: Lấy thông tin xác thực mới qua supplier khi đăng nhập lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-steps-008
+    title: Tùy chỉnh chuỗi đăng nhập mà vẫn giữ ranh giới trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-steps-009
+    title: Phương thức xác thực không hỗ trợ chuỗi không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-steps-010
+    title: Kiểm thử các bước bằng đầu vào và phản hồi giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lease-lifecycle
+  title: Vòng đời lease
+  childs:
+  - slug: lease-lifecycle-001
+    title: Lease ID, thời hạn và thuộc tính renewable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-002
+    title: Phân biệt lease của secret động với TTL gợi ý của KV
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-003
+    title: Yêu cầu gia hạn và thời hạn thực tế được máy chủ cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-004
+    title: Giới hạn max TTL và thời điểm cần lấy secret mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-005
+    title: SecretLeaseContainer và vòng đời theo ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-006
+    title: RequestedSecret với chế độ gia hạn hoặc xoay vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-007
+    title: TaskScheduler, ngưỡng sắp hết hạn và khoảng gia hạn tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-008
+    title: LeaseListener và các sự kiện tạo, gia hạn, hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-009
+    title: LeaseErrorListener và lỗi lấy hoặc gia hạn secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-010
+    title: Sự kiện phía client và độ trễ phát hiện secret đã hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-011
+    title: Ảnh hưởng của sai lệch đồng hồ và tác vụ nền bị chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-012
+    title: Thu hồi lease khi không còn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-013
+    title: Tương tác giữa đăng nhập lại và việc đăng ký secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lease-lifecycle-014
+    title: Kiểm thử vòng đời bằng TTL ngắn và thời gian có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-rotation
+  title: Xoay vòng trong ứng dụng
+  childs:
+  - slug: application-rotation-001
+    title: Gia hạn thông tin hiện có và nhận một bộ thông tin mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-002
+    title: Ứng dụng tiếp nhận dữ liệu từ sự kiện lease
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-003
+    title: ManagedSecret và SecretRegistrar từ Spring Vault 4.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-004
+    title: Truy cập dữ liệu có kiểu qua SecretAccessor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-005
+    title: Thứ tự đăng ký secret và khởi tạo thành phần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-006
+    title: Cập nhật thông tin xác thực cho connection pool hoặc HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-007
+    title: Xử lý kết nối đang hoạt động khi thông tin cũ bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-008
+    title: Phân biệt cập nhật PropertySource với thay giá trị đã chụp trong bean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-009
+    title: Đồng bộ thay đổi giữa các luồng trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-010
+    title: Ứng xử khi nhận secret mới thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-011
+    title: Phạm vi lưu đệm và thời hạn sử dụng dữ liệu đã nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-rotation-012
+    title: Kiểm thử ứng dụng tiếp tục hoạt động qua nhiều lần xoay vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-sources
+  title: Nguồn cấu hình
+  childs:
+  - slug: configuration-sources-001
+    title: VaultPropertySource và Spring Environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-002
+    title: Đăng ký PropertySource theo chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-003
+    title: '@VaultPropertySource trên lớp cấu hình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-004
+    title: Đường dẫn KV v1, KV v2 và quy ước của abstraction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-005
+    title: Thứ tự ưu tiên giữa Vault và các nguồn cấu hình khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-006
+    title: Tiền tố tên thuộc tính và tránh xung đột khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-007
+    title: Placeholder trong đường dẫn và yêu cầu dữ liệu có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-008
+    title: Ánh xạ giá trị lồng nhau thành thuộc tính ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-009
+    title: Thời điểm lấy secret trước khi tạo bean phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-010
+    title: Chế độ renewal và rotation của nguồn cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-011
+    title: Đọc lại Environment và giới hạn của giá trị đã gán cho bean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-012
+    title: Tách cấu hình kết nối Vault khỏi cấu hình được lấy từ Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-sources-013
+    title: Ranh giới với việc nạp cấu hình qua Spring Cloud Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-api
+  title: API reactive
+  childs:
+  - slug: reactive-api-001
+    title: ReactiveVaultTemplate và ReactiveVaultOperations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-002
+    title: Mono, Flux và thời điểm thực hiện yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-003
+    title: AbstractReactiveVaultConfiguration và thành phần cần cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-004
+    title: ReactiveVaultClient trên các phiên bản có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-005
+    title: VaultTokenSupplier và việc cấp token không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-006
+    title: ReactiveSessionManager cùng quản lý gia hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-007
+    title: Đọc, ghi, xóa và ánh xạ dữ liệu theo chuỗi reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-008
+    title: Nhóm thao tác chuyên biệt có trong API reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-009
+    title: Callback cho yêu cầu có phiên và không có phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-010
+    title: Xử lý kết quả rỗng, lỗi và timeout trong Reactor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-011
+    title: Kiểm soát số yêu cầu đồng thời tới Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-012
+    title: Tránh đưa thao tác chặn vào luồng xử lý không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-013
+    title: Kiểm thử pipeline cùng việc hủy đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-api-014
+    title: Đóng client, session manager và tài nguyên nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vault-repository
+  title: Vault Repository
+  childs:
+  - slug: vault-repository-001
+    title: Khi nào dùng repository thay cho VaultOperations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-002
+    title: Phụ thuộc Spring Data Commons và Spring Data KeyValue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-003
+    title: Kích hoạt bằng @EnableVaultRepositories
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-004
+    title: '@Secret và ánh xạ lớp dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-005
+    title: '@Id và cách hình thành khóa lưu trữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-006
+    title: CrudRepository với thao tác lưu, đọc và xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-007
+    title: Lựa chọn mount và nhận diện phiên bản KV
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-008
+    title: Giới hạn truy vấn suy diễn theo thuộc tính định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-009
+    title: Phân trang, sắp xếp và chi phí đọc khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-010
+    title: Ý nghĩa delete trên engine KV có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-011
+    title: Quyền khám phá mount mà repository cần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vault-repository-012
+    title: Kiểm thử ánh xạ và tránh giả định tính năng của cơ sở dữ liệu quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transit-encryption
+  title: Mã hóa Transit
+  childs:
+  - slug: transit-encryption-001
+    title: Transit secrets engine và mô hình mã hóa như một dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-002
+    title: VaultTransitOperations và mount path tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-003
+    title: Tạo khóa, chọn loại khóa và quyền quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-004
+    title: Plaintext, Ciphertext và biểu diễn dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-005
+    title: Mã hóa và giải mã một giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-006
+    title: Xử lý theo lô và lỗi riêng của từng phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-007
+    title: Context, khóa dẫn xuất và yêu cầu khi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-008
+    title: Xoay phiên bản khóa và khả năng đọc dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-009
+    title: Rewrap ciphertext sang phiên bản khóa mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-010
+    title: Data key và mô hình mã hóa phong bì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-011
+    title: Ký số và xác minh theo khả năng của loại khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-012
+    title: HMAC, băm và mục đích sử dụng khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-013
+    title: Giới hạn phiên bản khóa được phép sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-014
+    title: Lưu ciphertext trong ứng dụng và phân tách quyền giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transit-encryption-015
+    title: Kiểm thử sai context, sai khóa và dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pki-certificates
+  title: Chứng thư PKI
+  childs:
+  - slug: pki-certificates-001
+    title: PKI secrets engine, CA và role cấp chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-002
+    title: VaultPkiOperations và các thao tác được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-003
+    title: Yêu cầu chứng thư theo tên miền, SAN và TTL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-004
+    title: Nhận chứng thư, chuỗi CA và khóa riêng khi được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-005
+    title: Ký CSR để giữ việc tạo khóa ở phía ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-006
+    title: Lấy chứng thư issuer theo API của phiên bản sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-007
+    title: Thu hồi chứng thư theo số sê-ri
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-008
+    title: Lấy CRL và biểu diễn PEM hoặc DER
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-009
+    title: Phân biệt thời hạn chứng thư với lease của một secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-010
+    title: Cấp chứng thư thay thế và cập nhật thành phần TLS sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-011
+    title: Ranh giới cấu hình CA, role và thao tác của client ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-certificates-012
+    title: Kiểm thử điều kiện role không cho phép cấp chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cubbyhole-and-wrapping
+  title: Cubbyhole và wrapping
+  childs:
+  - slug: cubbyhole-and-wrapping-001
+    title: Cubbyhole và dữ liệu gắn với token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cubbyhole-and-wrapping-002
+    title: Phân biệt Cubbyhole secrets engine với CubbyholeAuthentication
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cubbyhole-and-wrapping-003
+    title: Response wrapping và token dùng để nhận phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cubbyhole-and-wrapping-004
+    title: TTL của wrapping token và thời hạn của dữ liệu bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cubbyhole-and-wrapping-005
+    title: Yêu cầu wrap theo từng lần gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cubbyhole-and-wrapping-006
+    title: Unwrap và ngữ nghĩa dùng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cubbyhole-and-wrapping-007
+    title: Kiểm tra đường dẫn tạo cùng thông tin của wrapping token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cubbyhole-and-wrapping-008
+    title: Truyền thông tin khởi tạo qua ranh giới triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cubbyhole-and-wrapping-009
+    title: Xử lý token đã unwrap, hết hạn hoặc không đúng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cubbyhole-and-wrapping-010
+    title: Tách quyền tạo dữ liệu khỏi quyền nhận dữ liệu cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extended-engines
+  title: Engine mở rộng
+  childs:
+  - slug: extended-engines-001
+    title: Sử dụng read và write cho engine chưa có API chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-002
+    title: Database secrets engine và thông tin đăng nhập động theo role
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-003
+    title: Phân biệt database role động với thông tin tài khoản tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-004
+    title: Cloud secrets engine và thông tin xác thực được cấp có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-005
+    title: SSH signing và yêu cầu theo hợp đồng endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-006
+    title: Ánh xạ phản hồi riêng của từng engine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-007
+    title: VaultTransformOperations và yêu cầu tính năng Enterprise
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-008
+    title: Transform encode, decode và cấu hình role ở phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-009
+    title: Phân biệt tokenization, che dữ liệu và mã hóa giữ định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-010
+    title: Thao tác theo lô và kiểm tra kết quả từng mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-011
+    title: Đối chiếu khả năng của server với phiên bản client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extended-engines-012
+    title: Lựa chọn abstraction chuyên biệt hoặc yêu cầu HTTP có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-api
+  title: API hệ thống
+  childs:
+  - slug: system-api-001
+    title: VaultSysOperations và phạm vi thao tác quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-002
+    title: Đọc trạng thái health, initialized và seal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-003
+    title: Phân biệt active, standby và máy chủ chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-004
+    title: Liệt kê và cấu hình mount của secrets engine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-005
+    title: Liệt kê và cấu hình auth mount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-006
+    title: Đọc, tạo và cập nhật policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-007
+    title: VaultTokenOperations cho tạo, tra cứu, gia hạn và thu hồi token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-008
+    title: Token con, orphan token và phạm vi thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-009
+    title: Các API lease và tác động thu hồi theo đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-010
+    title: Khởi tạo, seal, unseal trong bài thực hành quản trị riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-011
+    title: Tách client vận hành khỏi danh tính của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-api-012
+    title: Xác định quyền cần thiết cho từng thao tác hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Tạo lớp cung cấp secret theo hợp đồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Cấp VaultOperations qua dependency injection và tách khỏi controller
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Chọn lấy secret khi khởi tạo hay theo nhu cầu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Quản lý nhiều danh tính, namespace và mount trong cùng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Tích hợp cơ sở dữ liệu với thông tin xác thực động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Tích hợp thư viện bên ngoài cần khóa API hoặc chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Vault Agent và việc phân chia trách nhiệm xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Phân biệt client gọi trực tiếp với đọc dữ liệu Agent đã ghi ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Kết hợp Spring Cloud Vault khi cần tích hợp Config Data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: Quyền ưu tiên cấu hình và các bean do từng thành phần quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-011
+    title: Chọn cơ chế cập nhật phù hợp cho thành phần giữ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-012
+    title: Đảm bảo secret cần thiết có sẵn trước khi phục vụ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-resilience
+  title: Lỗi và khả năng phục hồi
+  childs:
+  - slug: errors-and-resilience-001
+    title: VaultException và ngữ cảnh của yêu cầu thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-002
+    title: Phân biệt từ chối xác thực với thiếu quyền theo policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-003
+    title: Secret không tồn tại, sai mount và sai phiên bản KV
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-004
+    title: CAS không khớp và xử lý cập nhật cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-005
+    title: Máy chủ sealed, chưa khởi tạo hoặc đang chuyển vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-006
+    title: Lỗi mạng, timeout và phản hồi không xác định kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-007
+    title: Thử lại thao tác đọc và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-008
+    title: Nguy cơ cấp thêm token hoặc secret động khi thử lại yêu cầu ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-009
+    title: Backoff, độ trễ ngẫu nhiên và tránh quá tải khi đồng loạt khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-010
+    title: Ứng xử khi secret đang dùng sắp hết hạn trong lúc mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-011
+    title: Phân loại dữ liệu bắt buộc khi khởi động và dữ liệu có thể chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-012
+    title: Giữ nguyên nguyên nhân lỗi mà không đưa secret vào thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-resilience-013
+    title: Kiểm thử phục hồi sau khi Vault hoặc mạng hoạt động trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-and-performance
+  title: Quan sát và hiệu năng
+  childs:
+  - slug: observability-and-performance-001
+    title: Đo độ trễ đăng nhập, đọc dữ liệu và thao tác mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-002
+    title: Theo dõi gia hạn token, lease và các lỗi nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-003
+    title: Tương quan log ứng dụng với request ID và audit của Vault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-004
+    title: Che dữ liệu ở log HTTP, log đối tượng và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-005
+    title: Giới hạn thông tin xuất qua endpoint quản trị của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-006
+    title: Tái sử dụng client và giảm đăng nhập không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-007
+    title: Chọn số kết nối và giới hạn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-008
+    title: Gộp yêu cầu theo lô khi engine hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-009
+    title: Lưu đệm secret có thời hạn và kiểm soát dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-010
+    title: Phân biệt health của Vault với khả năng tiếp tục phục vụ của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-011
+    title: Tải nhiều phiên bản ứng dụng và tác động đến số token, lease
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-performance-012
+    title: Đóng ứng dụng đúng thứ tự để dừng tác vụ và thu hồi khi thích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử lớp nghiệp vụ với VaultOperations giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử ánh xạ dữ liệu mà không dùng secret thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Giả lập HTTP để kiểm tra đường dẫn, header và nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Máy chủ Vault tạm thời cho kiểm thử tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Chuẩn bị policy và danh tính riêng cho từng nhóm kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm tra KV v1, KV v2 và cập nhật CAS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm tra xóa mềm, khôi phục và hủy dữ liệu trong môi trường thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm tra đăng nhập, gia hạn, hết hạn và thu hồi token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm tra lease, xoay vòng và thành phần nhận dữ liệu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử Reactor bằng StepVerifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm tra lỗi ủy quyền, TLS và mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm tra log và thông báo lỗi không chứa giá trị nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử nhiều yêu cầu đồng thời và vòng đời ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-014
+    title: Tổ chức dữ liệu mẫu, đồng hồ và tài nguyên dọn sau kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrade-and-compatibility
+  title: Nâng cấp và tương thích
+  childs:
+  - slug: upgrade-and-compatibility-001
+    title: Kiểm kê phiên bản Vault, Spring và HTTP transport
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-002
+    title: Chuyển API RestTemplate cũ sang lựa chọn phù hợp dòng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-003
+    title: VaultClient và các điểm tùy chỉnh mới từ phiên bản 4.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-004
+    title: ReactiveVaultClient và thay đổi callback theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-005
+    title: Đối chiếu constructor và phương thức đã deprecated
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-006
+    title: Rà lại cơ chế tuần tự hóa, hợp đồng null và mô hình dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-007
+    title: Nâng SDK xác thực cloud cùng API danh tính tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-008
+    title: ManagedSecret và lựa chọn quản lý xoay vòng theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-009
+    title: Giữ đúng ý nghĩa đường dẫn, namespace và phiên bản engine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-010
+    title: Đối chiếu policy với các endpoint client mới gọi thêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-011
+    title: Kiểm thử vòng đời token, lease và shutdown sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrade-and-compatibility-012
+    title: Lập kế hoạch triển khai khi nhiều phiên bản ứng dụng cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Đọc cấu hình nhạy cảm từ KV bằng VaultTemplate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xây dựng dịch vụ truy cập secret với DTO và hợp đồng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Quản lý KV có phiên bản cùng cập nhật cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Đăng nhập AppRole bằng SecretId được response-wrap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Xác thực workload Kubernetes theo ServiceAccount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Tích hợp một phương thức xác thực cloud phù hợp môi trường giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Nạp cấu hình bằng VaultPropertySource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Sử dụng thông tin cơ sở dữ liệu động qua nhiều lần xoay vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Mã hóa dữ liệu bằng Transit và thực hiện rewrap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Cấp chứng thư thử nghiệm rồi thay thế khi sắp hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Thực hiện chuỗi đọc và cập nhật bằng API reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Đối chiếu repository với API KV theo cùng dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-013
+    title: Tái hiện mất kết nối, token hết hạn và quá trình phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-014
+    title: Hoàn thiện ứng dụng bằng policy, kiểm thử và bằng chứng vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

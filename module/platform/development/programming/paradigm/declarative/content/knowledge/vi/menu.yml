@@ -1,0 +1,393 @@
+menu:
+- level1: Mô hình tư duy
+  level2:
+  - Lập trình khai báo là gì và người viết đặc tả điều gì?
+  - Từ chuỗi thao tác thực hiện đến mô tả kết quả cần đạt
+  - Ví dụ đối chiếu cùng một yêu cầu bằng mệnh lệnh và khai báo
+  - 'Các thành phần chính: đặc tả, dữ liệu, bộ thực thi và kết quả'
+  - Phần quyết định của người viết và phần được giao cho hệ thực thi
+  - Quan hệ giữa lập trình khai báo, lập trình hàm, logic và ràng buộc
+  - Phân biệt phong cách khai báo, ngôn ngữ khai báo và API có vẻ khai báo
+  - Vì sao cú pháp ngắn, lambda hoặc chuỗi lời gọi chưa đủ để kết luận?
+  - Lợi ích về biểu đạt ý định, tái sử dụng và tối ưu hóa
+  - Đánh đổi về mức kiểm soát, khả năng quan sát và phụ thuộc công cụ
+  - Bản đồ thuật ngữ và lộ trình học qua các họ bài toán tiêu biểu
+- level1: Đặc tả và ngữ nghĩa
+  level2:
+  - Đặc tả (specification) và hợp đồng về kết quả hợp lệ
+  - Cú pháp biểu diễn và ngữ nghĩa xác định ý nghĩa chương trình
+  - Ngữ nghĩa mô tả kết quả và cơ chế thao tác để tạo kết quả
+  - Đầu vào, môi trường và các giả định của đặc tả
+  - Kết quả duy nhất, nhiều kết quả và trường hợp không có kết quả
+  - Yêu cầu đầy đủ, yêu cầu thiếu và yêu cầu mâu thuẫn
+  - Tính xác định và các trường hợp có nhiều kết quả đều đúng
+  - Thứ tự là một phần hợp đồng hay chi tiết triển khai?
+  - Tác dụng phụ có thể quan sát và giới hạn của phép thay thế tương đương
+  - Đặc tả điều kiện đúng khác với bảo đảm thuật toán sẽ kết thúc
+  - Phân biệt mức khai báo với mức trừu tượng của một ngôn ngữ
+  - Đọc một đặc tả bằng dữ liệu vào, điều kiện và tính chất đầu ra
+- level1: Mô hình thực thi
+  level2:
+  - Vai trò của trình thông dịch, trình biên dịch và bộ máy suy diễn
+  - Từ đặc tả đến biểu diễn trung gian và kế hoạch thực thi
+  - Kế hoạch logic và kế hoạch vật lý
+  - Đánh giá sớm, đánh giá lười và thời điểm kích hoạt thực thi
+  - Cơ chế đẩy dữ liệu, kéo dữ liệu và truyền yêu cầu giữa các bước
+  - Bộ giải lựa chọn chiến lược tìm kiếm và phạm vi quyền quyết định
+  - Phụ thuộc dữ liệu và đồ thị công việc thay cho thứ tự câu lệnh tường minh
+  - Thực thi theo lô, tăng dần và phản ứng khi dữ liệu thay đổi
+  - Bộ đệm, ghi nhớ và vật hóa kết quả trung gian
+  - Ranh giới giữa phân tích hợp lệ, lập kế hoạch và chạy thực tế
+  - Phân biệt đặc tả không đổi với hành vi phụ thuộc môi trường thực thi
+- level1: Dữ liệu và quan hệ
+  level2:
+  - Tập hợp, đa tập (bag) và dãy có thứ tự
+  - Quan hệ, bộ giá trị, thuộc tính và miền dữ liệu
+  - Khóa, tính duy nhất và các giả định về dữ liệu đầu vào
+  - Chọn hàng, chiếu cột và biến đổi giá trị
+  - Kết nối quan hệ và biểu diễn liên hệ giữa các tập dữ liệu
+  - Hợp, giao, hiệu và tính tương thích của các toán hạng
+  - Nhóm dữ liệu, tổng hợp và ý nghĩa của tập rỗng
+  - Giá trị thiếu, null và logic hai hoặc ba giá trị
+  - Ngữ nghĩa bằng nhau, so sánh, thứ tự và quy tắc địa phương hóa
+  - Đại số quan hệ và vai trò nền tảng cho tối ưu hóa truy vấn
+- level1: Truy vấn SQL
+  level2:
+  - SQL mô tả tập kết quả thay vì một thuật toán duyệt cố định
+  - SELECT, FROM và WHERE theo ý nghĩa logic của truy vấn
+  - JOIN, điều kiện kết nối và các dạng quan hệ tùy chọn
+  - GROUP BY, HAVING và phân biệt lọc trước hoặc sau tổng hợp
+  - ORDER BY, LIMIT và yêu cầu có thứ tự khi lấy một phần kết quả
+  - DISTINCT, phép toán tập hợp và ảnh hưởng của dữ liệu trùng
+  - NULL và các tình huống dễ hiểu sai logic ba giá trị
+  - Truy vấn con, EXISTS và quan hệ giữa các truy vấn
+  - CTE và cách đặt tên cho các bước của đặc tả
+  - Truy vấn đệ quy và điều kiện kiểm soát quá trình mở rộng kết quả
+  - Hàm cửa sổ và tính toán theo nhóm vẫn giữ từng hàng
+  - Ràng buộc dữ liệu trong schema và khác biệt với điều kiện truy vấn
+  - 'INSERT, UPDATE, DELETE: tính khai báo đi cùng tác dụng thay đổi dữ liệu'
+  - Đọc EXPLAIN để đối chiếu ý định truy vấn với kế hoạch thực thi
+- level1: Java Stream
+  level2:
+  - Stream API dưới góc nhìn đặc tả phép biến đổi dữ liệu
+  - Nguồn dữ liệu, thao tác trung gian và thao tác kết thúc
+  - filter, map và flatMap để biểu đạt các bước biến đổi
+  - Tổng hợp bằng reduce hoặc collect theo hợp đồng kết quả
+  - Nhóm, phân hoạch và kết hợp bộ thu thập
+  - Tính lười, đánh giá ngắn mạch và thời điểm phép tính chạy
+  - Encounter order và lựa chọn có bảo toàn thứ tự hay không
+  - Hàm hành vi không can thiệp nguồn và tránh trạng thái dùng chung
+  - Pipeline có tác dụng phụ và giới hạn quyền tối ưu hóa
+  - Thực thi tuần tự hoặc song song và điều kiện kết quả tương đương
+  - Phân biệt Stream trong bộ nhớ với truy vấn được chuyển xuống cơ sở dữ liệu
+  - Khi nào vòng lặp tường minh diễn đạt yêu cầu rõ ràng hơn?
+- level1: Truy vấn đối tượng
+  level2:
+  - Đặc tả truy vấn trên mô hình đối tượng và ánh xạ sang quan hệ
+  - 'JPQL: thực thể, thuộc tính và ý nghĩa kết quả truy vấn'
+  - Criteria API để dựng truy vấn có cấu trúc bằng Java
+  - Specification và hợp thành các điều kiện tìm kiếm
+  - Truy vấn suy ra từ tên phương thức và giới hạn biểu đạt
+  - Tham số hóa giá trị thay vì ghép chuỗi điều kiện
+  - Projection, phân trang và hợp đồng của kết quả trả về
+  - Truy cập lười, fetch plan và các truy vấn phát sinh ngoài dự kiến
+  - Bài toán N+1 và sự khác nhau giữa ý định đối tượng với thực thi SQL
+  - Kiểm tra SQL sinh ra, kiểu dữ liệu và tính đúng đắn của ánh xạ
+  - Lựa chọn API truy vấn theo mức kiểm soát và khả năng bảo trì
+- level1: Logic và quy tắc
+  level2:
+  - Sự kiện (fact), quan hệ và quy tắc suy diễn
+  - Khai báo điều kiện đúng bằng mệnh đề và biến logic
+  - Truy vấn như một câu hỏi cần tìm các phép gán thỏa mãn
+  - Hợp nhất (unification), thế biến và kết quả suy diễn
+  - Quy tắc đệ quy và suy luận quan hệ bắc cầu
+  - Phủ định, giả định thế giới đóng và dữ liệu chưa biết
+  - Tính đơn điệu khi bổ sung sự kiện đầu vào
+  - Suy diễn tiến, suy diễn lùi và ảnh hưởng của chiến lược thực thi
+  - Thứ tự quy tắc, độ ưu tiên và xung đột trong bộ máy luật nghiệp vụ
+  - Phân biệt suy diễn quan hệ với hành động gây tác dụng phụ
+  - Giới hạn biểu đạt, kết thúc và phạm vi thích hợp của Prolog, Datalog hoặc rule engine
+- level1: Ràng buộc và tìm nghiệm
+  level2:
+  - Biến quyết định, miền giá trị và các ràng buộc
+  - Phân biệt tìm một nghiệm, mọi nghiệm và nghiệm tối ưu
+  - Điều kiện khả thi và hàm mục tiêu
+  - Ràng buộc cứng, ưu tiên mềm và đánh đổi giữa các mục tiêu
+  - Ràng buộc cục bộ, toàn cục và quan hệ giữa các biến
+  - Lan truyền ràng buộc để thu hẹp miền tìm kiếm
+  - Tìm kiếm, quay lui và các lựa chọn chiến lược của bộ giải
+  - SAT, SMT và các mô hình tối ưu hóa ở mức khái niệm
+  - Không có nghiệm, hết thời gian và chưa biết kết quả
+  - Diễn giải nghiệm theo nghiệp vụ và kiểm chứng lại các điều kiện
+  - Khi nào mô hình ràng buộc phù hợp hơn tự viết thuật toán thử mọi khả năng?
+- level1: Văn phạm và mẫu
+  level2:
+  - Biểu thức chính quy như đặc tả mẫu của chuỗi
+  - So khớp toàn bộ, tìm đoạn khớp và trích xuất nhóm
+  - Thứ tự lựa chọn, tham lam và ảnh hưởng đến kết quả so khớp
+  - Giới hạn biểu đạt và nguy cơ chi phí quay lui lớn
+  - Văn phạm, ký hiệu kết thúc và ký hiệu không kết thúc
+  - Luật sinh và cây cú pháp của một ngôn ngữ
+  - Độ ưu tiên, tính kết hợp và cách xử lý văn phạm nhập nhằng
+  - 'Parser generator: từ văn phạm đến bộ phân tích'
+  - Tách luật cú pháp khỏi ý nghĩa nghiệp vụ sau phân tích
+  - Chọn regex, parser hoặc xử lý trực tiếp theo cấu trúc dữ liệu
+- level1: Trạng thái mong muốn
+  level2:
+  - Khai báo trạng thái mong muốn thay vì chuỗi lệnh cập nhật
+  - Trạng thái hiện tại, trạng thái mong muốn và quá trình đối soát
+  - Tính lũy đẳng (idempotency) khi áp dụng cùng một đặc tả nhiều lần
+  - Hội tụ, độ trễ và các điều kiện để tiến tới trạng thái yêu cầu
+  - Đồ thị phụ thuộc tài nguyên và thứ tự được suy ra khi thực thi
+  - Phát hiện sai lệch (drift) do thay đổi bên ngoài
+  - Tạo mới, cập nhật, thay thế và xóa tài nguyên
+  - Quyền sở hữu tài nguyên và xung đột giữa nhiều bộ điều khiển
+  - Xem trước thay đổi và giới hạn giữa kế hoạch với thực tế
+  - Phân biệt khai báo hạ tầng với chạy script khởi tạo một lần
+  - Ví dụ từ công cụ hạ tầng đến bộ điều khiển tài nguyên
+- level1: Cấu hình
+  level2:
+  - Phân biệt dữ liệu cấu hình, đặc tả hành vi và chương trình thực thi
+  - JSON, YAML và XML là định dạng biểu diễn, chưa tự xác định mô hình lập trình
+  - Khóa, kiểu giá trị, phạm vi và ý nghĩa của cấu hình
+  - Mặc định, ghi đè và thứ tự ưu tiên giữa các nguồn
+  - Biến môi trường, tệp cấu hình và tham số khởi động
+  - Nội suy giá trị, tham chiếu chéo và chu kỳ phụ thuộc
+  - Kiểm tra schema và báo lỗi cấu hình trước khi chạy
+  - Phân biệt thiếu giá trị, null, rỗng và giá trị mặc định
+  - Cấu hình theo môi trường và tái lập hành vi triển khai
+  - Tải lại động, tính nhất quán và thời điểm giá trị mới có hiệu lực
+  - Khi cấu hình phát triển thành một ngôn ngữ cần hợp đồng rõ ràng
+- level1: Giao diện khai báo
+  level2:
+  - Mô tả cây giao diện từ dữ liệu và trạng thái ứng dụng
+  - Phân biệt mô tả giao diện với thao tác sửa từng thành phần
+  - Kết xuất lại và đối chiếu mô tả mới với giao diện hiện tại
+  - Danh tính thành phần, khóa ổn định và bảo toàn trạng thái
+  - Ràng buộc dữ liệu một chiều hoặc hai chiều
+  - Thuộc tính dẫn xuất và tránh lưu nhiều bản của cùng một sự thật
+  - Sự kiện người dùng và ranh giới cập nhật trạng thái
+  - Tác dụng phụ, vòng đời và các công việc ngoài quá trình kết xuất
+  - HTML, CSS và template dưới góc nhìn đặc tả kết quả hiển thị
+  - Đối chiếu các mô hình UI khai báo mà không phụ thuộc một framework
+  - Kiểm tra kết quả giao diện và tính nhất quán giữa dữ liệu với hiển thị
+- level1: Hợp đồng và kiểm tra
+  level2:
+  - Tiền điều kiện, hậu điều kiện và bất biến của dữ liệu
+  - Schema mô tả cấu trúc khác quy tắc nghiệp vụ như thế nào?
+  - Khai báo điều kiện hợp lệ trên một thuộc tính hoặc toàn đối tượng
+  - Ràng buộc nhiều trường và điều kiện phụ thuộc trạng thái
+  - Kiểm tra lồng nhau và hợp thành các nhóm ràng buộc
+  - Bean Validation trong Java và trách nhiệm của bộ thực thi
+  - Validation group và lựa chọn tập điều kiện theo ca sử dụng
+  - Thông báo vi phạm, đường dẫn dữ liệu và kết quả có cấu trúc
+  - Thứ tự kiểm tra, dừng sớm và tích lũy nhiều lỗi
+  - Phân biệt xác nhận dữ liệu hợp lệ với thực thi hành động nghiệp vụ
+  - Đảm bảo các điều kiện quan trọng vẫn đúng ở ranh giới lưu trữ
+- level1: Chú thích Java
+  level2:
+  - Annotation lưu metadata và không tự thực thi hành vi
+  - Đối tượng đọc annotation ở lúc biên dịch, khởi động hoặc chạy
+  - Target, retention và phạm vi annotation có thể được quan sát
+  - Khai báo annotation cùng hợp đồng ý nghĩa của từng thuộc tính
+  - Annotation lặp lại, kế thừa và giới hạn lan truyền metadata
+  - Đọc metadata bằng reflection và chi phí xử lý khi chạy
+  - Annotation processor và sinh mã ở thời điểm biên dịch
+  - Khác biệt giữa annotation, cấu hình tệp và API dựng đặc tả
+  - Phụ thuộc ẩn khi hành vi thực tế do framework cung cấp
+  - Khi nào annotation giúp rõ ý định và khi nào làm khó truy tìm hành vi?
+- level1: Tích hợp Spring
+  level2:
+  - Khai báo thành phần và để container quản lý việc khởi tạo
+  - 'Dependency injection: mô tả phụ thuộc và cách container dựng đồ thị đối tượng'
+  - Phân giải nhiều bean cùng kiểu, vòng phụ thuộc và lỗi cấu hình
+  - Điều kiện cấu hình, profile và tập thành phần có hiệu lực
+  - ConfigurationProperties và ánh xạ cấu hình có kiểu
+  - Ánh xạ HTTP bằng metadata và ranh giới với logic xử lý
+  - Khai báo bảo mật bằng quy tắc và vai trò thực thi của chuỗi bộ lọc
+  - Khai báo giao dịch, bộ nhớ đệm hoặc thử lại và phạm vi bảo đảm thực tế
+  - Proxy, lời gọi nội bộ và trường hợp hành vi khai báo không được áp dụng
+  - Thứ tự các lớp chặn và tương tác giữa nhiều chính sách
+  - Đối chiếu metadata với hành vi chạy thay vì chỉ nhìn annotation
+  - Tách quy tắc nghiệp vụ khỏi các cơ chế tích hợp do framework quản lý
+- level1: Build và phụ thuộc
+  level2:
+  - Mô tả sản phẩm đầu ra, đầu vào và quan hệ phụ thuộc khi dựng dự án
+  - Đồ thị tác vụ và thứ tự thực thi được suy ra từ phụ thuộc
+  - Cấu hình build khác thực thi tác vụ ở giai đoạn nào?
+  - Gradle DSL kết hợp phần khai báo với mã mệnh lệnh
+  - Cấu hình lười và tránh tạo tác dụng phụ trong giai đoạn cấu hình
+  - Khai báo dependency và vai trò của bộ phân giải phiên bản
+  - Đầu vào, đầu ra và điều kiện để build tăng dần chính xác
+  - Bộ nhớ đệm tác vụ và khả năng tái lập kết quả
+  - Phụ thuộc dữ liệu khác yêu cầu thứ tự giữa các tác vụ
+  - Phát hiện chu kỳ, đầu vào ẩn và tác vụ không khai báo đầy đủ phụ thuộc
+  - Chọn phần cần mô tả bằng mô hình và phần cần thuật toán tường minh
+- level1: Giao dịch và tác dụng phụ
+  level2:
+  - Đặc tả đọc dữ liệu và đặc tả làm thay đổi thế giới bên ngoài
+  - Thời điểm đánh giá có thể thay đổi ý nghĩa của tác dụng phụ
+  - Ranh giới giao dịch và kết quả khi một bước thất bại
+  - Mức cô lập và giả định về dữ liệu được quan sát
+  - Thử lại, thực thi trùng và yêu cầu lũy đẳng
+  - Tách quyết định thuần khỏi thao tác ghi dữ liệu hoặc gọi dịch vụ
+  - Quyền thay đổi thứ tự khi các thao tác có phụ thuộc hoặc tác dụng phụ
+  - Thực thi nguyên tử, thành công một phần và hành động bù
+  - Thời hạn chờ, hủy thực thi và giới hạn thu hồi tác dụng phụ
+  - Bộ nhớ đệm với dữ liệu thay đổi và điều kiện vô hiệu hóa
+  - Xác định hợp đồng đầu cuối thay vì suy diễn từ một từ khóa khai báo
+- level1: Kiểu và lược đồ
+  level2:
+  - Chọn mô hình dữ liệu phù hợp cho miền bài toán
+  - Kiểu tĩnh, kiểu động và thời điểm phát hiện đặc tả không hợp lệ
+  - Lược đồ dữ liệu vào, dữ liệu ra và kiểu trung gian
+  - Biểu diễn lựa chọn, dữ liệu tùy chọn và trường hợp lỗi
+  - Ràng buộc kiểu khác ràng buộc giá trị hoặc quy tắc nghiệp vụ
+  - Đơn vị đo, miền giá trị và chuyển đổi kiểu tường minh
+  - Schema đóng, schema mở và cách xử lý thuộc tính chưa biết
+  - Tham chiếu giữa các phần đặc tả và kiểm tra tính toàn vẹn
+  - Biểu diễn khả năng của bộ thực thi trong hợp đồng ngôn ngữ
+  - Phát hiện trạng thái không hợp lệ trước khi bắt đầu thực thi
+- level1: Hợp thành đặc tả
+  level2:
+  - Kết hợp điều kiện bằng and, or và not theo ngữ nghĩa của miền
+  - Ghép các phép biến đổi khi kiểu đầu ra khớp kiểu đầu vào
+  - Đặc tả con, mô-đun và tái sử dụng tham số hóa
+  - Phân biệt hợp thành ý nghĩa với ghép nối chuỗi ký tự
+  - Phạm vi tên, bí danh và tránh xung đột khi kết hợp
+  - Quy tắc ưu tiên, ghi đè hoặc hợp nhất cấu hình
+  - Giá trị rỗng, phần tử đơn vị và đặc tả không làm thay đổi kết quả
+  - Tính kết hợp, giao hoán và các điều kiện cần kiểm tra
+  - Giữ thông tin nguồn để truy vết lỗi qua nhiều đặc tả con
+  - Phân biệt quy tắc có thể kết hợp độc lập với quy tắc phụ thuộc thứ tự
+  - Thiết kế điểm mở rộng có hợp đồng thay vì chèn mã thực thi tùy ý
+- level1: Thiết kế DSL
+  level2:
+  - Ngôn ngữ chuyên biệt miền (DSL) giải quyết phạm vi bài toán nào?
+  - Chọn từ vựng, khái niệm và mức biểu đạt theo người sử dụng
+  - DSL nội bộ, DSL bên ngoài và các đánh đổi
+  - API fluent, builder và điều kiện để mô hình thực sự mang tính khai báo
+  - Thiết kế cú pháp gần nghiệp vụ mà vẫn có ngữ nghĩa chính xác
+  - Biểu diễn đặc tả như dữ liệu thay vì thực thi ngay khi dựng
+  - Tham số, biến, tham chiếu và quy tắc phạm vi
+  - Khả năng mở rộng với toán tử hoặc cấu trúc mới
+  - Chọn giới hạn biểu đạt để hỗ trợ kiểm tra và tối ưu hóa
+  - Thiết kế thông báo lỗi chỉ rõ vị trí và cách sửa
+  - Tài liệu hóa hợp đồng, ví dụ và các trường hợp không được hỗ trợ
+  - Đánh giá chi phí xây DSL so với dùng API hoặc công cụ sẵn có
+- level1: Cài đặt DSL
+  level2:
+  - Token, bộ phân tích và cây cú pháp trừu tượng (AST)
+  - Tách cây cú pháp khỏi mô hình ngữ nghĩa của miền
+  - Phân giải tên, tham chiếu và phạm vi biến
+  - Kiểm tra kiểu, ràng buộc và lỗi ngữ nghĩa trước thực thi
+  - Chuẩn hóa đặc tả thành một biểu diễn trung gian
+  - Trình thông dịch duyệt AST và trả về kết quả
+  - Biên dịch đặc tả thành kế hoạch hoặc ngôn ngữ đích
+  - Mô hình hóa toán tử bằng record và sealed interface trong Java
+  - Duyệt biểu thức bằng pattern matching hoặc Visitor
+  - Tách bộ tối ưu hóa khỏi bộ thực thi và lớp tích hợp
+  - Theo dõi vị trí nguồn xuyên các bước chuyển đổi
+  - Giới hạn tài nguyên và xử lý lỗi trong từng giai đoạn
+- level1: Tối ưu hóa thực thi
+  level2:
+  - Phép biến đổi tương đương và nghĩa vụ bảo toàn kết quả
+  - Đẩy điều kiện lọc về sớm và điều kiện để làm đúng
+  - Loại bỏ dữ liệu hoặc phép tính không cần thiết
+  - Gộp bước biến đổi và giảm cấu trúc trung gian
+  - Đổi thứ tự kết nối hoặc xử lý theo quan hệ phụ thuộc
+  - Thống kê dữ liệu, ước lượng số lượng và lựa chọn theo chi phí
+  - Chỉ mục, truy cập dữ liệu và lựa chọn thuật toán vật lý
+  - Vật hóa, tái sử dụng kết quả và các đánh đổi bộ nhớ
+  - Tối ưu hóa tăng dần khi dữ liệu đầu vào thay đổi
+  - Song song hóa và các yêu cầu về thứ tự, tính kết hợp, tác dụng phụ
+  - Đo độ trễ, thông lượng và tài nguyên để kiểm chứng kế hoạch
+  - Vì sao một đặc tả tương đương vẫn có thể tạo kế hoạch khác?
+- level1: Thời gian và luồng
+  level2:
+  - Đặc tả trên tập dữ liệu hữu hạn và trên luồng liên tục
+  - Kết quả một lần, kết quả cập nhật và trạng thái luôn thay đổi
+  - Đồ thị phụ thuộc trong bảng tính và cơ chế tính lại
+  - Toán tử luồng, trạng thái trung gian và khả năng hợp thành
+  - Thời gian sự kiện, thời gian xử lý và ý nghĩa cửa sổ tổng hợp
+  - Dữ liệu đến muộn hoặc sai thứ tự và chính sách cập nhật kết quả
+  - Áp lực ngược (backpressure) và giới hạn khả năng tiếp nhận
+  - Đặc tả luồng không tự bảo đảm tính bền vững hoặc chuyển giao đúng một lần
+  - Hủy đăng ký, vòng đời thực thi và giải phóng tài nguyên
+  - Phân biệt mô hình khai báo với cơ chế hướng sự kiện hoặc phản ứng bên dưới
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đặc tả qua kết quả và tính chất có thể quan sát
+  - Dữ liệu mẫu, tập rỗng, giá trị biên, dữ liệu trùng và null
+  - Kiểm tra trường hợp không có nghiệm, nhiều nghiệm hoặc đặc tả mâu thuẫn
+  - Kiểm thử dựa trên thuộc tính thay vì chỉ vài ví dụ cố định
+  - So sánh với cách tính tham chiếu đơn giản trên cùng đầu vào
+  - Kiểm thử biến đổi tương đương trước và sau tối ưu hóa
+  - Kiểm tra tính lũy đẳng, hội tụ và các cách chia dữ liệu
+  - Kiểm thử parser, kiểm tra ngữ nghĩa và bộ thực thi độc lập
+  - Kiểm thử hợp đồng giữa đặc tả với các bộ thực thi khác nhau
+  - Kiểm thử tích hợp dữ liệu, giao dịch và cấu hình framework
+  - Kiểm thử thay đổi môi trường, thời gian và nguồn dữ liệu
+  - Đánh giá hiệu năng bằng dữ liệu đại diện cho độ lệch và quy mô thực tế
+- level1: Gỡ lỗi và quan sát
+  level2:
+  - Đọc thông báo lỗi theo giai đoạn phân tích, lập kế hoạch hoặc thực thi
+  - Truy vết từ kết quả sai về dữ liệu đầu vào và điều kiện đặc tả
+  - Xem kế hoạch thực thi và nhận diện thao tác phát sinh ngoài dự kiến
+  - Quan sát giá trị trung gian mà không vô tình kích hoạt lại phép tính
+  - Đối chiếu cấu hình hiệu lực với các nguồn ghi đè
+  - Xác định bean, proxy, bộ xử lý hoặc bộ giải đang thực thi thực tế
+  - Theo dõi tác dụng phụ, truy vấn dữ liệu và số lần thử lại
+  - Ghi nhận phiên bản đặc tả, dữ liệu và môi trường để tái hiện
+  - Phân biệt lỗi đặc tả, lỗi dữ liệu, lỗi công cụ và giả định sai
+  - Thiết kế khả năng giải thích vì sao một kết quả hoặc quyết định được tạo ra
+- level1: Bảo mật
+  level2:
+  - Phân biệt dữ liệu đầu vào với mã hoặc cấu trúc đặc tả được phép thực thi
+  - Tham số hóa truy vấn và phòng tránh chèn mã SQL
+  - Chèn biểu thức, template hoặc quy tắc qua dữ liệu không tin cậy
+  - Giới hạn toán tử, hàm mở rộng và quyền truy cập của bộ thực thi
+  - Quyền tối thiểu cho đọc dữ liệu, ghi dữ liệu và quản lý tài nguyên
+  - Ngăn lộ bí mật trong cấu hình, kế hoạch, thông báo lỗi và nhật ký
+  - Giới hạn độ sâu, kích thước, thời gian và bộ nhớ của đặc tả
+  - Truy vấn đắt, tìm kiếm nghiệm lớn và biểu thức chính quy gây cạn tài nguyên
+  - Kiểm soát schema, nguồn cấu hình và các phần mở rộng được tải vào
+  - Kiểm toán thay đổi đặc tả và truy vết quyết định có ảnh hưởng nghiệp vụ
+- level1: Tiến hóa và tích hợp
+  level2:
+  - Đặt ranh giới giữa phần mô tả khai báo và phần xử lý mệnh lệnh
+  - Tích hợp với mô hình hướng đối tượng và các hàm thuần
+  - Chuyển đổi từng bước từ mã hiện có sang đặc tả có hợp đồng
+  - Phiên bản schema, cú pháp và ngữ nghĩa của DSL
+  - Giá trị mặc định mới và nguy cơ làm thay đổi hành vi cũ
+  - Thay bộ thực thi hoặc nâng phiên bản công cụ và kiểm tra tương thích
+  - Chuyển đổi dữ liệu cùng đặc tả khi hợp đồng thay đổi
+  - Triển khai đặc tả, kiểm tra trước và khả năng quay về phiên bản cũ
+  - Quản lý quyền sở hữu, quy trình rà soát và phê duyệt thay đổi
+  - Nhận diện chi phí phụ thuộc nhà cung cấp và lối thoát bằng hợp đồng rõ ràng
+- level1: Thực hành
+  level2:
+  - Chuyển bài toán lọc, sắp xếp và tổng hợp từ vòng lặp sang đặc tả
+  - Đối chiếu SQL, Java Stream và kết quả tham chiếu trên cùng bộ dữ liệu
+  - Dựng bộ lọc tìm kiếm bằng Specification với các điều kiện tùy chọn
+  - Mô hình hóa chính sách nghiệp vụ bằng dữ liệu và bộ đánh giá quy tắc
+  - Đặc tả bài toán xếp lịch bằng biến, miền giá trị và ràng buộc
+  - Thiết kế kiểm tra dữ liệu nhiều trường và trả về danh sách vi phạm
+  - Dựng cây biểu thức truy vấn bằng Java rồi thông dịch để lấy kết quả
+  - Thêm phép tối ưu hóa cho DSL và kiểm thử bảo toàn ngữ nghĩa
+  - Mô phỏng bộ đối soát đưa trạng thái hiện tại về trạng thái mong muốn
+  - Thiết kế cấu hình có kiểu với mặc định, ghi đè và kiểm tra hợp lệ
+  - Quan sát giao dịch hoặc truy vấn sinh ra từ khai báo trong Spring
+  - Phân tích một đặc tả chậm hoặc sai bằng dữ liệu, kế hoạch và minh chứng chạy
+- level1: Đánh giá thiết kế
+  level2:
+  - Xác định kết quả cần đạt trước khi chọn công cụ khai báo
+  - Chọn mức biểu đạt đủ cho miền bài toán và người sử dụng
+  - Chỉ rõ các giả định về thứ tự, null, dữ liệu trùng và tính xác định
+  - Rà soát trạng thái, tác dụng phụ và ranh giới giao dịch
+  - Kiểm tra khả năng giải thích, kiểm thử và tái hiện kết quả
+  - Đánh giá quyền tối ưu hóa và phần kiểm soát đã giao cho bộ thực thi
+  - Nhận diện cấu hình phức tạp, DSL vượt phạm vi và phụ thuộc ẩn
+  - So sánh lời giải khai báo với lời giải mệnh lệnh theo chi phí thực tế
+  - Chọn SQL, Stream, bộ máy luật, bộ giải hoặc mã trực tiếp theo yêu cầu
+  - Tự đánh giá bằng đặc tả rõ ràng, kết quả đúng và số liệu thực thi

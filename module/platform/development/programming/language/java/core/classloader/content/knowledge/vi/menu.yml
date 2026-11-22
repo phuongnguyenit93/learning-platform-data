@@ -1,0 +1,323 @@
+menu:
+- level1: Mô hình tổng quan
+  level2:
+  - Class loader là gì và vì sao JVM cần nạp lớp động
+  - Từ mã nguồn, bytecode đến lớp đang tồn tại trong JVM
+  - Phân biệt ClassLoader, Class và đối tượng của lớp
+  - Phân biệt nạp lớp, liên kết và khởi tạo
+  - Không gian tên, khả năng nhìn thấy và cô lập phụ thuộc
+  - 'Một ví dụ xuyên suốt: ứng dụng chủ và plugin'
+  - Kiến thức tiên quyết và trình tự học đề xuất
+  - Quy tắc đặc tả, chi tiết HotSpot và khác biệt theo phiên bản JDK
+- level1: Tên và bytecode
+  level2:
+  - Tên nhị phân, tên chuẩn và tên nội bộ của lớp
+  - Tên lớp lồng, lớp cục bộ và lớp vô danh
+  - Chuyển tên lớp thành đường dẫn tài nguyên .class
+  - Cấu trúc ClassFile tối thiểu cần biết
+  - Phiên bản major, minor và giới hạn JDK hỗ trợ bytecode
+  - Constant pool và tham chiếu ký hiệu tới kiểu, field, method
+  - Descriptor của kiểu, phương thức và lớp mảng
+  - Vì sao trình nạp phải nhận đúng tên và bytecode tương ứng
+- level1: Vòng đời lớp
+  level2:
+  - Thời điểm JVM cần tạo và nạp một lớp hoặc interface
+  - Tìm biểu diễn nhị phân và tạo Class trong JVM
+  - Nạp các lớp cha và interface cha cần thiết
+  - 'Verification: kiểm tra cấu trúc và tính hợp lệ của bytecode'
+  - 'Preparation: cấp phát và thiết lập giá trị mặc định cho static field'
+  - 'Resolution: phân giải tham chiếu ký hiệu'
+  - Phân giải sớm, phân giải muộn và thời điểm xuất hiện lỗi
+  - Phân biệt liên kết lớp với khởi tạo lớp
+  - Khởi tạo lớp trước khi thực thi các thao tác yêu cầu
+  - Vòng đời lớp khác vòng đời đối tượng như thế nào
+- level1: Khởi tạo lớp
+  level2:
+  - Phương thức <clinit>, static field initializer và static block
+  - Phân biệt <clinit> với constructor <init>
+  - Các thao tác chủ động kích hoạt khởi tạo
+  - 'Các thao tác không kích hoạt khởi tạo: class literal, mảng và hằng biên dịch'
+  - Khởi tạo lớp cha và thứ tự thực hiện static initializer
+  - Khởi tạo interface và ảnh hưởng của default method
+  - 'Đọc static field kế thừa: kiểu thực sự khai báo field'
+  - Đồng bộ khởi tạo lớp giữa nhiều luồng
+  - Khởi tạo đệ quy, phụ thuộc vòng và giá trị chưa hoàn thiện
+  - ExceptionInInitializerError và trạng thái khởi tạo thất bại
+- level1: Loader tích hợp
+  level2:
+  - Bootstrap class loader và vai trò của JVM
+  - Platform class loader trong JDK hiện đại
+  - System class loader và application class loader
+  - Quan hệ cha và phạm vi lớp mà mỗi loader phụ trách
+  - Class.getClassLoader và cách hiểu kết quả null
+  - ClassLoader.getPlatformClassLoader và getSystemClassLoader
+  - Extension class loader trong Java 8 và thay đổi từ Java 9
+  - Vì sao không nên ép application class loader thành URLClassLoader
+  - 'Runtime image, jrt: và việc loại bỏ rt.jar'
+  - Giới hạn của sơ đồ ba loader khi làm việc với named module
+  - Tùy chỉnh system class loader bằng java.system.class.loader
+- level1: Cơ chế ủy quyền
+  level2:
+  - Parent delegation và mục đích dùng chung kiểu nền tảng
+  - 'Trình tự mặc định: findLoadedClass, loader cha và findClass'
+  - Vai trò của parent null khi ủy quyền tới bootstrap
+  - Quan hệ parent là quan hệ đối tượng, không phải kế thừa lớp Java
+  - Defining loader và initiating loader
+  - Phân biệt loader được yêu cầu với loader thực sự định nghĩa lớp
+  - Khả năng nhìn thấy từ loader con tới loader cha
+  - Vì sao loader cha không tự tìm phụ thuộc của loader con
+  - Ủy quyền trong mô hình đồ thị và ngoại lệ với hệ module
+- level1: Định danh kiểu
+  level2:
+  - Định danh lớp bằng tên nhị phân và defining loader
+  - Hai lớp cùng tên nhưng khác loader là hai kiểu khác nhau
+  - So sánh Class, instanceof, isInstance và isAssignableFrom
+  - ClassCastException khi tên lớp nguồn và đích giống nhau
+  - Runtime package được xác định bởi tên package và loader
+  - Truy cập package-private giữa các lớp do loader khác nhau định nghĩa
+  - Loading constraint bảo đảm nhất quán kiểu trong chữ ký
+  - Lớp mảng, kiểu phần tử và loader tương ứng
+  - Kiểu nguyên thủy, void và giới hạn của loadClass
+  - Thiết kế kiểu API dùng chung tại ranh giới nhiều loader
+- level1: API nạp lớp
+  level2:
+  - ClassLoader.loadClass và ý nghĩa của tham số resolve
+  - 'findClass: điểm mở rộng để tìm bytecode'
+  - findLoadedClass và việc tái sử dụng lớp đã được loader ghi nhận
+  - 'defineClass: tạo lớp từ byte[] hoặc ByteBuffer'
+  - resolveClass và khác biệt với khởi tạo lớp
+  - Class.forName(String) và lựa chọn loader mặc định
+  - Class.forName(name, initialize, loader)
+  - Class.forName(Module, name) và trường hợp không tìm thấy lớp
+  - Class.getClassLoader, getParent và đặt tên loader
+  - Phân biệt nạp lớp, tạo đối tượng và gọi constructor bằng reflection
+  - Điều khiển assertion theo lớp, package và giá trị mặc định
+- level1: Đường dẫn tìm kiếm
+  level2:
+  - Classpath là gì và cách xác định thư mục gốc
+  - Thiết lập -cp, --class-path và biến CLASSPATH
+  - Classpath lúc biên dịch khác classpath lúc chạy
+  - Thứ tự tìm kiếm và lớp trùng tên trong nhiều JAR
+  - Wildcard trong classpath và giới hạn tìm kiếm
+  - JAR, manifest Main-Class và Class-Path
+  - Chế độ java -jar và các quy tắc classpath liên quan
+  - Multi-release JAR và chọn bytecode theo phiên bản Java
+  - Phân biệt classpath, module path và đường dẫn native library
+  - Khác biệt giữa dependency của công cụ build và đường dẫn thực tế của JVM
+- level1: Tài nguyên
+  level2:
+  - Resource là gì và quan hệ với classpath
+  - 'Class.getResource: đường dẫn tương đối và dấu / ở đầu'
+  - 'ClassLoader.getResource: đường dẫn tính từ gốc tài nguyên'
+  - getResourceAsStream và xử lý trường hợp không tìm thấy
+  - getResources, resources và liệt kê nhiều tài nguyên cùng tên
+  - findResource, findResources và điểm mở rộng cho loader tùy chỉnh
+  - Thứ tự ủy quyền tài nguyên phải nhất quán với chính sách nạp lớp
+  - 'file:, jar:, jrt: và giới hạn chuyển URL thành File'
+  - Đọc tài nguyên trong JAR và đóng InputStream đúng cách
+  - Tài nguyên named module và các quy tắc đóng gói, opens
+- level1: Loader ngữ cảnh
+  level2:
+  - Thread context class loader là gì
+  - Vì sao API nền tảng cần nhìn thấy cách triển khai của ứng dụng
+  - getContextClassLoader và setContextClassLoader
+  - Lựa chọn loader tường minh thay vì phụ thuộc ngầm vào luồng
+  - Truyền và kế thừa context class loader khi tạo luồng
+  - Thread pool và ngữ cảnh có thể khác luồng gửi công việc
+  - Đổi context class loader trong phạm vi hẹp và khôi phục bằng finally
+  - Rò rỉ bộ nhớ khi luồng sống lâu giữ loader của plugin
+  - ServiceLoader và các API dùng loader ngữ cảnh
+- level1: URLClassLoader
+  level2:
+  - Tạo URLClassLoader từ thư mục và JAR
+  - Chọn parent và phạm vi phụ thuộc được kế thừa
+  - Thứ tự URL và xử lý JAR hoặc lớp trùng nhau
+  - Nạp lớp và tài nguyên qua URLClassLoader
+  - getURLs và giới hạn của addURL
+  - Quản lý vòng đời bằng close và try-with-resources
+  - Close không đồng nghĩa với gỡ bỏ lớp đã nạp
+  - Ảnh hưởng của close tới JAR handle và thao tác tải đang diễn ra
+  - Giới hạn tìm nested JAR và khác biệt với launcher chuyên dụng
+- level1: Loader tùy chỉnh
+  level2:
+  - Khi nào cần mở rộng ClassLoader
+  - Chọn constructor, parent và tên loader
+  - Ưu tiên ghi đè findClass khi giữ cơ chế ủy quyền mặc định
+  - Đọc và kiểm tra bytecode từ thư mục, bộ nhớ hoặc nguồn riêng
+  - Ánh xạ tên lớp tới nguồn dữ liệu có giới hạn rõ ràng
+  - Truyền tên, offset và length chính xác cho defineClass
+  - Định nghĩa package và nguồn mã khi cần
+  - Phân loại lỗi không tìm thấy với bytecode không hợp lệ
+  - Không định nghĩa lại cùng một tên trong cùng loader
+  - Bổ sung khả năng tìm tài nguyên tương ứng với lớp
+  - Giữ bất biến định danh kiểu và đóng tài nguyên do loader sở hữu
+  - findLibrary và trách nhiệm tra cứu thư viện native
+- level1: Chính sách nạp
+  level2:
+  - So sánh parent-first và child-first
+  - Khi nào việc ghi đè loadClass là cần thiết
+  - Thiết kế chính sách chọn lọc theo package
+  - Ủy quyền bắt buộc cho kiểu nền tảng và API dùng chung
+  - Cô lập nhiều phiên bản thư viện giữa các plugin
+  - Ngăn lớp và tài nguyên dùng các thứ tự ưu tiên khác nhau
+  - Rủi ro nạp trùng API, annotation hoặc kiểu exception
+  - Phát hiện chu trình ủy quyền và tránh gọi lặp vô hạn
+  - Đánh đổi giữa cô lập, tương thích và khả năng chẩn đoán
+- level1: Nạp đồng thời
+  level2:
+  - Khóa nạp lớp trong triển khai mặc định
+  - getClassLoadingLock và khóa theo tên lớp
+  - Parallel-capable class loader là gì
+  - registerAsParallelCapable và điều kiện đăng ký
+  - Tránh race condition giữa findLoadedClass và defineClass
+  - Deadlock khi nhiều loader ủy quyền chéo
+  - Phân biệt khóa nạp lớp với khóa khởi tạo lớp
+  - Thiết kế cache bytecode và nguồn tài nguyên an toàn cho nhiều luồng
+- level1: Package và nguồn mã
+  level2:
+  - definePackage, getDefinedPackage và getDefinedPackages
+  - Package cùng tên trong nhiều loader
+  - Package sealing và thông tin manifest
+  - CodeSource và vị trí nguồn bytecode
+  - ProtectionDomain trong các biến thể defineClass
+  - SecureClassLoader và vai trò lịch sử của quyền truy cập
+  - Chữ ký JAR, chứng thư và tính nhất quán trong cùng package
+  - Giới hạn định nghĩa lớp trong package java.*
+- level1: Module và layer
+  level2:
+  - JPMS thay đổi mô hình quan sát và truy cập kiểu như thế nào
+  - Named module, unnamed module và automatic module
+  - Phân biệt khả năng tìm thấy lớp với quyền truy cập lớp
+  - Readability, exports và opens
+  - Quan hệ một loader với một hoặc nhiều module
+  - ModuleLayer.boot và các layer được tạo động
+  - ModuleFinder, Configuration và giải quyết phụ thuộc module
+  - defineModulesWithOneLoader và defineModulesWithManyLoaders
+  - findLoader và chọn loader cho module
+  - Giới hạn split package và các lỗi cấu hình layer
+  - Nạp tài nguyên từ module bằng Class, ClassLoader và Module
+  - Phân biệt --add-reads, --add-exports và --add-opens
+- level1: Nạp dịch vụ
+  level2:
+  - Service Provider Interface và vai trò của ServiceLoader
+  - Khai báo provider bằng META-INF/services trên classpath
+  - uses và provides trong module-info.java
+  - ServiceLoader.load với loader tường minh hoặc loader ngữ cảnh
+  - ServiceLoader.load với ModuleLayer
+  - Khám phá provider và khởi tạo lười
+  - Iterator, stream và ServiceLoader.Provider
+  - Cache provider, reload và giới hạn dùng đồng thời
+  - ServiceConfigurationError và provider không tương thích kiểu dịch vụ
+  - Provider constructor, provider method và khác biệt theo cách triển khai
+- level1: Kiến trúc plugin
+  level2:
+  - Phân chia ứng dụng chủ, API chung và triển khai plugin
+  - Chọn loader cho API chung và phụ thuộc riêng
+  - Mỗi plugin một loader hay nhiều plugin dùng chung loader
+  - Giao tiếp qua interface, DTO và exception có định danh thống nhất
+  - Khởi tạo plugin và quản lý context class loader
+  - Quy trình dừng plugin, hủy đăng ký và giải phóng tài nguyên
+  - Thay phiên bản plugin bằng loader mới
+  - Ranh giới của hot reload và trạng thái đang được sử dụng
+  - Vì sao class loader không tạo thành sandbox bảo mật
+  - Nhận diện mô hình cô lập trong container và test runner
+- level1: Định nghĩa lớp động
+  level2:
+  - Reflection và việc chọn loader cho tên lớp
+  - Dynamic Proxy và khả năng nhìn thấy các interface
+  - MethodHandles.Lookup.defineClass và ngữ cảnh định nghĩa lớp
+  - Hidden class và giới hạn khám phá bằng tên
+  - Phân biệt bootstrap class loader với bootstrap method của invokedynamic
+  - Sinh bytecode, biên dịch động và trách nhiệm quản lý loader
+  - 'Instrumentation: transform trước khi định nghĩa lớp'
+  - Redefine, retransform và khác biệt với nạp lớp bằng loader mới
+  - Ràng buộc phiên bản, cấu trúc lớp và quyền truy cập khi tạo lớp động
+- level1: Dỡ lớp và bộ nhớ
+  level2:
+  - Điều kiện để lớp và defining loader có thể được thu gom
+  - Vì sao không có thao tác unload tùy ý một lớp thông thường
+  - Phân biệt mất tham chiếu đối tượng, đóng loader và class unloading
+  - Quan hệ giữa Class, đối tượng instance và loader
+  - Metaspace trong HotSpot và giới hạn của mô hình method area
+  - Static field, cache reflection và tham chiếu từ ứng dụng chủ
+  - Thread, ThreadLocal, context class loader và tác vụ chưa dừng
+  - Listener, registry, ServiceLoader cache và nguyên nhân giữ plugin
+  - Giải phóng JAR handle và tránh giữ file sau reload
+  - Quan sát unloading và tránh kết luận từ một lần gọi System.gc
+- level1: Ranh giới bảo mật
+  level2:
+  - Bytecode verification bảo vệ điều gì và không bảo vệ điều gì
+  - Phân biệt cô lập không gian tên với cô lập quyền thực thi
+  - Kiểm soát nguồn JAR, tính toàn vẹn và phụ thuộc được phép
+  - Tránh lấy tên lớp hoặc đường dẫn tùy ý từ dữ liệu không tin cậy
+  - Rủi ro tải lớp từ nguồn mạng hoặc thư mục có thể bị thay đổi
+  - SecurityManager là cơ chế lịch sử và cần đối chiếu phiên bản JDK
+  - Tách tiến trình khi cần ranh giới bảo mật mạnh hơn loader
+- level1: Lỗi thường gặp
+  level2:
+  - 'ClassNotFoundException: yêu cầu tìm lớp tường minh không thành công'
+  - NoClassDefFoundError do thiếu lớp phụ thuộc hoặc sai tên
+  - NoClassDefFoundError sau khi khởi tạo lớp thất bại
+  - UnsupportedClassVersionError và phiên bản bytecode
+  - ClassFormatError, VerifyError và ClassCircularityError
+  - LinkageError do định nghĩa lớp trùng hoặc vi phạm loading constraint
+  - NoSuchMethodError và NoSuchFieldError do lệch phiên bản
+  - AbstractMethodError và IncompatibleClassChangeError
+  - IllegalAccessError, IllegalAccessException và InaccessibleObjectException
+  - ClassCastException do khác định danh loader
+  - SecurityException do package sealing, chứng thư hoặc package bị cấm
+  - UnsatisfiedLinkError và native library trong nhiều loader
+- level1: Chẩn đoán
+  level2:
+  - In tên lớp, loader, module và nguồn mã trong thông tin lỗi
+  - Lần theo parent chain và loader thực sự định nghĩa lớp
+  - Xác định lớp đến từ thư mục, JAR hay runtime image nào
+  - Liệt kê tài nguyên trùng tên và xác định thứ tự được chọn
+  - -verbose:class và unified logging -Xlog:class+load
+  - Theo dõi khởi tạo và dỡ lớp bằng các log tag phù hợp
+  - jcmd VM.classloaders, VM.classloader_stats và VM.class_hierarchy
+  - 'ClassLoadingMXBean: tổng lớp đã nạp, lớp hiện có và lớp đã dỡ'
+  - JFR, heap dump và đường tham chiếu giữ class loader
+  - javap, jar và jdeps trong điều tra bytecode, JAR và phụ thuộc
+  - Đối chiếu runtime classpath thực tế với cây dependency của công cụ build
+- level1: Hiệu năng
+  level2:
+  - Chi phí đọc JAR, verification, linking và initialization
+  - Phân biệt độ trễ khởi động với chi phí lời gọi sau khi đã nạp
+  - Nạp lười và tác động của preloading
+  - Tái sử dụng loader so với tạo loader cho từng yêu cầu
+  - Cache đúng phạm vi mà không giữ loader đã hết vòng đời
+  - CDS, AppCDS và giới hạn theo loader hoặc cấu hình chạy
+  - Đo hiệu năng với cùng JDK, classpath và tập lớp được sử dụng
+  - Đánh đổi giữa số loader, mức cô lập và dung lượng metaspace
+- level1: Kiểm chứng hành vi
+  level2:
+  - Tạo fixture có cùng tên lớp trong hai JAR
+  - Kiểm chứng thứ tự ủy quyền và định danh Class
+  - Kiểm chứng loadClass khác Class.forName về khởi tạo
+  - Kiểm chứng thứ tự static initializer và lỗi khởi tạo
+  - Kiểm chứng package-private khi dùng hai loader
+  - Kiểm chứng tìm tài nguyên và provider dịch vụ
+  - Kiểm chứng nạp đồng thời và xử lý tên lớp trùng
+  - Kiểm chứng vòng đời đóng loader, dừng plugin và giải phóng tham chiếu
+  - Tách từng kịch bản bằng loader hoặc tiến trình JVM mới
+- level1: Thực hành
+  level2:
+  - In cây loader và nguồn gốc các lớp trong một ứng dụng nhỏ
+  - Đọc cấu hình từ thư mục và JAR bằng API resource
+  - Xây dựng loader nạp bytecode từ bộ nhớ
+  - Cô lập hai phiên bản thư viện trong hai loader
+  - Tạo plugin dùng API chung và phát hiện bằng ServiceLoader
+  - Tạo module layer cho plugin mô đun hóa
+  - Tái hiện và sửa lỗi cùng tên lớp nhưng không ép kiểu được
+  - Tái hiện NoClassDefFoundError và lỗi khởi tạo lớp
+  - Thực hiện reload plugin bằng loader mới
+  - Điều tra một tình huống rò rỉ class loader
+- level1: Tra cứu
+  level2:
+  - Bảng đối chiếu loadClass, forName, defineClass và resolveClass
+  - Bảng thao tác kích hoạt khởi tạo lớp hoặc interface
+  - Bảng lỗi theo giai đoạn nạp, liên kết, khởi tạo và sử dụng
+  - Bảng thay đổi class loading giữa Java 8 và Java hiện đại
+  - Thuật ngữ defining loader, initiating loader, runtime package và layer
+  - Tra cứu JVMS, JLS, Javadoc và công cụ JDK theo chủ đề

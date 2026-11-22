@@ -1,0 +1,112 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khái niệm nền tảng
+  slug: security-fundamentals
+  index: 1
+- title: Phạm vi và ủy quyền
+  slug: scope-and-authorization
+  index: 2
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 3
+- title: Chiến lược kiểm thử
+  slug: testing-strategy
+  index: 4
+- title: Môi trường kiểm thử
+  slug: test-environment
+  index: 5
+- title: Thiết kế ca kiểm thử
+  slug: test-case-design
+  index: 6
+- title: Xác thực danh tính
+  slug: identity-verification
+  index: 7
+- title: Phiên và token
+  slug: sessions-and-tokens
+  index: 8
+- title: Phân quyền
+  slug: authorization
+  index: 9
+- title: Bảo mật API
+  slug: api-security
+  index: 10
+- title: Kiểm tra đầu vào
+  slug: input-validation
+  index: 11
+- title: Chèn lệnh và truy vấn
+  slug: injection
+  index: 12
+- title: XSS và trình duyệt
+  slug: xss-and-browsers
+  index: 13
+- title: CSRF và CORS
+  slug: csrf-and-cors
+  index: 14
+- title: Tệp và đường dẫn
+  slug: files-and-paths
+  index: 15
+- title: SSRF
+  slug: ssrf
+  index: 16
+- title: Bộ phân tích dữ liệu
+  slug: data-analyzers
+  index: 17
+- title: Java và Spring
+  slug: java-and-spring
+  index: 18
+- title: Mật mã và bí mật
+  slug: cryptography-and-secrets
+  index: 19
+- title: Dữ liệu nhạy cảm
+  slug: sensitive-data
+  index: 20
+- title: HTTP và TLS
+  slug: http-and-tls
+  index: 21
+- title: Logic nghiệp vụ
+  slug: business-logic
+  index: 22
+- title: Tích hợp và thông điệp
+  slug: integration-and-messaging
+  index: 23
+- title: Cấu hình và phơi lộ
+  slug: configuration-exposure
+  index: 24
+- title: Chuỗi cung ứng
+  slug: supply-chain
+  index: 25
+- title: Hạ tầng ứng dụng
+  slug: application-infrastructure
+  index: 26
+- title: Phân tích tĩnh
+  slug: static-analysis
+  index: 27
+- title: Phân tích động
+  slug: dynamic-analysis
+  index: 28
+- title: Kiểm thử Java tự động
+  slug: automated-java-testing
+  index: 29
+- title: Thủ công và fuzzing
+  slug: manual-and-fuzzing
+  index: 30
+- title: Nhật ký và phát hiện
+  slug: logging-and-detection
+  index: 31
+- title: Phân loại phát hiện
+  slug: finding-classification
+  index: 32
+- title: Xác minh bản sửa
+  slug: fix-verification
+  index: 33
+- title: CI/CD
+  slug: ci-cd
+  index: 34
+- title: Báo cáo và duy trì
+  slug: reporting-and-maintenance
+  index: 35
+- title: Thực hành
+  slug: integrated-practice
+  index: 36

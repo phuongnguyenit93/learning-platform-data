@@ -1,0 +1,535 @@
+menu:
+- level1: Nhập môn secure design
+  level2:
+  - Secure design giải quyết vấn đề gì
+  - Khác biệt giữa secure design và secure coding
+  - Khác biệt giữa principle, control và requirement
+  - Bảo mật như thuộc tính kiến trúc
+  - Mối quan hệ giữa confidentiality, integrity và availability
+  - Tư duy giảm rủi ro từ trước khi viết code
+  - Ranh giới của module Secure Design Principles
+  - Quan hệ với attack surface và threat modeling
+  - Quan hệ với security requirements
+  - Lộ trình học các nguyên tắc thiết kế
+- level1: Security by design
+  level2:
+  - Đưa bảo mật vào quyết định kiến trúc
+  - Xác định tài sản cần bảo vệ
+  - Đặt security objective cho từng thành phần
+  - Gắn principle với risk và control
+  - Thiết kế để loại bỏ lớp lỗi có thể loại bỏ
+  - Thiết kế để giảm tác động khi lỗi xảy ra
+  - Đánh đổi bảo mật với chức năng
+  - Đánh đổi bảo mật với hiệu năng
+  - Đánh đổi bảo mật với khả năng sử dụng
+  - Bằng chứng cho quyết định secure design
+- level1: Secure defaults
+  level2:
+  - Secure default là gì
+  - Từ chối khi chưa được cấp quyền
+  - Tắt chức năng không cần thiết
+  - Tắt endpoint và port không sử dụng
+  - Cấu hình mặc định ít đặc quyền
+  - Không bật debug trong production
+  - Không dùng credential mặc định
+  - Mặc định mã hóa và bảo vệ dữ liệu
+  - Explicit opt-in cho hành vi nguy hiểm
+  - Kiểm thử cấu hình mặc định
+  - Chống drift giữa default và deployment
+- level1: Fail secure
+  level2:
+  - Fail secure là gì
+  - Trạng thái an toàn khi có lỗi
+  - Fail open và rủi ro cấp quyền ngoài ý muốn
+  - Xử lý lỗi authorization
+  - Xử lý lỗi policy decision point
+  - Xử lý lỗi dependency bên ngoài
+  - Xử lý timeout theo hướng an toàn
+  - Xử lý thiếu cấu hình bảo mật
+  - Không dùng fallback làm mất kiểm soát
+  - Kiểm thử các đường đi thất bại
+- level1: Defense in depth
+  level2:
+  - Defense in depth là gì
+  - Lớp bảo vệ ở edge, service và data
+  - Phối hợp control khác loại
+  - Tránh single point of complete compromise
+  - Độc lập tương đối giữa các lớp
+  - Bù trừ khi một control bị vượt qua
+  - Defense in depth không phải lặp cấu hình
+  - Đánh giá coverage của từng lớp
+  - Kiểm thử khi một lớp bị vô hiệu hóa
+  - Đo tác động vận hành của nhiều lớp
+- level1: Least privilege
+  level2:
+  - Least privilege là gì
+  - Giới hạn quyền theo nhiệm vụ
+  - Giới hạn quyền theo tài nguyên
+  - Giới hạn quyền theo thời gian
+  - Quyền của user và quyền của service
+  - Quyền của process và database account
+  - Quyền đọc, ghi, thực thi và quản trị
+  - Tránh tài khoản root hoặc quyền toàn cục
+  - Rà soát và thu hồi quyền
+  - Thiết kế privilege granularity
+  - Kiểm thử quyền tối thiểu
+- level1: Separation of duties
+  level2:
+  - Separation of duties là gì
+  - Tách người tạo và người phê duyệt
+  - Tách deploy và cấp quyền
+  - Tách đọc bí mật và sử dụng bí mật
+  - Tách thao tác vận hành nhạy cảm
+  - Hai điều kiện không đủ nếu đứng riêng
+  - Ngăn một actor hoàn tất toàn bộ quy trình
+  - Thiết kế approval workflow
+  - Đánh đổi giữa phân quyền và usability
+  - Kiểm tra bypass trong workflow
+- level1: Giảm attack surface
+  level2:
+  - Attack surface trong thiết kế
+  - Loại bỏ component không cần thiết
+  - Giảm endpoint công khai
+  - Giảm protocol và port mở
+  - Giảm quyền và capability exposed
+  - Giảm dữ liệu được thu thập
+  - Giảm dependency không cần thiết
+  - Giảm parser và format phức tạp
+  - Đo exposed component theo boundary
+  - Kiểm tra attack surface sau thay đổi
+- level1: Economy of mechanism
+  level2:
+  - Economy of mechanism là gì
+  - Giữ cơ chế bảo mật đơn giản
+  - Giảm số rule và ngoại lệ
+  - Tránh control khó vận hành
+  - Tránh custom crypto và custom auth
+  - Dùng primitive đã được kiểm chứng
+  - Đơn giản hóa trust flow
+  - Giảm trạng thái ẩn
+  - Đánh giá khả năng review của thiết kế
+  - Khi đơn giản hóa làm mất control
+- level1: Open design
+  level2:
+  - Open design là gì
+  - Không phụ thuộc vào secrecy của implementation
+  - Secret key khác với secret algorithm
+  - Thiết kế để có thể review công khai
+  - Giảm security by obscurity
+  - Tài liệu hóa protocol và trust assumption
+  - Bảo vệ secret đúng chỗ
+  - Kiểm thử khi implementation bị quan sát
+  - Open design và threat intelligence
+  - Đánh giá thiết kế qua public interface
+- level1: Complete mediation
+  level2:
+  - Complete mediation là gì
+  - Kiểm tra quyền ở mọi lần truy cập
+  - Không tin kết quả authorization cũ vô thời hạn
+  - Cache quyền và nguy cơ stale decision
+  - Kiểm tra object-level authorization
+  - Kiểm tra tenant boundary
+  - Kiểm tra ở service và repository
+  - Tránh bypass qua đường dẫn phụ
+  - Thiết kế policy enforcement point
+  - Kiểm thử đường đi trực tiếp và gián tiếp
+- level1: Non-bypassability
+  level2:
+  - Non-bypassability là gì
+  - Đảm bảo mọi đường vào đi qua control
+  - Không có backdoor vận hành ngoài policy
+  - Không tin internal endpoint mặc định
+  - Bảo vệ admin path và maintenance path
+  - Bảo vệ asynchronous path
+  - Bảo vệ batch và import path
+  - Bảo vệ event consumer path
+  - Tìm bypass trong architecture review
+  - Kiểm thử bằng alternate route
+- level1: Compartmentalization
+  level2:
+  - Compartmentalization là gì
+  - Chia hệ thống thành vùng ảnh hưởng
+  - Need-to-know giữa các component
+  - Tenant isolation
+  - Phân vùng dữ liệu nhạy cảm
+  - Phân vùng worker và control plane
+  - Giới hạn lateral movement
+  - Giảm blast radius khi bị xâm nhập
+  - Đánh đổi isolation với độ phức tạp
+  - Kiểm chứng ranh giới compartment
+- level1: Isolation
+  level2:
+  - Isolation khác compartmentalization thế nào
+  - Process isolation
+  - Container và sandbox boundary
+  - Network isolation
+  - Database schema isolation
+  - Isolation giữa tenant
+  - Isolation của secret và key
+  - Isolation của plugin hoặc extension
+  - Kênh giao tiếp xuyên boundary
+  - Kiểm thử boundary escape
+- level1: Least common mechanism
+  level2:
+  - Least common mechanism là gì
+  - Giảm cơ chế dùng chung giữa mức quyền
+  - Shared cache và rò rỉ dữ liệu
+  - Shared filesystem và cross-user access
+  - Shared credential và mất truy vết
+  - Shared session state
+  - Tách resource theo trust level
+  - Khi dùng chung vẫn cần thiết
+  - Thiết kế interface cho shared mechanism
+  - Kiểm tra privilege escalation qua cơ chế chung
+- level1: Modularity và layering
+  level2:
+  - Modularity hỗ trợ security thế nào
+  - Layering trong security architecture
+  - Ranh giới trách nhiệm giữa các layer
+  - Không bỏ qua layer enforcement
+  - Giới hạn dependency giữa module
+  - Giảm coupling của security-sensitive code
+  - Kiểm soát chiều phụ thuộc
+  - Tách policy khỏi mechanism
+  - Tách decision khỏi enforcement
+  - Kiểm thử từng layer và toàn luồng
+- level1: Trust boundaries
+  level2:
+  - Trust boundary là gì
+  - Nhận diện boundary trong hệ thống
+  - Boundary giữa client và server
+  - Boundary giữa service và database
+  - Boundary giữa service và third party
+  - Boundary giữa tenant
+  - Boundary giữa control plane và data plane
+  - Dữ liệu đi qua boundary cần điều kiện gì
+  - Không suy diễn trust từ network location
+  - Vẽ và review trust boundary
+- level1: Hierarchical trust
+  level2:
+  - Hierarchical trust là gì
+  - Mức trust giữa các component
+  - Trust không tự lan truyền
+  - Caller privilege và callee privilege
+  - Nâng quyền qua service trung gian
+  - Giảm privilege khi đi xuống tầng
+  - Kiểm soát cross-level data flow
+  - Trust anchor và root of trust
+  - Sai lầm khi coi nội bộ là trusted
+  - Kiểm chứng trust relationship
+- level1: Clear abstractions
+  level2:
+  - Clear abstraction là gì
+  - Interface bảo vệ invariant bảo mật
+  - Ẩn chi tiết credential và policy
+  - Không để caller tự ghép security rule
+  - API biểu đạt rõ trust boundary
+  - Tách secure operation khỏi raw operation
+  - Tên API thể hiện mức nguy hiểm
+  - Giảm nhầm lẫn giữa identity và permission
+  - Kiểm thử abstraction không thể bị lạm dụng
+  - Khi abstraction che giấu security behavior
+- level1: Encapsulation
+  level2:
+  - Encapsulation trong secure design
+  - Đóng gói state nhạy cảm
+  - Không trả raw secret ra ngoài
+  - Giới hạn accessor và mutator
+  - Bảo vệ invariant của authorization
+  - Kiểm soát deserialization vào object
+  - Ngăn sửa object sau khi đã authorize
+  - Giảm side effect của API
+  - Review data exposure qua interface
+  - Kết hợp encapsulation với immutability
+- level1: Minimized sharing
+  level2:
+  - Minimized sharing là gì
+  - Giảm dữ liệu chia sẻ giữa component
+  - Giảm context truyền qua request
+  - Không truyền credential qua tầng
+  - Giới hạn field trong event
+  - Tránh copy dữ liệu nhạy cảm
+  - Shared mutable state và rủi ro
+  - Data minimization trong integration
+  - Xóa dữ liệu tạm đúng lúc
+  - Kiểm tra nơi dữ liệu được nhân bản
+- level1: Secure communication
+  level2:
+  - Thiết kế kênh giao tiếp an toàn
+  - Mã hóa khi truyền
+  - Xác thực hai đầu của kênh
+  - Certificate và trust anchor
+  - Mutual TLS trong service communication
+  - Chống downgrade protocol
+  - Chống replay trong message
+  - Bảo vệ metadata và header
+  - Timeout và retry an toàn
+  - Kiểm tra endpoint và hostname
+  - Không coi private network là đủ tin cậy
+- level1: Identity design
+  level2:
+  - Identity là gì trong secure architecture
+  - Phân biệt principal và credential
+  - Service identity riêng biệt
+  - Workload identity thay cho shared secret
+  - Identity lifecycle
+  - Identity propagation qua service
+  - Impersonation và delegation
+  - Mối quan hệ giữa authentication và authorization
+  - Identity trong asynchronous workflow
+  - Thiết kế identity có thể audit
+- level1: Authorization design
+  level2:
+  - Authorization nên được thiết kế ở đâu
+  - Policy decision và policy enforcement
+  - Deny by default
+  - Object-level authorization
+  - Function-level authorization
+  - Tenant-aware authorization
+  - Attribute-based authorization
+  - Role explosion và permission granularity
+  - Ủy quyền có thời hạn
+  - Cache authorization decision
+  - Kiểm thử authorization matrix
+- level1: Data protection
+  level2:
+  - Phân loại dữ liệu theo độ nhạy cảm
+  - Data minimization
+  - Mã hóa at rest
+  - Mã hóa in transit
+  - Tokenization và pseudonymization
+  - Key separation và key rotation
+  - Không log dữ liệu nhạy cảm
+  - Xóa và retention theo mục đích
+  - Bảo vệ backup và snapshot
+  - Kiểm soát data export
+  - Thiết kế đường đi của sensitive data
+- level1: Integrity design
+  level2:
+  - Integrity objective trong thiết kế
+  - Chống sửa dữ liệu trái phép
+  - Checksum, MAC và digital signature
+  - Idempotency trong thao tác thay đổi
+  - Optimistic concurrency và integrity
+  - Invariant của domain
+  - Validate state transition
+  - Chống replay command
+  - Audit trail cho thay đổi quan trọng
+  - Khôi phục dữ liệu mà không phá integrity
+- level1: Availability design
+  level2:
+  - Availability như một security concern
+  - Resource limit và quota
+  - Rate limiting
+  - Timeout và deadline
+  - Circuit breaker và secure fallback
+  - Bulkhead isolation
+  - Backpressure
+  - Graceful degradation
+  - Bảo vệ control plane
+  - Chống abuse của chức năng tốn tài nguyên
+  - Kiểm thử mất dependency
+- level1: Resilience và recovery
+  level2:
+  - Secure failure và recovery
+  - Khôi phục về trạng thái an toàn
+  - Backup có kiểm soát truy cập
+  - Restore và kiểm tra integrity
+  - Key recovery
+  - Session và token sau sự cố
+  - Failover không làm mất authorization
+  - Recovery point và recovery time
+  - Diễn tập sự cố bảo mật
+  - Thiết kế rollback an toàn
+- level1: Accountability
+  level2:
+  - Accountability trong secure design
+  - Traceability của hành động
+  - Audit event và actor
+  - Correlation id và causality
+  - Non-repudiation ở mức phù hợp
+  - Audit log không thể bị sửa tùy tiện
+  - Tách audit writer và application writer
+  - Bảo vệ log khỏi rò rỉ
+  - Xác định sự kiện cần audit
+  - Dùng audit trail cho điều tra
+- level1: Observability
+  level2:
+  - Observability hỗ trợ security thế nào
+  - Security signal trong metric
+  - Log quyết định authorization
+  - Theo dõi denied request
+  - Theo dõi hành vi bất thường
+  - Trace qua trust boundary
+  - Alert có ngữ cảnh và mức độ
+  - Giảm blind spot trong distributed system
+  - Không biến observability thành data leak
+  - Kiểm thử khả năng phát hiện
+- level1: Human factors
+  level2:
+  - Psychological acceptability là gì
+  - Thiết kế để người dùng làm đúng
+  - Giảm security friction không cần thiết
+  - Thông báo lỗi không tiết lộ dữ liệu
+  - Thiết kế consent dễ hiểu
+  - Cảnh báo có hành động rõ ràng
+  - Tránh workflow dễ bị bỏ qua control
+  - Bảo vệ admin khỏi thao tác nhầm
+  - Thiết kế recovery cho người dùng
+  - Đánh giá usability của security control
+- level1: Privacy by design
+  level2:
+  - Privacy và security liên quan thế nào
+  - Data minimization từ kiến trúc
+  - Purpose limitation
+  - Consent và preference
+  - Pseudonymous identity
+  - Right to delete và retention
+  - Phân vùng dữ liệu cá nhân
+  - Privacy trong log và telemetry
+  - Privacy trong backup
+  - Kiểm tra data flow theo mục đích
+- level1: Secure evolvability
+  level2:
+  - Secure evolvability là gì
+  - Thay đổi mà không phá security invariant
+  - Version hóa policy
+  - Backward compatibility và security
+  - Migration credential an toàn
+  - Migration schema có kiểm soát
+  - Feature flag và security default
+  - Deprecate control đúng cách
+  - Review security impact của refactor
+  - Kiểm thử khi thêm component mới
+- level1: Dependency trust
+  level2:
+  - Trusted component trong thiết kế
+  - Đánh giá dependency theo trust
+  - Giảm dependency transitive
+  - Supply chain boundary
+  - Verify artifact và provenance
+  - Pin version và cập nhật an toàn
+  - Cô lập dependency ít tin cậy
+  - Không trao quá nhiều quyền cho library
+  - Theo dõi vulnerability của dependency
+  - Thiết kế thay thế khi dependency lỗi
+- level1: Secure distributed composition
+  level2:
+  - Compose nhiều service mà vẫn an toàn
+  - Trust không tăng chỉ vì cùng tổ chức
+  - Contract giữa service
+  - Identity và authorization xuyên service
+  - Consistency của security policy
+  - Failure mode trong distributed call
+  - Message authenticity và integrity
+  - Idempotency của distributed operation
+  - Eventual consistency và quyền truy cập
+  - Kiểm thử composition theo luồng end-to-end
+- level1: Secure architecture patterns
+  level2:
+  - Layered architecture
+  - Least privilege service
+  - Policy enforcement point
+  - Zero trust service boundary
+  - Isolated worker
+  - Brokered capability
+  - Reference monitor
+  - Secure gateway
+  - Compensating control
+  - Khi pattern không phù hợp
+- level1: Design review
+  level2:
+  - Chuẩn bị security design review
+  - Liệt kê asset và trust boundary
+  - Liên kết principle với decision
+  - Tìm single point of failure
+  - Tìm đường bypass control
+  - Review default và failure mode
+  - Review privilege và data sharing
+  - Review logging và recovery
+  - Ghi lại assumption và trade-off
+  - Tiêu chí đóng review
+- level1: Verification
+  level2:
+  - Kiểm chứng principle bằng test
+  - Kiểm tra deny by default
+  - Kiểm tra least privilege
+  - Kiểm tra isolation
+  - Kiểm tra secure failure
+  - Kiểm tra dependency trust
+  - Kiểm tra auditability
+  - Kiểm tra resilience
+  - Dùng ASVS làm nguồn kiểm chứng phù hợp
+  - Đo coverage của security control
+- level1: Legacy refactoring
+  level2:
+  - Nhận diện thiết kế legacy không an toàn
+  - Ưu tiên giảm blast radius
+  - Refactor shared credential
+  - Refactor quyền toàn cục
+  - Tách trust boundary trong hệ thống cũ
+  - Thêm secure default không phá người dùng
+  - Bổ sung audit và observability
+  - Migration không làm mở rộng quyền
+  - Giữ backward compatibility có kiểm soát
+  - Lập kế hoạch hardening từng bước
+- level1: Case study API
+  level2:
+  - Thiết kế API với deny by default
+  - Giảm endpoint và method exposed
+  - Authorization ở object level
+  - Validation tại boundary
+  - Error response fail secure
+  - Rate limit và quota
+  - Audit hành động nhạy cảm
+  - Bảo vệ sensitive response
+  - Kiểm thử alternate route
+  - Tổng kết secure API design
+- level1: Case study service
+  level2:
+  - Thiết kế service identity riêng
+  - Mutual TLS giữa service
+  - Least privilege cho database account
+  - Tách policy khỏi business service
+  - Timeout và circuit breaker
+  - Message integrity và idempotency
+  - Tenant isolation xuyên service
+  - Trace và audit xuyên service
+  - Thu hồi quyền khi service thay đổi
+  - Tổng kết secure service composition
+- level1: Case study secrets
+  level2:
+  - Thiết kế secret boundary
+  - Không nhúng secret trong source
+  - Secret access theo workload identity
+  - Giới hạn thời gian sử dụng secret
+  - Rotation không downtime
+  - Audit việc đọc secret
+  - Fail secure khi secret provider lỗi
+  - Backup và recovery của key
+  - Tách quyền quản lý và sử dụng key
+  - Tổng kết secret-aware design
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ secure architecture cho ứng dụng mẫu
+  - Đánh dấu asset và trust boundary
+  - Chọn principles cho từng boundary
+  - Thiết kế default và failure state
+  - Thiết kế least privilege matrix
+  - Thiết kế defense-in-depth layers
+  - Thiết kế audit và recovery
+  - Viết security design decision record
+  - Tạo test plan cho principles
+  - Review trade-off và residual risk
+  - Refactor một design không an toàn
+  - Tổng kết secure design checklist
+- level1: Checklist secure design
+  level2:
+  - Checklist security by design
+  - Checklist secure defaults và fail secure
+  - Checklist least privilege và separation of duties
+  - Checklist attack surface và complexity
+  - Checklist trust boundary và isolation
+  - Checklist data, identity và authorization
+  - Checklist resilience, audit và observability
+  - Checklist secure evolution và review

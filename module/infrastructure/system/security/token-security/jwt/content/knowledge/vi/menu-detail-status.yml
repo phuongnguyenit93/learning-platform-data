@@ -1,0 +1,2674 @@
+menu:
+- slug: jwt-overview
+  title: Tổng quan JWT
+  childs:
+  - slug: jwt-overview-001
+    title: JWT là gì và bài toán biểu diễn thông tin giữa các bên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-overview-002
+    title: Vai trò của bên phát hành, bên giữ token và bên xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-overview-003
+    title: Luồng tin cậy từ cấp phát đến sử dụng và hết hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-overview-004
+    title: JWT là định dạng dữ liệu, không phải giao thức xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-overview-005
+    title: Phân biệt JWT, token truy cập, token làm mới và phiên đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-overview-006
+    title: Phân biệt JWT với token tham chiếu và mã định danh phiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-overview-007
+    title: Tính tự chứa và giới hạn của mô hình không lưu trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-overview-008
+    title: Khi nên và không nên sử dụng JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-overview-009
+    title: Bản đồ JWT, JOSE, khóa, claims và các hồ sơ ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trust-fundamentals
+  title: Nền tảng tin cậy
+  childs:
+  - slug: trust-fundamentals-001
+    title: Phân biệt xác thực danh tính, phân quyền và toàn vẹn dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-fundamentals-002
+    title: Chữ ký số, mã xác thực thông điệp và mã hóa bảo vệ những gì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-fundamentals-003
+    title: Ranh giới tin cậy giữa trình duyệt, ứng dụng và dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-fundamentals-004
+    title: Token mang quyền truy cập và rủi ro khi bị chiếm đoạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-fundamentals-005
+    title: Khóa đối xứng và cặp khóa bất đối xứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-fundamentals-006
+    title: Nguồn danh tính, bên phát hành đáng tin cậy và đối tượng nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-fundamentals-007
+    title: Mô hình đe dọa trước khi chọn loại JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-fundamentals-008
+    title: 'Những điều JWT không tự bảo đảm: bí mật, thu hồi và chống phát lại'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jwt-structure
+  title: Cấu trúc JWT
+  childs:
+  - slug: jwt-structure-001
+    title: Ba thành phần header, payload và signature của JWT dạng JWS Compact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-structure-002
+    title: Năm thành phần của JWT dạng JWE Compact
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-structure-003
+    title: JSON và mã hóa UTF-8 của header cùng tập claims
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-structure-004
+    title: Base64url, ký tự phân cách và sự khác biệt với Base64 thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-structure-005
+    title: Giải mã để xem dữ liệu và xác minh để thiết lập tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-structure-006
+    title: Dữ liệu được ký và ý nghĩa của chuỗi byte gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-structure-007
+    title: Ảnh hưởng của khoảng trắng, thứ tự thuộc tính và cách tuần tự hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-structure-008
+    title: Kiểu dữ liệu JSON, giá trị null và thuộc tính bị thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-structure-009
+    title: Nhận diện token thiếu phần, thừa phần hoặc sai định dạng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-structure-010
+    title: JWT không bảo vệ bí mật của payload chỉ bằng Base64url
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jose-representations
+  title: JOSE và biểu diễn
+  childs:
+  - slug: jose-representations-001
+    title: Quan hệ giữa JWT, JWS, JWE, JWK và JWA
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-representations-002
+    title: JWS Compact Serialization và phạm vi sử dụng với JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-representations-003
+    title: 'JWS JSON Serialization: dạng tổng quát và dạng rút gọn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-representations-004
+    title: JWE Compact Serialization và JWE JSON Serialization
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-representations-005
+    title: Header được bảo vệ và header không được bảo vệ trong JOSE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-representations-006
+    title: Nhiều chữ ký hoặc nhiều bên nhận trong biểu diễn JSON
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-representations-007
+    title: JWT có chữ ký, JWT được mã hóa và Unsecured JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-representations-008
+    title: Phạm vi chấp nhận biểu diễn theo hợp đồng của từng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-representations-009
+    title: Các tùy chọn JOSE không thể mặc nhiên áp dụng cho JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jose-headers
+  title: Header JOSE
+  childs:
+  - slug: jose-headers-001
+    title: alg và danh sách thuật toán do bên xác minh cho phép
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-headers-002
+    title: typ và phân biệt các loại JWT theo mục đích sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-headers-003
+    title: cty và nhận diện nội dung JWT lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-headers-004
+    title: kid và định danh khóa trong tập khóa đã tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-headers-005
+    title: crit và xử lý tham số header quan trọng chưa được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-headers-006
+    title: jku và rủi ro tải tập khóa từ địa chỉ không tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-headers-007
+    title: jwk và rủi ro tin vào khóa nhúng do bên gửi cung cấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-headers-008
+    title: x5c, x5u và quan hệ giữa chứng thư với quyết định tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-headers-009
+    title: x5t và dấu vân tay chứng thư khi hồ sơ ứng dụng có sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jose-headers-010
+    title: Giới hạn độ dài, kiểu dữ liệu và các tham số header được chấp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: claims-design
+  title: Thiết kế claims
+  childs:
+  - slug: claims-design-001
+    title: Claim là gì và quan hệ giữa claims với nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: claims-design-002
+    title: Registered claims, public claims và private claims
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: claims-design-003
+    title: Không gian tên và phòng tránh xung đột tên claim
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: claims-design-004
+    title: Thiết kế lược đồ claims và kiểm tra kiểu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: claims-design-005
+    title: Chọn thông tin cần chứa và thông tin cần tra cứu bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: claims-design-006
+    title: Claims bắt buộc theo hợp đồng và claims chỉ mang tính bổ sung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: claims-design-007
+    title: Ngăn bên yêu cầu tự gán claims đặc quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: claims-design-008
+    title: Phiên bản lược đồ claims và tương thích với bên sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: claims-design-009
+    title: Giới hạn kích thước và độ phức tạp của payload
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: claims-design-010
+    title: Xử lý claim trùng tên, tên khác hoa thường và dữ liệu mơ hồ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: standard-claims
+  title: Claims tiêu chuẩn
+  childs:
+  - slug: standard-claims-001
+    title: 'iss: xác định và đối chiếu chính xác bên phát hành'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-002
+    title: 'sub: chủ thể và phạm vi duy nhất trong ngữ cảnh bên phát hành'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-003
+    title: 'aud: đối tượng nhận và dạng chuỗi hoặc mảng chuỗi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-004
+    title: 'exp: thời điểm hết hạn và ranh giới chấp nhận token'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-005
+    title: 'nbf: thời điểm token bắt đầu có hiệu lực'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-006
+    title: 'iat: thời điểm phát hành và chính sách tuổi tối đa'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-007
+    title: 'NumericDate: giây tính từ Unix Epoch và lỗi nhầm mili giây'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-008
+    title: Đồng hồ UTC, sai lệch thời gian và khoảng dung sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-009
+    title: 'jti: mã token và điều kiện để dùng chống phát lại hoặc thu hồi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-010
+    title: Quan hệ và kiểm tra tính hợp lệ giữa các mốc thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standard-claims-011
+    title: Phân biệt claim chuẩn của JWT với claim riêng của từng giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-contracts
+  title: Hợp đồng token
+  childs:
+  - slug: token-contracts-001
+    title: Xác định mục đích và bên được quyền sử dụng token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-contracts-002
+    title: Danh sách bên phát hành, đối tượng nhận và loại token hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-contracts-003
+    title: Ràng buộc thuật toán, khóa và kiểu JWT được chấp nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-contracts-004
+    title: Claims bắt buộc, kiểu dữ liệu và giới hạn giá trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-contracts-005
+    title: Thời hạn, độ mới và chính sách sai lệch đồng hồ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-contracts-006
+    title: Quy tắc từ chối claims hoặc tham số không được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-contracts-007
+    title: Quy tắc xác minh riêng cho từng mục đích sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-contracts-008
+    title: Phân biệt người dùng, ứng dụng và danh tính máy trong claims
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-contracts-009
+    title: Tài liệu hóa hợp đồng giữa bên phát hành và các bên xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signature-algorithms
+  title: Thuật toán chữ ký
+  childs:
+  - slug: signature-algorithms-001
+    title: HMAC và nhóm thuật toán HS256, HS384, HS512
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-002
+    title: RSA PKCS#1 v1.5 và nhóm thuật toán RS256, RS384, RS512
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-003
+    title: RSA-PSS và nhóm thuật toán PS256, PS384, PS512
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-004
+    title: ECDSA và nhóm thuật toán ES256, ES384, ES512
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-005
+    title: EdDSA và kiểm tra khả năng hỗ trợ của hồ sơ, thư viện và hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-006
+    title: Lựa chọn thuật toán theo mô hình phân phối và bảo vệ khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-007
+    title: Entropy của khóa HMAC và nguy cơ dùng mật khẩu làm khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-008
+    title: Kích thước khóa, đường cong và ràng buộc tương thích thuật toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-009
+    title: Định dạng chữ ký ECDSA trong JOSE và lỗi chuyển đổi giữa hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-010
+    title: Chống nhầm lẫn giữa khóa đối xứng và khóa bất đối xứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-011
+    title: alg=none và chính sách từ chối token không được bảo vệ trong luồng xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signature-algorithms-012
+    title: Phân biệt chữ ký hợp lệ với token hợp lệ theo ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jwe-encryption
+  title: Mã hóa JWE
+  childs:
+  - slug: jwe-encryption-001
+    title: Khi nào payload JWT cần được bảo vệ bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-002
+    title: Phân biệt alg quản lý khóa với enc mã hóa nội dung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-003
+    title: Khóa mã hóa nội dung và cơ chế bảo vệ khóa đó
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-004
+    title: Mã hóa xác thực và kiểm tra tính toàn vẹn của JWE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-005
+    title: IV, nonce và authentication tag trong quy trình mã hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-006
+    title: Phân phối khóa cho một hoặc nhiều bên nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-007
+    title: Ràng buộc thuật toán mã hóa được phép và khả năng liên thông
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-008
+    title: Không chấp nhận cơ chế mã hóa yếu hoặc không phù hợp hồ sơ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-009
+    title: Nén dữ liệu trước mã hóa và rủi ro rò rỉ qua độ dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-010
+    title: Giới hạn bảo mật của JWE đối với metadata và bên nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwe-encryption-011
+    title: Trả lỗi giải mã an toàn và tránh tiết lộ chi tiết xử lý
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nested-jwts
+  title: JWT lồng nhau
+  childs:
+  - slug: nested-jwts-001
+    title: Nested JWT là gì và những trường hợp cần kết hợp ký với mã hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-jwts-002
+    title: Ký rồi mã hóa và thứ tự kiểm tra tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-jwts-003
+    title: Mã hóa rồi ký và ý nghĩa khác biệt đối với các bên tham gia
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-jwts-004
+    title: Vai trò của cty khi chứa một JWT bên trong
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-jwts-005
+    title: Xác minh từng lớp bằng hợp đồng và khóa tương ứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-jwts-006
+    title: Phân biệt bên ký, bên mã hóa và bên nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-jwts-007
+    title: Giới hạn số lớp lồng nhau và kích thước token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nested-jwts-008
+    title: Ngăn bỏ qua lớp bảo vệ hoặc nhầm nội dung bên trong
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: keys-and-jwks
+  title: Khóa và JWKS
+  childs:
+  - slug: keys-and-jwks-001
+    title: Vòng đời khóa từ sinh, phân phối đến ngừng sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-002
+    title: JWK và các thuộc tính kty, kid, use, key_ops, alg
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-003
+    title: Tham số khóa công khai, khóa riêng và khóa đối xứng trong JWK
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-004
+    title: JWKS và cách chọn đúng khóa để xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-005
+    title: Nguồn JWKS đáng tin cậy và ràng buộc với bên phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-006
+    title: Bảo vệ khóa ký bằng kho bí mật, KMS hoặc HSM
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-007
+    title: Tách khóa theo môi trường, bên phát hành và mục đích token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-008
+    title: Xoay vòng khóa với khoảng chuyển tiếp giữa khóa cũ và khóa mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-009
+    title: Bộ nhớ đệm JWKS, thời gian sống và xử lý kid chưa biết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-010
+    title: Giới hạn tần suất tải lại khóa và chống bão yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-011
+    title: Xử lý mất kết nối nguồn khóa và tránh chấp nhận token khi không đủ bằng chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-jwks-012
+    title: Thu hồi khóa bị lộ và đánh giá các token chịu ảnh hưởng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-issuance
+  title: Cấp phát token
+  childs:
+  - slug: token-issuance-001
+    title: Điều kiện xác thực trước khi phát hành JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-002
+    title: Thu thập claims từ các nguồn dữ liệu được tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-003
+    title: Chọn issuer, audience và subject đúng ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-004
+    title: Thiết lập thời hạn phù hợp mức rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-005
+    title: Sinh jti bằng nguồn ngẫu nhiên phù hợp khi cần định danh token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-006
+    title: Chọn khóa ký và gắn kid theo quy tắc quản lý khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-007
+    title: Kiểm tra lược đồ claims trước khi ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-008
+    title: Tránh phát hành token có quyền hoặc phạm vi vượt yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-009
+    title: Giới hạn tần suất cấp phát và ghi nhận sự kiện an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-010
+    title: Phân biệt tái phát hành, làm mới và đổi token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-validation
+  title: Xác minh token
+  childs:
+  - slug: token-validation-001
+    title: Luồng xác minh từ dữ liệu đầu vào đến kết quả tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-002
+    title: Giới hạn kích thước và phân tích cú pháp an toàn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-003
+    title: Đọc header chưa tin cậy chỉ để áp dụng quy tắc chọn khóa có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-004
+    title: Chọn cấu hình xác minh từ ngữ cảnh tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-005
+    title: Kiểm tra thuật toán, loại khóa và nguồn khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-006
+    title: Xác minh chữ ký hoặc giải mã xác thực bằng thư viện phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-007
+    title: Kiểm tra typ và ngăn dùng nhầm loại token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-008
+    title: Kiểm tra iss, aud, sub và các claims bắt buộc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-009
+    title: Kiểm tra exp, nbf, iat theo chính sách thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-010
+    title: Kiểm tra jti, trạng thái thu hồi hoặc ràng buộc bổ sung khi có
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-011
+    title: Chỉ sử dụng claims sau khi hoàn tất toàn bộ kiểm tra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-012
+    title: Từ chối an toàn khi cấu hình thiếu, khóa lỗi hoặc kiểm tra thất bại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-013
+    title: Thiết kế thông báo lỗi cho bên gọi và nhật ký nội bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-014
+    title: Phân biệt thao tác decode với verify trong API thư viện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jwt-authorization
+  title: JWT và phân quyền
+  childs:
+  - slug: jwt-authorization-001
+    title: Claims danh tính và quyết định cho phép truy cập tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-authorization-002
+    title: Biểu diễn scope, role và permission theo hợp đồng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-authorization-003
+    title: Giới hạn của quyền được chụp tại thời điểm cấp phát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-authorization-004
+    title: Kiểm tra quyền tại tài nguyên thay vì chỉ kiểm tra có JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-authorization-005
+    title: Ràng buộc quyền với audience, tenant và tài nguyên đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-authorization-006
+    title: Kiểm tra quyền sở hữu đối tượng và tránh truy cập chéo người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-authorization-007
+    title: Giới hạn tin cậy đối với claims do dịch vụ trung gian chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-authorization-008
+    title: Phối hợp claims trong token với dữ liệu phân quyền cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-authorization-009
+    title: Thay đổi quyền khẩn cấp và chiến lược vô hiệu hóa token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oauth-oidc
+  title: OAuth và OIDC
+  childs:
+  - slug: oauth-oidc-001
+    title: Vai trò của JWT trong OAuth 2.0 và OpenID Connect
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-002
+    title: Phân biệt access token, ID token và refresh token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-003
+    title: Vì sao access token không bắt buộc phải là JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-004
+    title: Vì sao ID token không dùng thay access token tại API
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-005
+    title: Hồ sơ JWT access token và hợp đồng của máy chủ tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-006
+    title: Claims và quy tắc xác minh riêng của ID token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-007
+    title: nonce, auth_time, acr, amr trong ngữ cảnh OIDC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-008
+    title: at_hash và c_hash khi luồng giao thức yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-009
+    title: Discovery, issuer metadata và địa chỉ JWKS đáng tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-010
+    title: JWT assertion trong xác thực ứng dụng và cấp quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-011
+    title: Token exchange và tránh chuyển tiếp token sai đối tượng nhận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-012
+    title: Ranh giới giữa xác minh JWT và thực thi đầy đủ giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-storage-and-transport
+  title: Lưu trữ và truyền
+  childs:
+  - slug: token-storage-and-transport-001
+    title: Bearer token qua Authorization header trên kết nối HTTPS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-002
+    title: Vì sao không đặt JWT vào URL, query string hoặc địa chỉ chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-003
+    title: Rủi ro lưu token trong localStorage và sessionStorage
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-004
+    title: Token trong bộ nhớ và giới hạn trước mã độc chạy trong ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-005
+    title: Cookie HttpOnly, Secure, SameSite và phạm vi Domain, Path
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-006
+    title: Chống CSRF khi trình duyệt tự động gửi cookie
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-007
+    title: XSS và những giới hạn của từng phương án lưu trữ token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-008
+    title: CORS và sự khác biệt với cơ chế xác thực token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-009
+    title: Ứng dụng di động, ứng dụng máy tính và kho lưu trữ bảo mật của hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-010
+    title: Proxy, lịch sử trình duyệt, referrer và các điểm làm lộ token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-011
+    title: Giới hạn kích thước header, cookie và hành vi của hạ tầng trung gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-and-transport-012
+    title: Phối hợp JWT với mô hình Backend for Frontend
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-lifecycle
+  title: Vòng đời token
+  childs:
+  - slug: token-lifecycle-001
+    title: Chọn thời hạn dựa trên rủi ro và yêu cầu trải nghiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-002
+    title: Token truy cập ngắn hạn và cơ chế làm mới riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-003
+    title: Refresh token không mặc nhiên là JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-004
+    title: Xoay vòng refresh token và phát hiện sử dụng lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-005
+    title: Đăng xuất trên thiết bị và ý nghĩa đối với JWT đã phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-006
+    title: Danh sách thu hồi theo jti và thời hạn lưu trạng thái
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-007
+    title: Phiên bản phiên hoặc người dùng để vô hiệu hóa một nhóm token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-008
+    title: Thu hồi theo khóa ký và phạm vi ảnh hưởng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-009
+    title: Thay đổi mật khẩu, khóa tài khoản hoặc đổi quyền khi token còn hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-010
+    title: Phối hợp kiểm tra trạng thái tập trung với JWT tự chứa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-011
+    title: Xử lý yêu cầu đồng thời trong quá trình làm mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-012
+    title: Quy trình ứng phó khi token truy cập hoặc refresh token bị lộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replay-prevention
+  title: Chống phát lại
+  childs:
+  - slug: replay-prevention-001
+    title: Vì sao chữ ký hợp lệ không ngăn token bị sử dụng lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-002
+    title: Phân biệt chống giả mạo, chống đánh cắp và chống phát lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-003
+    title: jti kết hợp kho trạng thái dùng một lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-004
+    title: Nonce, thời hạn ngắn và ràng buộc với ngữ cảnh yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-005
+    title: Giới hạn của ràng buộc theo IP hoặc dấu vết thiết bị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-006
+    title: Token ràng buộc với bên gửi và ý nghĩa của proof of possession
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-007
+    title: Claims cnf và quan hệ với khóa của bên giữ token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-008
+    title: DPoP và mTLS trong các hồ sơ hỗ trợ ràng buộc token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-009
+    title: Phân biệt JWT dùng một lần với token truy cập được phép tái sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-010
+    title: Đánh đổi giữa chống phát lại, trạng thái và tính sẵn sàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-boundaries
+  title: Ranh giới dịch vụ
+  childs:
+  - slug: service-boundaries-001
+    title: JWT tại API gateway và tại dịch vụ xử lý tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-002
+    title: Xác minh ở biên và kiểm tra lại tại từng ranh giới tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-003
+    title: Chuyển tiếp token gốc và đổi sang token dành riêng cho dịch vụ đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-004
+    title: Audience riêng cho từng API và ngăn token bị dùng chéo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-005
+    title: Tách danh tính người dùng khỏi danh tính dịch vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-006
+    title: Ủy quyền qua nhiều dịch vụ và bảo toàn ngữ cảnh chủ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-007
+    title: Claims tenant và ngăn rò rỉ quyền giữa các tổ chức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-008
+    title: Nhiều bên phát hành và ánh xạ cấu hình theo danh sách tin cậy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-009
+    title: Độ trễ cập nhật khóa, quyền và trạng thái thu hồi giữa các vùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-boundaries-010
+    title: JWT trong tác vụ nền, hàng đợi và yêu cầu xử lý kéo dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jwt-attacks
+  title: Tấn công JWT
+  childs:
+  - slug: jwt-attacks-001
+    title: Giả mạo alg=none và bỏ qua xác minh chữ ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-002
+    title: Algorithm confusion giữa HMAC và RSA
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-003
+    title: Khóa HMAC yếu và thử đoán khóa ngoại tuyến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-004
+    title: Thao túng kid để truy cập tệp, truy vấn hoặc chọn nhầm khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-005
+    title: jku, x5u và tấn công SSRF hoặc thay thế nguồn khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-006
+    title: Khóa JWK nhúng không tin cậy và giả mạo bên phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-007
+    title: Nhầm issuer, audience hoặc loại token giữa các luồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-008
+    title: Cross-JWT confusion và thay token của ngữ cảnh khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-009
+    title: Claims trùng tên, kiểu dữ liệu bất thường và khác biệt giữa bộ phân tích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-010
+    title: Bỏ qua exp, nbf hoặc xử lý sai đơn vị thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-011
+    title: Đánh cắp token, phát lại và lạm dụng token chưa hết hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-012
+    title: Payload quá lớn, lồng sâu và làm cạn tài nguyên xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-013
+    title: Rò rỉ dữ liệu qua lỗi, nhật ký, nén hoặc công cụ xem token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-attacks-014
+    title: Nhầm lẫn giữa xác thực thành công và quyền truy cập đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-privacy
+  title: Dữ liệu và riêng tư
+  childs:
+  - slug: data-and-privacy-001
+    title: Payload JWT có chữ ký vẫn đọc được bởi người giữ token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-privacy-002
+    title: Nguyên tắc tối thiểu hóa dữ liệu nhận dạng cá nhân trong claims
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-privacy-003
+    title: Không chứa mật khẩu, bí mật ứng dụng hoặc khóa riêng trong token
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-privacy-004
+    title: Định danh ổn định, định danh theo cặp và khả năng liên kết người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-privacy-005
+    title: Claims nhạy cảm và lựa chọn mã hóa hoặc tra cứu phía máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-privacy-006
+    title: Hạn chế thời gian tồn tại của dữ liệu đã đóng gói vào JWT
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-privacy-007
+    title: Tránh sao chép token vào nhật ký, công cụ phân tích và báo cáo lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-privacy-008
+    title: Che giấu token khi gỡ lỗi và sử dụng dữ liệu mẫu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-privacy-009
+    title: Quyền truy cập vào token và dữ liệu giải mã trong nội bộ hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: library-integration
+  title: Tích hợp thư viện
+  childs:
+  - slug: library-integration-001
+    title: Tiêu chí chọn thư viện JOSE được duy trì và có kiểm thử bảo mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-integration-002
+    title: Kiểm tra thuật toán, biểu diễn và hồ sơ thư viện hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-integration-003
+    title: Cấu hình danh sách thuật toán và claims bắt buộc một cách tường minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-integration-004
+    title: Tách cấu hình bên phát hành khỏi cấu hình bên xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-integration-005
+    title: Tách quy trình phát hành, xác minh và quyết định phân quyền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-integration-006
+    title: Chuẩn hóa kết quả xác minh và kiểu lỗi trong ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-integration-007
+    title: Ngăn sử dụng API decode như bằng chứng xác thực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-integration-008
+    title: Không tự viết thuật toán mật mã hoặc bộ xác minh chữ ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-integration-009
+    title: Quản lý phiên bản phụ thuộc và xử lý thông báo lỗ hổng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-integration-010
+    title: Ví dụ tích hợp trung lập ngôn ngữ bằng luồng xử lý và mã giả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-testing
+  title: Kiểm thử bảo mật
+  childs:
+  - slug: security-testing-001
+    title: Vector chuẩn và kiểm tra liên thông với bộ triển khai độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-002
+    title: Token hợp lệ theo từng thuật toán và từng hồ sơ được hỗ trợ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-003
+    title: Thay header, payload hoặc chữ ký và xác minh kết quả từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-004
+    title: Token thiếu phần, Base64url sai và JSON không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-005
+    title: Thuật toán ngoài danh sách, loại khóa sai và chữ ký sai
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-006
+    title: iss, aud, typ hoặc claims bắt buộc bị thiếu và không khớp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-007
+    title: exp, nbf, iat tại ranh giới thời gian và khi đồng hồ lệch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-008
+    title: Claims trùng tên, sai kiểu và dữ liệu có độ sâu bất thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-009
+    title: kid không biết, JWKS lỗi và thay đổi khóa trong lúc có yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-010
+    title: Xoay vòng khóa, thu hồi token và sự cố lộ khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-011
+    title: Token bị dùng chéo dịch vụ, tenant hoặc mục đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-012
+    title: Yêu cầu làm mới đồng thời và phát hiện refresh token bị tái sử dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-013
+    title: Kiểm tra chống phát lại khi hợp đồng yêu cầu dùng một lần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-014
+    title: Fuzzing, kiểm thử lỗi và bảo đảm thất bại theo hướng từ chối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-015
+    title: Kiểm tra không lộ token trong nhật ký và phản hồi lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-operations
+  title: Hiệu năng và vận hành
+  childs:
+  - slug: performance-and-operations-001
+    title: Chi phí xác minh HMAC, RSA, ECDSA và EdDSA theo tải thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-002
+    title: Kích thước token và tác động lên băng thông cùng giới hạn hạ tầng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-003
+    title: Bộ nhớ đệm khóa công khai và độ mới của JWKS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-004
+    title: Giới hạn độ dài, tốc độ yêu cầu và số lần thử xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-005
+    title: Bộ nhớ đệm kết quả xác minh và ràng buộc thời hạn, thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-006
+    title: Đồng bộ đồng hồ và giám sát sai lệch giữa các hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-007
+    title: Chỉ số lỗi chữ ký, hết hạn, sai audience và không tìm thấy khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-008
+    title: Quan sát sự kiện bằng mã tham chiếu an toàn thay vì token đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-009
+    title: Cảnh báo bất thường về kid, issuer và tỷ lệ lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-010
+    title: Diễn tập xoay khóa, lộ khóa và gián đoạn nguồn JWKS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-operations-011
+    title: Cân bằng bảo mật, độ trễ và tính sẵn sàng của quy trình xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interoperability-and-migration
+  title: Liên thông và di trú
+  childs:
+  - slug: interoperability-and-migration-001
+    title: Ma trận thuật toán và kiểu khóa giữa các hệ thống
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interoperability-and-migration-002
+    title: Khác biệt về NumericDate, kiểu JSON và xử lý giá trị thiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interoperability-and-migration-003
+    title: Biểu diễn khóa PEM, DER, JWK và lỗi chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interoperability-and-migration-004
+    title: Tương thích chữ ký ECDSA giữa JOSE và API mật mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interoperability-and-migration-005
+    title: Thay đổi lược đồ claims bằng phiên bản và khoảng chuyển tiếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interoperability-and-migration-006
+    title: Di trú thuật toán hoặc khóa mà không mở rộng danh sách tin cậy tùy tiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interoperability-and-migration-007
+    title: Thay issuer, audience hoặc loại token với các bên sử dụng đang hoạt động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interoperability-and-migration-008
+    title: Di trú giữa token tham chiếu và JWT theo yêu cầu thu hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interoperability-and-migration-009
+    title: Đọc tiêu chuẩn JWT, bộ JOSE, hướng dẫn thực hành và hồ sơ giao thức
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercise
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercise-001
+    title: Quan sát một JWT mẫu và phân biệt nội dung đọc được với nội dung đã xác minh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-002
+    title: Xây dựng hợp đồng JWT cho một API có một bên phát hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-003
+    title: Thiết kế cấp phát và xác minh với cặp khóa bất đối xứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-004
+    title: Thực nghiệm thay đổi claims và phát hiện chữ ký không hợp lệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-005
+    title: Mô phỏng lỗi audience, issuer, loại token và thời gian hiệu lực
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-006
+    title: Thiết kế JWKS cùng quy trình xoay vòng khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-007
+    title: So sánh JWT ký với JWT mã hóa và JWT lồng nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-008
+    title: Thiết kế đăng xuất, làm mới và thu hồi theo kịch bản rủi ro
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-009
+    title: Mô phỏng token bị đánh cắp và lựa chọn biện pháp giảm thiểu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-010
+    title: Thiết kế nhiều API hoặc nhiều tenant với ranh giới tin cậy rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-011
+    title: Rà soát một cấu hình JWT bằng hợp đồng, mô hình đe dọa và bộ kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-012
+    title: Đánh giá lựa chọn JWT trước yêu cầu thay đổi quyền tức thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

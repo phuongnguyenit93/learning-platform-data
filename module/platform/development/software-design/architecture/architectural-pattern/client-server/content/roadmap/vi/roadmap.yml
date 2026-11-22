@@ -1,0 +1,58 @@
+roadmap:
+- id: client-server-vai-tro
+  title: Client–Server & vai trò
+  purpose: Hiểu mô hình Client–Server tách phía yêu cầu dịch vụ và phía xử lý, đồng thời làm rõ trách nhiệm của mỗi bên.
+  objectives:
+  - Phân biệt client, server, resource và endpoint
+  - Vẽ luồng tương tác cơ bản giữa hai phía
+  - Nêu ưu điểm và giới hạn của mô hình tập trung dịch vụ
+- id: request-response-http
+  title: Request–Response & HTTP
+  purpose: Nắm vòng đời một yêu cầu từ client tới server và phản hồi trả lại để phân tích giao tiếp đồng bộ.
+  objectives:
+  - Đọc method, URI, headers, body và status code
+  - Phân biệt kết nối mạng với request HTTP
+  - Minh họa lỗi 4xx, 5xx và timeout
+- id: api-contract-data-transfer
+  title: API Contract & Data Transfer
+  purpose: Thiết kế giao diện trao đổi dữ liệu rõ ràng để client và server phát triển độc lập, hạn chế phụ thuộc không cần
+    thiết.
+  objectives:
+  - Định nghĩa endpoint, request và response JSON
+  - Áp dụng validation và mã lỗi nhất quán
+  - Giải thích versioning và tương thích API
+- id: state-session-data-ownership
+  title: State, Session & Data Ownership
+  purpose: Xác định dữ liệu và trạng thái thuộc phía nào để quản lý phiên, bảo đảm tính nhất quán và mở rộng hệ thống.
+  objectives:
+  - Phân biệt client-side state và server-side state
+  - So sánh HTTP stateless với session ứng dụng
+  - Xác định nơi lưu dữ liệu nghiệp vụ có thẩm quyền
+- id: tiers-proxy-deployment
+  title: Tiers, Proxy & Deployment
+  purpose: Hiểu các biến thể triển khai từ hai tầng tới nhiều tầng và cách reverse proxy phân phối yêu cầu tới backend.
+  objectives:
+  - So sánh 2-tier và 3-tier/N-tier
+  - Vẽ client → proxy → app → database
+  - Giải thích vai trò reverse proxy và routing
+- id: concurrency-cache-scaling
+  title: Concurrency, Cache & Scaling
+  purpose: Nhận diện nút thắt của mô hình client–server khi nhiều client truy cập đồng thời và đề xuất cách mở rộng.
+  objectives:
+  - Phân biệt scale up với scale out
+  - Giải thích connection pool và load balancing
+  - Đánh giá caching, latency và tính nhất quán
+- id: security-fault-handling
+  title: Security & Fault Handling
+  purpose: Đặt ranh giới tin cậy ở server và xử lý lỗi mạng để bảo vệ dữ liệu cũng như duy trì trải nghiệm client.
+  objectives:
+  - Kiểm tra authentication và authorization ở server
+  - Áp dụng HTTPS, input validation và rate limiting
+  - Thiết kế timeout, retry có giới hạn và thông báo lỗi
+- id: testing-architecture-trade-offs
+  title: Testing & Architecture Trade-offs
+  purpose: Kiểm thử hợp đồng giao tiếp và đánh giá Client–Server theo độ phức tạp, độ sẵn sàng và khả năng bảo trì.
+  objectives:
+  - Viết test API cho success, lỗi và timeout
+  - Theo dõi log, metrics và request latency
+  - So sánh Client–Server với mô hình peer-to-peer

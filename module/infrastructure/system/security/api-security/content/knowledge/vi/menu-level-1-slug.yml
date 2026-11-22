@@ -1,0 +1,124 @@
+menu:
+- title: Khái niệm API Security
+  slug: api-security-concepts
+  index: 0
+- title: Mô hình đe dọa API
+  slug: api-threat-model
+  index: 1
+- title: Vòng đời API
+  slug: api-lifecycle
+  index: 2
+- title: HTTP và REST cơ bản
+  slug: http-rest-basics
+  index: 3
+- title: API contract và schema
+  slug: api-contract-schema
+  index: 4
+- title: Xác thực API
+  slug: api-authentication
+  index: 5
+- title: Quản lý token
+  slug: token-management
+  index: 6
+- title: API key security
+  slug: api-key-security
+  index: 7
+- title: Object authorization
+  slug: object-authorization
+  index: 8
+- title: Property authorization
+  slug: property-authorization
+  index: 9
+- title: Function authorization
+  slug: function-authorization
+  index: 10
+- title: Service authorization
+  slug: service-authorization
+  index: 11
+- title: Tenant isolation
+  slug: tenant-isolation
+  index: 12
+- title: Business flow security
+  slug: business-flow-security
+  index: 13
+- title: Resource consumption
+  slug: resource-consumption
+  index: 14
+- title: API abuse prevention
+  slug: api-abuse-prevention
+  index: 15
+- title: Input validation API
+  slug: input-validation-api
+  index: 16
+- title: Output filtering API
+  slug: output-filtering-api
+  index: 17
+- title: SSRF qua API
+  slug: api-ssrf
+  index: 18
+- title: Unsafe consumption
+  slug: unsafe-consumption
+  index: 19
+- title: Security misconfiguration
+  slug: security-misconfiguration
+  index: 20
+- title: Inventory và discovery
+  slug: api-inventory-discovery
+  index: 21
+- title: Version và deprecation
+  slug: versioning-deprecation
+  index: 22
+- title: Gateway và edge
+  slug: gateways-edge
+  index: 23
+- title: CORS và browser API
+  slug: cors-browser-apis
+  index: 24
+- title: CORS không thay authorization
+  slug: cors-not-authorization
+  index: 25
+- title: Webhook và callback
+  slug: webhooks-callbacks
+  index: 26
+- title: Async và message API
+  slug: async-message-apis
+  index: 27
+- title: File và multipart API
+  slug: file-multipart-apis
+  index: 28
+- title: API error security
+  slug: api-error-security
+  index: 29
+- title: API logging
+  slug: api-logging
+  index: 30
+- title: Giám sát và cảnh báo
+  slug: monitoring-alerting
+  index: 31
+- title: Quản lý secret API
+  slug: api-secrets-management
+  index: 32
+- title: API lifecycle testing
+  slug: api-lifecycle-testing
+  index: 33
+- title: API security assessment
+  slug: api-security-assessment
+  index: 34
+- title: Java và Spring API
+  slug: java-spring-apis
+  index: 35
+- title: Deployment và runtime
+  slug: deployment-runtime
+  index: 36
+- title: Incident response API
+  slug: incident-response-api
+  index: 37
+- title: Anti-pattern
+  slug: anti-pattern
+  index: 38
+- title: Kiến trúc tham chiếu
+  slug: reference-architecture
+  index: 39
+- title: Checklist triển khai
+  slug: deployment-checklist
+  index: 40

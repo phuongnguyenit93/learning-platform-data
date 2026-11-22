@@ -1,0 +1,13 @@
+references:
+  - title: "Cache-Aside pattern — Microsoft Learn"
+    url: "https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside"
+    description: "Mô tả cache-aside, luồng đọc thiếu cache và cách làm mới dữ liệu."
+  - title: "Key eviction — Redis Documentation"
+    url: "https://redis.io/docs/latest/develop/reference/eviction/"
+    description: "Giải thích giới hạn bộ nhớ và chính sách eviction như LRU, LFU."
+  - title: "Caffeine — Java Caching Library"
+    url: "https://github.com/ben-manes/caffeine"
+    description: "Mã nguồn và hướng dẫn sử dụng thư viện cache trong tiến trình Java."
+  - title: "Cache Abstraction — Spring Framework"
+    url: "https://docs.spring.io/spring-framework/reference/integration/cache.html"
+    description: "Tài liệu chính thức về cache abstraction, annotation và backend cache."

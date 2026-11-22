@@ -1,3 +1,0 @@
-menuLevel1: '@JmsListener'
-menuLevel2: Bật hạ tầng endpoint bằng @EnableJms
-status: WRITTEN

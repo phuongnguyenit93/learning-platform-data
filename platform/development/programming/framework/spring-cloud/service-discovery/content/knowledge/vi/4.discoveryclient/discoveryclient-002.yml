@@ -1,3 +1,0 @@
-menuLevel1: DiscoveryClient
-menuLevel2: Lấy các ServiceInstance bằng getInstances(serviceId)
-status: ''

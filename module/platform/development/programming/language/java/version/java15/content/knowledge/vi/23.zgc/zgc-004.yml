@@ -1,0 +1,3 @@
+menuLevel1: ZGC
+menuLevel2: Khởi động bằng -XX:+UseZGC trên JDK phù hợp
+status: WRITTEN

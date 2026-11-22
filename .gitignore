@@ -1,17 +1,11 @@
-# Per-module transient working files
-**/content/temp/
-**/src/main/resources/step7-temp/
-**/content/sheet/*/module.xlsx
-
-# Editor, build and local runtime output
-.idea/
-.gradle/
-build/
-target/
-__pycache__/
-*.py[cod]
+# Runtime working files: preserve locally, never publish
+/module-generate-agent/backups/
+/module-generate-agent/temp/
+/module-generate-agent/module-generate-info.txt
 *.log
 .env
 .env.*
-*.DS_Store
+__pycache__/
+*.py[cod]
+.DS_Store
 Thumbs.db

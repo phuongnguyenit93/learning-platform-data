@@ -1,0 +1,5 @@
+# Spring AI — Tool Calling
+
+**Tool Calling** trong Spring AI cho phép mô hình ngôn ngữ yêu cầu ứng dụng gọi một phương thức hoặc dịch vụ để lấy dữ liệu hay thực hiện hành động. Mô hình chỉ tạo yêu cầu gọi tool cùng đối số; **ứng dụng Spring chịu trách nhiệm kiểm tra, thực thi và trả kết quả** cho mô hình tiếp tục xử lý. Cơ chế này biến một cuộc hội thoại thông thường thành luồng tương tác với hệ thống thực, nên thiết kế tool rõ ràng và kiểm soát quyền là quan trọng không kém chất lượng câu trả lời.
+
+Module phù hợp với người đã biết Java, Spring Boot, dependency injection và REST API cơ bản. Bạn sẽ làm quen với `ChatClient`, tạo phương thức `@Tool`, khai báo schema và tham số, rồi đăng ký tool bằng `ToolCallback` hoặc `ToolCallbackProvider`. Phần sau tập trung vào `ToolContext`, xác thực quyền phía server, xử lý lỗi, giới hạn vòng lặp, tích hợp MCP và đo lường lời gọi trong kiểm thử. **Spring AI 1.x và 2.0 có khác biệt về cơ chế điều phối vòng lặp tool**, vì vậy hãy đối chiếu tài liệu theo phiên bản dự án. Sau lộ trình, bạn có thể xây một tool đọc dữ liệu có kiểm soát, quan sát các lần gọi và tránh cấp quyền hành động quá rộng cho mô hình.

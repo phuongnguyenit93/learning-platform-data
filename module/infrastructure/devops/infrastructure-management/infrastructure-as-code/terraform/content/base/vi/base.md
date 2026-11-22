@@ -1,0 +1,5 @@
+# DevOps — Infrastructure as Code với Terraform
+
+Terraform là công cụ Infrastructure as Code (IaC) giúp mô tả và quản lý hạ tầng bằng các tệp cấu hình khai báo. Thay vì tạo từng tài nguyên thủ công, nhóm phát triển định nghĩa trạng thái mong muốn, xem trước kế hoạch thay đổi và áp dụng thông qua một quy trình có thể kiểm tra, lưu phiên bản và tái sử dụng.
+
+Module này dành cho người học DevOps đã biết khái niệm hạ tầng, mạng và dịch vụ đám mây cơ bản. Bạn sẽ làm quen với HCL, provider, resource, data source, biến và output; sau đó thực hành các lệnh `init`, `plan`, `apply` và `destroy` trong môi trường thử nghiệm. Phần tiếp theo tập trung vào state, backend, locking, cách xây dựng module, nhận diện drift, import tài nguyên có sẵn và kiểm tra Terraform trong CI. Kết thúc lộ trình, bạn có thể đọc, viết và đánh giá một cấu hình hạ tầng có thể triển khai an toàn theo quy trình nhóm.

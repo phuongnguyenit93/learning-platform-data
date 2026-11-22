@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến thức nền
+  slug: gateway-foundations
+  index: 1
+- title: Kiến trúc gateway
+  slug: gateway-architecture
+  index: 2
+- title: Vòng đời yêu cầu
+  slug: request-lifecycle
+  index: 3
+- title: Định tuyến
+  slug: routing
+  index: 4
+- title: Dịch vụ đích
+  slug: upstream-services
+  index: 5
+- title: Giao thức và TLS
+  slug: protocols-and-tls
+  index: 6
+- title: Biến đổi dữ liệu
+  slug: data-transformation
+  index: 7
+- title: Xác thực
+  slug: authentication
+  index: 8
+- title: Phân quyền
+  slug: authorization
+  index: 9
+- title: Bảo vệ API
+  slug: api-protection
+  index: 10
+- title: Giới hạn lưu lượng
+  slug: rate-limiting
+  index: 11
+- title: Độ tin cậy
+  slug: reliability
+  index: 12
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 13
+- title: Giao tiếp kéo dài
+  slug: long-lived-connections
+  index: 14
+- title: Mẫu tích hợp
+  slug: integration-patterns
+  index: 15
+- title: Mở rộng gateway
+  slug: gateway-extensibility
+  index: 16
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 17
+- title: Quản lý cấu hình
+  slug: configuration-management
+  index: 18
+- title: Quản trị API
+  slug: api-governance
+  index: 19
+- title: Triển khai
+  slug: deployment
+  index: 20
+- title: Tính sẵn sàng
+  slug: availability
+  index: 21
+- title: Hiệu năng
+  slug: performance
+  index: 22
+- title: Kiểm thử
+  slug: testing
+  index: 23
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 24
+- title: Lựa chọn giải pháp
+  slug: solution-selection
+  index: 25
+- title: Thực hành
+  slug: practice
+  index: 26

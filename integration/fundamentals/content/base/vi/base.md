@@ -1,7 +1,0 @@
-# Integration Fundamentals
-
-**Integration** là tập hợp các cách kết nối ứng dụng, dịch vụ và hệ thống để trao đổi dữ liệu hoặc phối hợp quy trình nghiệp vụ. Một hệ thống có thể gọi API theo kiểu request–response, gửi thông điệp qua queue, phát sự kiện cho nhiều consumer hoặc đồng bộ dữ liệu theo lịch. Mục tiêu của thiết kế tích hợp không chỉ là truyền dữ liệu thành công, mà còn là làm rõ hợp đồng, ranh giới trách nhiệm, bảo mật và khả năng hoạt động khi một phía chậm hoặc gặp sự cố.
-
-Module dành cho người đã biết lập trình ứng dụng, JSON và các khái niệm mạng/HTTP căn bản. Bạn sẽ bắt đầu bằng cách xác định producer, consumer, endpoint và yêu cầu tích hợp, sau đó so sánh giao tiếp đồng bộ với bất đồng bộ và lựa chọn protocol/kênh truyền. Tiếp theo là hợp đồng API, message schema, versioning, các mẫu như adapter, router, translator và publish–subscribe. Lộ trình tiếp tục với TLS, xác thực/phân quyền, cơ chế timeout/retry/idempotency và bài toán nhất quán giữa các hệ thống.
-
-Qua tám mốc, bạn có thể phác thảo luồng kết nối cho một use case, chọn cách trao đổi phù hợp, mô tả hợp đồng dữ liệu và xây kế hoạch kiểm thử/quan sát luồng end-to-end. Cần lưu ý gọi lại thao tác có tác dụng phụ mà không kiểm soát idempotency có thể tạo dữ liệu trùng; giao tiếp qua mạng cũng không tự bảo đảm giao dịch nguyên tử giữa nhiều dịch vụ.

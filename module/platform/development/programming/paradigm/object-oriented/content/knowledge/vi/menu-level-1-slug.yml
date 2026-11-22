@@ -1,0 +1,64 @@
+menu:
+- title: Tư duy OOP
+  slug: oop-basic
+  index: 0
+- title: Lớp
+  slug: class
+  index: 1
+- title: Đối tượng
+  slug: object
+  index: 2
+- title: Vòng đời
+  slug: lifecycle
+  index: 3
+- title: Đóng gói
+  slug: encapsulation
+  index: 4
+- title: Trừu tượng
+  slug: abstraction
+  index: 5
+- title: Giao diện
+  slug: interface
+  index: 6
+- title: Kế thừa
+  slug: inheritance
+  index: 7
+- title: Kiểu con
+  slug: subtyping
+  index: 8
+- title: Đa hình
+  slug: polymorphism
+  index: 9
+- title: Kết hợp
+  slug: composition
+  index: 10
+- title: Quan hệ
+  slug: relationships
+  index: 11
+- title: Thiết kế lớp
+  slug: class-design
+  index: 12
+- title: Mô hình hóa
+  slug: modeling
+  index: 13
+- title: SOLID
+  slug: solid
+  index: 14
+- title: Mẫu thiết kế
+  slug: design-patterns
+  index: 15
+- title: Cơ chế ngôn ngữ
+  slug: language-mechanics
+  index: 16
+- title: Lỗi thiết kế
+  slug: design-pitfalls
+  index: 17
+- title: Kiểm thử
+  slug: testing
+  index: 18
+- title: Tái cấu trúc
+  slug: refactoring
+  index: 19
+- title: Thực hành
+  slug: practice
+  index: 20

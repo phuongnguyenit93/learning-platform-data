@@ -1,7 +1,0 @@
-# Security Network Security
-
-**Network Security** là tập hợp nguyên tắc và biện pháp bảo vệ hạ tầng, kết nối và lưu lượng mạng trước truy cập trái phép, rò rỉ dữ liệu và gián đoạn dịch vụ. Phòng vệ mạng không chỉ dựa vào một firewall ở biên mà cần hiểu luồng giao tiếp, phân tách các vùng tin cậy, kiểm soát quyền, mã hóa dữ liệu đang truyền và liên tục quan sát hành vi bất thường. Các kỹ thuật này áp dụng cho môi trường on-premises, cloud và hệ thống kết hợp.
-
-Lộ trình gồm **8 mốc**: mô hình mạng và rủi ro; phân vùng mạng; firewall và ACL; TLS cùng kết nối an toàn; truy cập theo nguyên tắc Zero Trust; giám sát với IDS/IPS; phòng vệ trước các kiểu tấn công mạng; cuối cùng là đánh giá cấu hình và ứng phó sự cố. Người học sẽ mô hình hóa hệ thống mẫu, kiểm tra luồng ingress/egress, đọc log, xác minh quy tắc truy cập và diễn tập xử lý tình huống trong môi trường được cho phép.
-
-Học phần phù hợp với developer, DevOps, system administrator hoặc security engineer đã biết địa chỉ IP, DNS, TCP/UDP và dòng lệnh cơ bản. Sau khi hoàn thành, bạn có thể đề xuất kiến trúc phân vùng, thiết lập nguyên tắc lọc lưu lượng tối thiểu, đánh giá kết nối bảo mật, phát hiện dấu hiệu bất thường và phối hợp xử lý sự cố mạng có bằng chứng, tránh thay đổi tùy tiện trên hệ thống production.

@@ -1,3 +1,0 @@
-menuLevel1: CompletableFuture
-menuLevel2: completedFuture(), supplyAsync(), runAsync()
-status: WRITTEN

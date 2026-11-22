@@ -1,0 +1,57 @@
+roadmap:
+- id: graphql-hop-dong-api
+  title: GraphQL & hợp đồng API
+  purpose: Hiểu cách GraphQL cho phép khách hàng chọn trường dữ liệu và cách schema quy định hợp đồng API.
+  objectives:
+  - Phân biệt Query, Mutation và Subscription.
+  - Đọc selection set, arguments và variables.
+  - Giải thích type, nullability và danh sách trong schema.
+- id: schema-spring-boot
+  title: Schema & Spring Boot
+  purpose: Khởi tạo ứng dụng Spring GraphQL và khai báo kiểu, trường cùng endpoint truy cập.
+  objectives:
+  - Cấu hình spring-boot-starter-graphql và schema .graphqls.
+  - Tạo Query type và các object/input type cơ bản.
+  - Kiểm tra endpoint HTTP GraphQL và schema được nạp.
+- id: query-field-resolver
+  title: Query & field resolver
+  purpose: Kết nối schema với nghiệp vụ bằng controller và các resolver cho trường dữ liệu.
+  objectives:
+  - Viết @QueryMapping nhận @Argument.
+  - Ánh xạ trường lồng nhau bằng @SchemaMapping.
+  - Phân biệt resolver cấp Query với resolver trường con.
+- id: mutation-kiem-tra-input
+  title: Mutation & kiểm tra input
+  purpose: Thực hiện thay đổi dữ liệu có kiểm soát và xác thực đầu vào từ GraphQL.
+  objectives:
+  - Khai báo Mutation và input type trong schema.
+  - Dùng @MutationMapping và bind dữ liệu bằng @Argument.
+  - Áp dụng Bean Validation, xử lý input không hợp lệ.
+- id: batching-phan-trang
+  title: Batching & phân trang
+  purpose: Tránh truy vấn N+1 và trả danh sách dữ liệu với chi phí truy cập phù hợp.
+  objectives:
+  - Phát hiện N+1 khi truy vấn các quan hệ lồng nhau.
+  - Dùng @BatchMapping hoặc DataLoader để gộp lượt lấy dữ liệu.
+  - Thiết kế phân trang và thứ tự ổn định cho truy vấn danh sách.
+- id: subscription-giao-thuc
+  title: Subscription & giao thức
+  purpose: Hiểu khả năng cập nhật theo luồng và cách vận chuyển các loại thao tác GraphQL.
+  objectives:
+  - Viết @SubscriptionMapping trả dữ liệu reactive khi cần.
+  - Phân biệt HTTP với WebSocket cho yêu cầu subscription.
+  - Xác minh vòng đời kết nối và xử lý ngắt luồng.
+- id: bao-mat-xu-ly-loi
+  title: Bảo mật & xử lý lỗi
+  purpose: Bảo vệ dữ liệu ở cấp truy cập và trả lỗi GraphQL phù hợp mà không lộ chi tiết nội bộ.
+  objectives:
+  - Phân biệt bảo vệ endpoint với quyền đọc từng field.
+  - Dùng security context và kiểm tra quyền trong nghiệp vụ.
+  - Phân loại lỗi qua DataFetcherExceptionResolver.
+- id: kiem-thu-hieu-nang
+  title: Kiểm thử & hiệu năng
+  purpose: Kiểm chứng hợp đồng, resolver và chi phí truy vấn trước khi vận hành.
+  objectives:
+  - Dùng GraphQlTester kiểm tra Query, Mutation và lỗi.
+  - Kiểm thử nullability, quyền truy cập và nhánh đầu vào.
+  - Đo batching, độ sâu và chi phí truy vấn đại diện.

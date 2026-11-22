@@ -1,0 +1,485 @@
+menu:
+- level1: Định hướng
+  level2:
+  - MyBatis là gì và giải quyết vấn đề nào trong truy cập dữ liệu quan hệ
+  - Vai trò SQL mapper và mức kiểm soát câu lệnh SQL
+  - Phân biệt MyBatis với JDBC trực tiếp và ORM
+  - Phân biệt MyBatis lõi, MyBatis-Spring và Spring Boot Starter
+  - Luồng dữ liệu từ phương thức Mapper tới cơ sở dữ liệu và kết quả Java
+  - 'Các thuật ngữ: Mapper, statement, SqlSession, resultMap và TypeHandler'
+  - Trách nhiệm của ứng dụng, MyBatis, JDBC driver và hệ quản trị
+  - Điều kiện kiến thức nền về Java, SQL và giao dịch
+  - Những trường hợp phù hợp và giới hạn cần cân nhắc
+  - Lộ trình học từ truy vấn đơn giản tới tích hợp và vận hành
+- level1: Kiến trúc
+  level2:
+  - Vai trò của Configuration trong cấu hình lúc chạy
+  - SqlSessionFactoryBuilder và quá trình khởi tạo
+  - SqlSessionFactory và phạm vi sử dụng
+  - SqlSession và ranh giới một lần làm việc với dữ liệu
+  - Mapper proxy và liên kết phương thức với mapped statement
+  - MappedStatement và thông tin thực thi câu lệnh
+  - SqlSource, BoundSql và SQL sau khi xử lý động
+  - Executor và cơ chế điều phối truy vấn hoặc cập nhật
+  - StatementHandler, ParameterHandler và ResultSetHandler
+  - TypeHandler trong đường ghi tham số và đọc kết quả
+  - Phân biệt cấu hình dùng chung với trạng thái theo phiên
+- level1: Thiết lập
+  level2:
+  - Lựa chọn MyBatis, JDBC driver và thư viện kết nối tương thích
+  - Khai báo phụ thuộc và kiểm tra classpath của ứng dụng
+  - Chuẩn bị cơ sở dữ liệu và lược đồ cho ví dụ tối thiểu
+  - Tổ chức tài nguyên mybatis-config.xml và Mapper XML
+  - Nạp cấu hình từ classpath bằng Resources
+  - Khởi tạo DataSource và môi trường độc lập
+  - Xây dựng SqlSessionFactory từ XML hoặc Configuration Java
+  - Đăng ký Mapper và thực hiện truy vấn đầu tiên
+  - Mở và đóng phiên bằng try-with-resources
+  - Kiểm chứng SQL, tham số và dữ liệu trả về của luồng tối thiểu
+- level1: Cấu hình
+  level2:
+  - Cấu trúc và thứ tự các phần trong mybatis-config.xml
+  - Khai báo properties và thứ tự ưu tiên giá trị cấu hình
+  - Phân biệt placeholder cấu hình với tham số của câu lệnh SQL
+  - Cấu hình environments và lựa chọn môi trường
+  - DataSource UNPOOLED, POOLED, JNDI và nguồn kết nối bên ngoài
+  - Transaction manager JDBC, MANAGED và ranh giới quản lý
+  - Đăng ký Mapper bằng resource, URL, class hoặc package
+  - Đặt tên rút gọn cho kiểu Java bằng typeAliases
+  - Đăng ký typeHandlers và phạm vi áp dụng
+  - Cấu hình ánh xạ tự động và quy ước tên thuộc tính
+  - Cấu hình timeout, fetchSize và loại executor
+  - Cấu hình cache, tải lười và phạm vi cache cục bộ
+  - Kiểm tra cấu hình có hiệu lực thay vì chỉ đọc giá trị khai báo
+- level1: Mapper
+  level2:
+  - Thiết kế Mapper interface theo nhu cầu truy cập dữ liệu
+  - Namespace XML và tên đầy đủ của Mapper interface
+  - Liên kết statement id với tên phương thức
+  - Đăng ký và lấy Mapper bằng SqlSession.getMapper
+  - Lựa chọn kiểu trả về cho truy vấn một bản ghi hoặc nhiều bản ghi
+  - Kiểu trả về của thao tác insert, update và delete
+  - Trả kết quả dạng Map và vai trò của @MapKey
+  - Tổ chức Mapper XML trong tài nguyên được đóng gói
+  - Phân biệt lời gọi qua Mapper proxy với statement id dạng chuỗi
+  - Hạn chế của nạp chồng phương thức dùng chung tên statement
+  - Phát hiện Mapper chưa đăng ký hoặc statement bị thiếu
+  - Thiết kế hợp đồng khi không tìm thấy dữ liệu hoặc có kết quả trùng
+- level1: Tham số
+  level2:
+  - Truyền một giá trị đơn vào câu lệnh
+  - Truyền đối tượng JavaBean và truy cập thuộc tính lồng nhau
+  - Truyền Map và xác định tên khóa được sử dụng
+  - Truyền nhiều đối số bằng @Param
+  - Tên tham số thực, tùy chọn biên dịch và useActualParamName
+  - Truyền List, array và collection có tên rõ ràng
+  - Tham số nội bộ và đối tượng nguồn _parameter
+  - 'Ràng buộc giá trị bằng placeholder #{...}'
+  - Phân biệt ràng buộc tham số với thay thế chuỗi ${...}
+  - Khai báo javaType, jdbcType và TypeHandler cho tham số
+  - Xử lý null và kiểu JDBC phù hợp với driver
+  - Đặt giới hạn và chuẩn hóa tham số trước khi gọi Mapper
+  - Kiểm chứng tên, thứ tự và kiểu tham số trong SQL thực thi
+- level1: Câu lệnh CRUD
+  level2:
+  - Khai báo select, insert, update và delete trong XML
+  - Chọn resultType hoặc resultMap theo hình dạng kết quả
+  - Đọc theo khóa và trả về trường hợp không có dữ liệu
+  - Thêm bản ghi và kiểm tra kết quả thao tác
+  - Cập nhật một phần hoặc toàn bộ các trường được phép
+  - Xóa bản ghi có điều kiện và bảo vệ phạm vi tác động
+  - Đọc số hàng bị ảnh hưởng để phát hiện xung đột
+  - Phân biệt upsert với insert hoặc update thuần túy
+  - Chọn statementType PREPARED, STATEMENT hoặc CALLABLE
+  - Cấu hình timeout và các thuộc tính thực thi theo statement
+  - Phân biệt gửi câu lệnh thành công với commit giao dịch
+  - Giữ câu lệnh dễ đọc và tránh phụ thuộc ngầm vào thứ tự cột
+- level1: Khóa sinh
+  level2:
+  - Phân biệt khóa do ứng dụng cấp và khóa do cơ sở dữ liệu sinh
+  - Nhận khóa qua useGeneratedKeys
+  - Ánh xạ khóa về đối tượng bằng keyProperty
+  - Vai trò keyColumn khi driver và hệ quản trị yêu cầu
+  - Dùng selectKey để lấy hoặc tạo khóa
+  - Thứ tự BEFORE và AFTER của selectKey
+  - Nhận khóa khi tham số được đặt tên bằng @Param
+  - Xử lý nhiều cột sinh tự động và khóa có cấu trúc
+  - Kiểm chứng khóa trả về khi insert nhiều bản ghi hoặc chạy batch
+  - Giới hạn tương thích của cơ chế sinh khóa theo JDBC driver
+- level1: Ánh xạ kết quả
+  level2:
+  - Chuyển cột SQL sang thuộc tính Java
+  - Sử dụng bí danh cột để thể hiện hợp đồng kết quả
+  - Quy ước snake_case và mapUnderscoreToCamelCase
+  - Ánh xạ giá trị đơn, JavaBean và Map
+  - Xác định kiểu phần tử khi phương thức trả collection
+  - Phân biệt resultType với kiểu collection bao ngoài
+  - Kiểm soát hành vi tự động ánh xạ
+  - Phát hiện cột không nhận diện và trường bị bỏ sót
+  - Xử lý SQL NULL với thuộc tính nguyên thủy và kiểu bao
+  - Ánh xạ số chính xác, thời gian và dữ liệu nhị phân
+  - Tránh trùng nhãn cột khi truy vấn nhiều bảng
+  - Kiểm chứng hình dạng kết quả khi SQL hoặc mô hình Java thay đổi
+- level1: resultMap
+  level2:
+  - Khai báo resultMap và tái sử dụng bằng định danh
+  - Vai trò của id và result trong ánh xạ thuộc tính
+  - Khai báo column, property, javaType và jdbcType
+  - Tùy biến TypeHandler cho từng trường kết quả
+  - Tổ chức resultMap theo đối tượng và mục đích đọc
+  - Kế thừa cấu hình resultMap bằng extends
+  - Ánh xạ cấu trúc lồng nhau bằng association
+  - Ánh xạ tập phần tử bằng collection
+  - Chọn cấu trúc kết quả theo discriminator và case
+  - Kết hợp ánh xạ tường minh với autoMapping có kiểm soát
+  - Dùng columnPrefix để tái sử dụng ánh xạ trong truy vấn JOIN
+  - Xác định khi nào đối tượng con nên được tạo bằng notNullColumn
+  - Kiểm soát khóa nhận diện để ghép đúng các hàng kết quả
+- level1: Quan hệ dữ liệu
+  level2:
+  - Ánh xạ quan hệ một–một và một–nhiều
+  - So sánh nested select với nested result
+  - JOIN nhiều bảng và ghép kết quả về đồ thị đối tượng
+  - Truyền khóa đơn hoặc khóa ghép vào truy vấn con
+  - Xử lý bảng con không có dữ liệu trong LEFT JOIN
+  - Giữ danh tính của đối tượng cha khi nhiều hàng cùng tham chiếu
+  - Vai trò của id trong loại bỏ đối tượng trùng khi ghép kết quả
+  - Tải ngay và tải lười theo cấu hình quan hệ
+  - Nhận diện truy vấn N+1 do nested select
+  - Nguy cơ tải quan hệ ngoài thời điểm dự kiến
+  - Phân trang trên hàng JOIN và phân trang theo thực thể cha
+  - Cắt quan hệ vòng và giới hạn độ sâu của mô hình đọc
+- level1: SQL động
+  level2:
+  - Vai trò của OGNL trong biểu thức điều kiện
+  - Thêm điều kiện truy vấn bằng if
+  - Lựa chọn một nhánh bằng choose, when và otherwise
+  - Xử lý tiền tố WHERE và toán tử mở đầu bằng where
+  - Tạo danh sách trường cập nhật bằng set
+  - Tùy biến tiền tố và hậu tố bằng trim
+  - Duyệt collection bằng foreach
+  - Xây dựng mệnh đề IN với tham số được ràng buộc
+  - Xử lý collection null hoặc rỗng trước khi tạo điều kiện
+  - Dùng bind để chuẩn bị giá trị trong ngữ cảnh SQL động
+  - Điều kiện cho thuộc tính lồng nhau có thể null
+  - Phân biệt thiếu thuộc tính, null, chuỗi rỗng và giá trị số không
+  - Ngăn SQL động tạo UPDATE hoặc DELETE không có điều kiện
+  - Kiểm tra các tổ hợp nhánh để tránh SQL thiếu hoặc thừa thành phần
+- level1: Tái sử dụng SQL
+  level2:
+  - Tách đoạn SQL dùng chung bằng sql
+  - Chèn đoạn SQL bằng include và refid
+  - Truyền thuộc tính tĩnh vào đoạn SQL dùng chung
+  - Phân biệt thay thế lúc nạp Mapper với ràng buộc lúc thực thi
+  - Chia sẻ danh sách cột với bí danh nhất quán
+  - Tái sử dụng điều kiện mà không che mất quy tắc truy vấn
+  - Tham chiếu đoạn SQL giữa các namespace
+  - Quản lý phụ thuộc và thứ tự phân tích tài nguyên
+  - Tránh trừu tượng hóa SQL thành chuỗi include khó theo dõi
+  - Rà soát tác động khi sửa một đoạn SQL được nhiều statement sử dụng
+- level1: TypeHandler
+  level2:
+  - Vai trò của TypeHandler khi ghi tham số và đọc kết quả
+  - Các kiểu Java và JDBC cần đối chiếu
+  - Xử lý BigDecimal và giữ độ chính xác giá trị
+  - Ánh xạ kiểu ngày giờ Java và khác biệt với kiểu lưu trữ
+  - EnumTypeHandler và ánh xạ enum theo tên
+  - EnumOrdinalTypeHandler và rủi ro khi thay đổi thứ tự enum
+  - Thiết kế TypeHandler cho enum có mã nghiệp vụ
+  - Viết TypeHandler tùy biến bằng BaseTypeHandler
+  - Đăng ký theo kiểu Java, kiểu JDBC và phạm vi sử dụng
+  - Vai trò của @MappedTypes và @MappedJdbcTypes
+  - Xử lý null khi chuyển đổi giá trị tùy biến
+  - Kiểm thử đối xứng ghi–đọc và trường hợp dữ liệu không hợp lệ
+- level1: Đối tượng bất biến
+  level2:
+  - Ánh xạ bằng constructor thay vì setter
+  - Khai báo constructor, idArg và arg trong resultMap
+  - Đối chiếu tên, thứ tự và kiểu đối số constructor
+  - Ảnh hưởng của thông tin tên tham số khi biên dịch
+  - Ánh xạ Java record và kiểm chứng constructor được lựa chọn
+  - Xử lý nhiều constructor và cấu hình lựa chọn tường minh
+  - Giữ bất biến của value object khi nhận dữ liệu từ cơ sở dữ liệu
+  - Ánh xạ collection và đối tượng con có cấu trúc bất biến
+  - Xử lý SQL NULL khi constructor không chấp nhận giá trị vắng mặt
+  - Phân biệt mô hình đọc bất biến với mô hình dùng cho cập nhật
+- level1: Annotation
+  level2:
+  - Khai báo truy vấn bằng @Select
+  - Ghi dữ liệu bằng @Insert, @Update và @Delete
+  - Đặt tên tham số bằng @Param trong Mapper dùng annotation
+  - Khai báo ánh xạ bằng @Results và @Result
+  - Tái sử dụng ánh xạ qua @ResultMap
+  - Ánh xạ quan hệ bằng @One và @Many
+  - Ánh xạ constructor bằng @ConstructorArgs và @Arg
+  - Cấu hình thực thi bằng @Options
+  - Nhận khóa sinh bằng @SelectKey
+  - Viết SQL động bằng script trong annotation
+  - Lựa chọn XML hoặc annotation theo độ phức tạp truy vấn
+  - Tránh khai báo trùng statement giữa XML và annotation
+- level1: SQL Provider
+  level2:
+  - Vai trò lớp cung cấp SQL cho Mapper
+  - Sử dụng @SelectProvider
+  - Sử dụng @InsertProvider, @UpdateProvider và @DeleteProvider
+  - Liên kết lớp và phương thức cung cấp SQL
+  - Truyền tham số vào phương thức provider
+  - Sử dụng ProviderContext để lấy ngữ cảnh Mapper
+  - Tách cấu trúc SQL khỏi giá trị tham số được ràng buộc
+  - Giữ phương thức provider dễ kiểm thử và ít tác dụng phụ
+  - So sánh provider với XML SQL động và annotation trực tiếp
+  - Chẩn đoán lỗi tìm phương thức hoặc trả về SQL không hợp lệ
+- level1: SQL bằng Java
+  level2:
+  - Dựng câu lệnh bằng lớp org.apache.ibatis.jdbc.SQL
+  - Tạo SELECT, JOIN, WHERE và ORDER BY bằng SQL builder
+  - Tạo INSERT, UPDATE và DELETE bằng API Java
+  - Phối hợp SQL builder với phương thức provider
+  - Giữ nguyên cơ chế ràng buộc tham số khi dựng SQL bằng Java
+  - Phân biệt SQL builder lõi với thư viện MyBatis Dynamic SQL
+  - Mô hình bảng và cột trong MyBatis Dynamic SQL
+  - Dựng điều kiện, phép JOIN và các thao tác ghi bằng DSL
+  - Kết xuất SQL cùng tham số để gọi Mapper
+  - Đánh giá phụ thuộc và tương thích trước khi chọn thư viện DSL bổ sung
+- level1: SqlSession
+  level2:
+  - Mở phiên với lựa chọn auto-commit và mức cô lập
+  - Mở phiên từ DataSource hoặc Connection được cung cấp
+  - Gọi selectOne và xử lý trường hợp nhiều hàng
+  - Gọi selectList, selectMap và lựa chọn hình dạng kết quả
+  - Thực thi insert, update và delete qua API phiên
+  - Lấy Mapper gắn với vòng đời SqlSession
+  - Phân biệt DefaultSqlSession với SqlSessionTemplate
+  - Giới hạn chia sẻ SqlSession độc lập giữa các luồng
+  - Commit, rollback và đóng phiên đúng phạm vi
+  - Xóa cache cục bộ bằng clearCache
+  - Quản lý tài nguyên khi xử lý kết quả bằng Cursor
+  - Tránh giữ Mapper hoặc kết quả tải lười vượt vòng đời phiên
+- level1: Giao dịch
+  level2:
+  - Ranh giới giao dịch khi chạy MyBatis độc lập
+  - Ảnh hưởng của auto-commit tới nhiều câu lệnh liên tiếp
+  - Quyền sở hữu commit và rollback của phiên
+  - Phân biệt flushStatements với commit giao dịch
+  - Đọc dữ liệu vừa ghi trong cùng giao dịch
+  - Mức cô lập và các hành vi cần kiểm chứng ở hệ quản trị
+  - Rollback khi một bước ghi nhiều bảng thất bại
+  - Lựa chọn phạm vi giao dịch theo thao tác nghiệp vụ
+  - Ảnh hưởng của giao dịch dài tới kết nối và khóa
+  - Phân biệt quản lý JDBC, MANAGED và giao dịch Spring
+  - Kết quả chưa rõ khi mất kết nối trong lúc commit
+  - Thiết kế thử lại giao dịch có kiểm soát và thao tác lũy đẳng
+  - Giới hạn giao dịch khi có nhiều DataSource hoặc dịch vụ bên ngoài
+- level1: Executor và batch
+  level2:
+  - Cơ chế thực thi của ExecutorType.SIMPLE
+  - Tái sử dụng câu lệnh với ExecutorType.REUSE
+  - Gom thao tác cập nhật bằng ExecutorType.BATCH
+  - Phân biệt JDBC batch với INSERT nhiều hàng
+  - Chọn executor theo đặc điểm truy cập dữ liệu
+  - Thời điểm flush và ảnh hưởng của truy vấn xen kẽ
+  - Đọc BatchResult và số hàng được cập nhật
+  - Giới hạn diễn giải giá trị trả về trước khi batch được flush
+  - Chọn kích thước lô theo bộ nhớ và giới hạn driver
+  - Nhận khóa sinh khi ghi theo lô
+  - Xử lý lỗi một phần và phạm vi rollback của batch
+  - Phân biệt gửi lô thành công với giao dịch đã commit
+  - Quản lý batch executor khi tham gia giao dịch Spring
+- level1: Bộ nhớ đệm
+  level2:
+  - Phân biệt cache cục bộ với cache cấp hai
+  - Vòng đời cache cục bộ trong SqlSession
+  - Lựa chọn localCacheScope SESSION hoặc STATEMENT
+  - Ảnh hưởng của việc sửa đối tượng nhận từ cache cục bộ
+  - Các thao tác làm thay đổi hoặc xóa cache của phiên
+  - Bật cache cấp hai theo namespace
+  - Chia sẻ vùng cache bằng cache-ref
+  - Vai trò của useCache và flushCache trên statement
+  - Thời điểm cache và giao dịch được phối hợp
+  - Chính sách loại bỏ, thời hạn và giới hạn dung lượng
+  - Chế độ readOnly và sao chép giá trị trong cache cho phép thay đổi
+  - Khả năng tuần tự hóa và hợp đồng của giá trị cache
+  - Dữ liệu thay đổi ngoài namespace và nguy cơ cache cũ
+  - Kiểm chứng cache khi nhiều phiên hoặc nhiều tiến trình cùng truy cập
+- level1: Tích hợp Spring
+  level2:
+  - Vai trò của MyBatis-Spring trong ứng dụng
+  - Tạo SqlSessionFactoryBean từ DataSource
+  - SqlSessionTemplate và vòng đời phiên theo giao dịch Spring
+  - Đăng ký Mapper bằng @MapperScan
+  - Đăng ký tường minh với MapperFactoryBean
+  - Tiêm Mapper vào dịch vụ nghiệp vụ
+  - Cấu hình transaction manager dùng cùng DataSource
+  - Phối hợp @Transactional với các lời gọi Mapper
+  - Quyền quản lý commit, rollback và close trong môi trường Spring
+  - Chuyển lỗi truy cập dữ liệu sang DataAccessException
+  - Giới hạn khi trộn SqlSession độc lập với phiên do Spring quản lý
+  - Cấu hình nhiều SqlSessionFactory và liên kết đúng Mapper
+  - Giới hạn đổi loại executor trong một giao dịch Spring
+- level1: Spring Boot
+  level2:
+  - Chọn phiên bản starter tương thích Spring Boot và JDK
+  - Điều kiện tự cấu hình DataSource, SqlSessionFactory và SqlSessionTemplate
+  - Quét Mapper bằng @Mapper và @MapperScan
+  - Cấu hình đường dẫn XML bằng mybatis.mapper-locations
+  - Đăng ký package chứa bí danh kiểu và TypeHandler
+  - Dùng cấu hình mybatis.configuration hoặc tệp config-location
+  - Phân biệt configuration-properties với các thiết lập của Configuration
+  - Tùy biến cấu hình bằng các điểm mở rộng của starter
+  - Đăng ký interceptor và thành phần tùy biến trong Spring
+  - Cấu hình theo môi trường mà không đưa bí mật vào mã nguồn
+  - Xử lý trường hợp nhiều DataSource cần cấu hình tường minh
+  - Kiểm tra tài nguyên XML và bean Mapper khi đóng gói ứng dụng
+- level1: Truy vấn lớn
+  level2:
+  - Giới hạn kết quả tại câu lệnh SQL
+  - Phân trang bằng LIMIT, OFFSET hoặc cú pháp tương ứng
+  - Phân trang theo khóa cho dữ liệu tăng trưởng lớn
+  - RowBounds và khác biệt với phân trang tại cơ sở dữ liệu
+  - Chọn thứ tự ổn định khi kết quả có giá trị trùng
+  - Dùng Cursor để duyệt kết quả và đóng tài nguyên đúng lúc
+  - Dùng ResultHandler để xử lý kết quả theo nhu cầu
+  - Vai trò fetchSize và điều kiện phụ thuộc JDBC driver
+  - Giữ kết nối và giao dịch trong lúc đọc dữ liệu theo luồng
+  - Đọc theo lô để giới hạn bộ nhớ và thời gian giữ tài nguyên
+  - Phân trang đối tượng cha khi ánh xạ collection qua JOIN
+  - Kiểm soát chi phí đếm tổng số kết quả
+- level1: Đồng thời
+  level2:
+  - Phạm vi an toàn luồng của factory, phiên và Mapper
+  - Tách an toàn luồng khỏi tính đúng đắn của giao dịch
+  - Cuộc đua giữa kiểm tra tồn tại và thêm bản ghi
+  - Dùng ràng buộc duy nhất để bảo vệ dữ liệu
+  - Khóa lạc quan bằng cột phiên bản trong SQL
+  - Phát hiện xung đột qua số hàng bị ảnh hưởng
+  - Khóa bi quan bằng cú pháp hệ quản trị hỗ trợ
+  - Cập nhật tăng giảm nguyên tử thay vì đọc rồi ghi lại
+  - Deadlock, timeout khóa và thứ tự truy cập dữ liệu
+  - Thử lại toàn giao dịch khi xung đột có thể phục hồi
+  - Bảo vệ bất biến trải trên nhiều bản ghi hoặc nhiều bảng
+- level1: Đa hệ quản trị
+  level2:
+  - Vai trò của databaseIdProvider
+  - Khai báo statement theo databaseId
+  - Dùng _databaseId trong SQL động
+  - Khác biệt cú pháp phân trang, upsert và sinh khóa
+  - Quy tắc trích dẫn tên bảng hoặc cột theo hệ quản trị
+  - Khác biệt kiểu boolean, ngày giờ và số chính xác
+  - Ánh xạ dữ liệu JSON hoặc kiểu đặc thù bằng TypeHandler
+  - Gọi stored procedure bằng statementType CALLABLE
+  - Tham số IN, OUT và INOUT trong lời gọi thủ tục
+  - Xử lý nhiều result set khi driver và hệ quản trị hỗ trợ
+  - Ánh xạ câu lệnh ghi trả dữ liệu và vai trò của affectData
+  - Xây bộ kiểm thử tương thích trên từng hệ quản trị được hỗ trợ
+- level1: Mở rộng MyBatis
+  level2:
+  - Những trường hợp cần mở rộng thay vì cấu hình sẵn có
+  - Viết plugin bằng Interceptor
+  - Khai báo @Intercepts và @Signature
+  - Các điểm can thiệp Executor, StatementHandler, ParameterHandler và ResultSetHandler
+  - Kiểm soát phạm vi và thứ tự thực thi plugin
+  - Đọc BoundSql mà không làm lộ dữ liệu nhạy cảm
+  - Nguy cơ thay đổi SQL nhưng không đồng bộ tham số hoặc cache key
+  - Tùy biến tạo đối tượng bằng ObjectFactory
+  - Tùy biến ngôn ngữ SQL bằng LanguageDriver
+  - Phân biệt plugin tự viết với tiện ích phân trang của bên thứ ba
+  - Kiểm chứng tính tương thích và chi phí của thành phần mở rộng
+- level1: Tổ chức mã
+  level2:
+  - Đặt Mapper và SQL theo miền nghiệp vụ
+  - Tách mô hình lưu trữ khỏi DTO giao tiếp bên ngoài
+  - Thiết kế truy vấn phục vụ đọc theo hình dạng dữ liệu cần dùng
+  - Đặt ranh giới giữa Service, Repository và Mapper
+  - Quy ước tên statement, tham số và resultMap
+  - Quản lý SQL phức tạp mà vẫn kiểm tra được kế hoạch thực thi
+  - Tách migration lược đồ khỏi logic ánh xạ
+  - Vai trò MyBatis Generator và phạm vi mã có thể sinh
+  - Lựa chọn target runtime và phụ thuộc của mã sinh
+  - Tách phần sinh tự động khỏi SQL hoặc mô hình tự viết
+  - Rà soát thay đổi khi sinh lại từ lược đồ mới
+  - Tránh giả định MyBatis-Plus hoặc tiện ích bên ngoài là khả năng của lõi
+- level1: Bảo mật
+  level2:
+  - 'Ràng buộc giá trị bằng #{...} để hạn chế SQL injection'
+  - Rủi ro thay thế trực tiếp chuỗi bằng ${...}
+  - Danh sách cho phép đối với tên cột, bảng và hướng sắp xếp
+  - Ngăn SQL động cập nhật hoặc xóa ngoài phạm vi cho phép
+  - Áp dụng điều kiện phân quyền và phân tách đơn vị thuê
+  - Phân biệt lọc theo quyền với chỉ nhận định danh từ người dùng
+  - Giới hạn kích thước collection và số lượng tham số
+  - Giới hạn độ sâu hoặc độ phức tạp của truy vấn do đầu vào quyết định
+  - Cấp quyền tối thiểu cho tài khoản cơ sở dữ liệu
+  - Quản lý thông tin kết nối và mã hóa đường truyền
+  - Che thông tin nhạy cảm trong SQL log và thông báo lỗi
+  - Rà soát ảnh hưởng bảo mật của provider và plugin tùy biến
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử Mapper bằng cơ sở dữ liệu thật trong môi trường cô lập
+  - Giới hạn của mock Mapper và cơ sở dữ liệu thay thế
+  - Chuẩn bị migration cùng dữ liệu mẫu có thể lặp lại
+  - Kiểm thử CRUD và số hàng bị ảnh hưởng
+  - Kiểm thử null, enum, số chính xác và dữ liệu ngày giờ
+  - Kiểm thử khóa sinh và ánh xạ về đúng đối tượng nguồn
+  - Kiểm thử mọi nhánh SQL động và collection rỗng
+  - Kiểm thử resultMap, JOIN và kết quả có quan hệ lồng nhau
+  - Kiểm thử số truy vấn để phát hiện N+1 và tải lười ngoài ý muốn
+  - Kiểm thử commit, rollback và lỗi khi flush batch
+  - Kiểm thử cache giữa nhiều phiên có cập nhật dữ liệu
+  - Kiểm thử đồng thời với lịch thực thi được kiểm soát
+  - Dùng @MybatisTest khi phù hợp với cấu hình dự án
+  - Kiểm tra khác biệt giữa rollback trong test và hành vi commit thực tế
+- level1: Chẩn đoán lỗi
+  level2:
+  - Đọc chuỗi nguyên nhân của lỗi MyBatis và JDBC
+  - Lỗi Invalid bound statement và liên kết namespace
+  - Lỗi Parameter not found và tên @Param
+  - Không tìm thấy Mapper XML trong tài nguyên đóng gói
+  - Trùng mapped statement hoặc resultMap
+  - Không tìm thấy thuộc tính getter hoặc setter phù hợp
+  - Không tìm được constructor hay TypeHandler cho kiểu kết quả
+  - TooManyResultsException khi truy vấn kỳ vọng một bản ghi
+  - Lỗi SQL sau khi ghép nhánh động hoặc include
+  - Lỗi jdbcType khi truyền null
+  - Thiếu commit hoặc cấu hình sai transaction manager
+  - Cursor hoặc quan hệ tải lười được dùng sau khi đóng tài nguyên
+  - Khoanh vùng lỗi do driver, SQL, cấu hình hoặc mô hình Java
+- level1: Hiệu năng
+  level2:
+  - Đo chi phí truy vấn và ánh xạ trong toàn bộ yêu cầu
+  - Đọc SQL cùng tham số để tái hiện đúng truy vấn
+  - Phân tích kế hoạch thực thi và mức sử dụng chỉ mục
+  - Giảm cột và hàng được tải thay vì tối ưu chỉ phần Java
+  - So sánh JOIN, nested select và nhiều truy vấn theo lô
+  - Kiểm soát N+1, số lượt mạng và kích thước kết quả
+  - Tối ưu batch theo tải thực tế và giới hạn driver
+  - Đánh giá SIMPLE, REUSE và BATCH bằng phép đo phù hợp
+  - Theo dõi bộ nhớ khi dựng đồ thị đối tượng lớn
+  - Định cỡ connection pool theo năng lực xử lý của cơ sở dữ liệu
+  - Chọn cache theo yêu cầu độ mới và cách dữ liệu bị cập nhật
+  - Tránh dùng plugin hoặc cache để che truy vấn chưa được đo đạc
+- level1: Vận hành
+  level2:
+  - Lựa chọn logging framework và mức log theo môi trường
+  - Bật log theo Mapper hoặc statement cần chẩn đoán
+  - Theo dõi truy vấn chậm, lỗi và thời gian chờ
+  - Quan sát connection pool, giao dịch dài và chờ khóa
+  - Theo dõi batch thất bại và các tác vụ cần đối soát
+  - Quản lý tương thích giữa Mapper, lược đồ và phiên bản ứng dụng
+  - Kiểm tra phụ thuộc và tài nguyên khi nâng cấp MyBatis hoặc driver
+  - Xác minh cấu hình đang chạy sau triển khai
+  - Lập quy trình xử lý cache cũ, thiếu kết nối và timeout
+  - Bảo vệ dữ liệu thật khi tái hiện lỗi và đo tải
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây ứng dụng MyBatis độc lập cho một danh mục có CRUD
+  - Thiết kế Mapper XML có tham số rõ ràng và resultMap tường minh
+  - Xây bộ lọc động có phân trang và kiểm soát thứ tự sắp xếp
+  - Ánh xạ đơn hàng cùng các dòng hàng từ kết quả JOIN
+  - So sánh nested select với JOIN bằng số truy vấn và bộ nhớ
+  - Viết TypeHandler cho giá trị nghiệp vụ có mã riêng
+  - Ánh xạ mô hình đọc bất biến và kiểm thử giá trị null
+  - Thực hiện batch có khóa sinh, lỗi giữa lô và rollback
+  - Tích hợp dịch vụ Spring với nhiều thao tác trong một giao dịch
+  - Kiểm chứng cache khi hai phiên lần lượt đọc và cập nhật
+  - Xử lý cập nhật đồng thời bằng phiên bản và số hàng bị ảnh hưởng
+  - Hoàn thiện kiểm thử tích hợp, phép đo và hướng dẫn chẩn đoán

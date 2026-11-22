@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "4"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": "Note : Hãy chỉ lấy các kiến thức vẫn còn áp dụng đến hiện giờ, không lấy các kiến thức lỗi thời hoặc đã legacy hiện nay"
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "JAVA_VERSION_JAVA5"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Hệ thống hóa các nền tảng được đưa vào từ Java 5 và vẫn thiết thực hiện nay như generics, enum, annotation, for-each, boxing và varargs. Học thêm collections, Executor/Future, lock, atomic, Java Memory Model và những API chuẩn còn áp dụng trong Java hiện đại."
+  }
+}

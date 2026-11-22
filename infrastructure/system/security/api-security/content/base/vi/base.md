@@ -1,7 +1,0 @@
-# Security Api Security
-
-**API Security** là tập hợp các nguyên tắc và biện pháp bảo vệ giao diện lập trình ứng dụng trước truy cập trái phép, rò rỉ dữ liệu và lạm dụng tài nguyên. Khác với việc chỉ thêm đăng nhập hoặc bật HTTPS, bảo mật API phải được thực thi tại từng endpoint, từng đối tượng dữ liệu và từng thao tác nghiệp vụ. Module **Security Api Security** cung cấp nền tảng để nhận diện rủi ro và xây dựng cơ chế bảo vệ nhiều lớp cho REST API và các dịch vụ backend.
-
-Lộ trình gồm tám mốc: khảo sát bề mặt tấn công, bảo vệ kết nối và xác thực, phân quyền theo hành động/đối tượng/thuộc tính, xác minh dữ liệu đầu vào và ngăn injection, bảo vệ dữ liệu và phản hồi, giới hạn tài nguyên và chống abuse, gia cố cấu hình/tích hợp, cuối cùng là giám sát và kiểm thử bảo mật. Nội dung nhấn mạnh các nguy cơ thường gặp trong OWASP API Security Top 10 như BOLA, phân quyền chức năng sai, tiêu thụ tài nguyên không giới hạn và SSRF.
-
-Module phù hợp với lập trình viên backend, người kiểm thử API và kỹ sư bảo mật đã có kiến thức về HTTP, JSON, xác thực và cơ sở dữ liệu cơ bản. Sau khi học, bạn có thể đánh giá một API theo các ranh giới tin cậy, bổ sung kiểm tra quyền ở từng request, giới hạn đầu vào và lưu lượng, tránh lộ thông tin qua lỗi/log và thiết lập các ca kiểm thử để phát hiện lỗ hổng trước khi triển khai.

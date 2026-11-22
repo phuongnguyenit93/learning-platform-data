@@ -1,0 +1,3 @@
+menuLevel1: Listener JMS
+menuLevel2: Bật @EnableJms và khai báo @JmsListener
+status: WRITTEN

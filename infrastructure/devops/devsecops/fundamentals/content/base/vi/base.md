@@ -1,7 +1,0 @@
-# DevOps DevSecOps Fundamentals
-
-DevSecOps là cách tích hợp bảo mật vào toàn bộ vòng đời phát triển và vận hành phần mềm, từ xác định yêu cầu, thiết kế, lập trình, kiểm thử đến build, release và giám sát. Thay vì coi bảo mật là một bước kiểm duyệt riêng ở cuối quy trình, các nhóm phát triển, an ninh và vận hành chia sẻ trách nhiệm, tự động hóa các kiểm soát lặp lại và xử lý rủi ro theo mức độ ảnh hưởng. Mục tiêu là tạo ra phần mềm an toàn hơn mà vẫn duy trì khả năng giao hàng liên tục.
-
-Roadmap một cấp gồm tám mốc. Người học bắt đầu với tư duy DevSecOps và yêu cầu bảo mật, thực hành threat modeling, secure coding và code review. Tiếp theo là các phương pháp SAST, DAST, SCA, quản lý secrets và quyền tối thiểu, bảo vệ pipeline CI/CD cùng software supply chain qua SBOM, provenance và artifact signing. Các mốc cuối đề cập quét container, kiểm tra IaC, policy-as-code và cách phân loại, theo dõi, khắc phục lỗ hổng trong vòng phản hồi liên tục.
-
-Module dành cho người đã biết Git, CI/CD và các khái niệm xây dựng, triển khai ứng dụng cơ bản; phù hợp với developer, DevOps engineer hoặc người mới tiếp cận application security. Sau khi học, bạn có thể nhận diện điểm đặt kiểm soát trong pipeline, giải thích tác dụng và giới hạn của các công cụ quét, xây dựng checklist bảo mật tối thiểu và đề xuất quy trình xử lý phát hiện theo rủi ro thay vì chỉ dựa vào số lượng cảnh báo.

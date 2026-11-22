@@ -1,0 +1,7 @@
+# Support Document Translate Argos
+
+Argos Translate là thư viện dịch máy mã nguồn mở viết bằng Python, có thể chạy **offline** sau khi đã cài các gói mô hình ngôn ngữ cần thiết. Công cụ cung cấp Python API và dòng lệnh, sử dụng những gói `.argosmodel` để dịch văn bản; với một số cặp ngôn ngữ chưa có model trực tiếp, Argos có thể dịch qua ngôn ngữ trung gian nhưng chất lượng có thể giảm. Module dành cho người đã có kiến thức cơ bản về Java, Python, tệp văn bản và việc xử lý tài liệu.
+
+Lộ trình bắt đầu từ nguyên lý dịch cục bộ, cài môi trường và quản lý model bằng `argospm`, rồi thực hành Python API/CLI. Tiếp theo, người học xây dựng pipeline trích xuất văn bản từ TXT, HTML hoặc DOCX, bảo toàn cấu trúc và đưa nội dung đã dịch trở lại tài liệu. Vì Argos là thư viện Python, ứng dụng Java có thể tích hợp thông qua tiến trình CLI hoặc một dịch vụ API tự lưu trữ như LibreTranslate; đây là các phương án tích hợp cần thiết kế và kiểm thử riêng, không phải một Java SDK chính thức của Argos.
+
+Sau khi hoàn thành, bạn có thể thiết kế luồng dịch tài liệu chạy trong hạ tầng do mình kiểm soát, kiểm tra sự tồn tại của cặp ngôn ngữ, xử lý lỗi dịch và đo chất lượng bằng các mẫu có thuật ngữ, số liệu, liên kết hoặc placeholder. Dịch *offline* không tự bảo đảm giữ nguyên định dạng hay độ chính xác: cần kiểm thử từng định dạng, kiểm soát model và phiên bản, đồng thời tránh ghi nội dung nhạy cảm vào file tạm, log hoặc dịch vụ mạng ngoài ý muốn.

@@ -1,7 +1,0 @@
-# Database Fundamentals
-
-Cơ sở dữ liệu là nền tảng lưu trữ và truy xuất thông tin cho phần lớn ứng dụng. Hệ quản trị cơ sở dữ liệu (DBMS) giúp tổ chức dữ liệu, thực thi truy vấn, kiểm soát truy cập và hỗ trợ nhiều thao tác diễn ra đồng thời. Module này xây dựng tư duy nền tảng để người học phân biệt mô hình quan hệ và phi quan hệ, hiểu cách dữ liệu được biểu diễn, giữ nhất quán và truy xuất hiệu quả. Đây là phần nhập môn tổng quan, không đi sâu vào một database engine hay framework riêng.
-
-Người học nên biết lập trình Java cơ bản và cấu trúc dữ liệu. Lộ trình bắt đầu từ các khái niệm database/DBMS và các mô hình dữ liệu, sau đó thực hành thiết kế bảng, schema, kiểu dữ liệu, khóa và quan hệ. Tiếp theo là CRUD và truy vấn SQL cơ bản, nguyên lý transaction/ACID, vai trò của index và cách đọc query plan. Mốc cuối giới thiệu kết nối JDBC, truy cập theo quyền tối thiểu, bảo vệ thông tin xác thực và khái niệm backup/restore.
-
-Hoàn thành module, bạn có thể mô tả một hệ thống lưu trữ dữ liệu ở mức cơ bản, thiết kế schema quan hệ đơn giản, viết các truy vấn CRUD thường dùng, giải thích vai trò của transaction và index, đồng thời nhận biết yêu cầu an toàn khi ứng dụng Java kết nối cơ sở dữ liệu. Các ví dụ SQL có thể khác nhau đôi chút giữa các hệ quản trị.

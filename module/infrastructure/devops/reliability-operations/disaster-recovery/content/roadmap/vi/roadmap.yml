@@ -1,0 +1,57 @@
+roadmap:
+- id: rui-ro-muc-do-uu-tien
+  title: Rủi ro & mức độ ưu tiên
+  purpose: Xác định sự cố thảm họa có thể làm gián đoạn dịch vụ và các chức năng phải khôi phục trước.
+  objectives:
+  - Phân biệt Disaster Recovery với High Availability
+  - Lập danh sách kịch bản mất vùng, hỏng dữ liệu và ransomware
+  - Phân tích tác động kinh doanh và ưu tiên hệ thống
+- id: rto-rpo-phu-thuoc
+  title: RTO, RPO & phụ thuộc
+  purpose: Biến yêu cầu kinh doanh thành mục tiêu thời gian và điểm phục hồi có thể kiểm chứng.
+  objectives:
+  - Định nghĩa Recovery Time Objective (RTO)
+  - Định nghĩa Recovery Point Objective (RPO)
+  - Ánh xạ dịch vụ, dữ liệu và dependency quan trọng
+- id: chien-luoc-khoi-phuc
+  title: Chiến lược khôi phục
+  purpose: Chọn phương án cân bằng giữa mục tiêu phục hồi, độ phức tạp và chi phí.
+  objectives:
+  - So sánh backup/restore, pilot light và warm standby
+  - Nhận diện mô hình multi-site active-active
+  - Chọn chiến lược theo RTO/RPO và ngân sách
+- id: backup-tinh-toan-ven
+  title: Backup & tính toàn vẹn
+  purpose: Bảo đảm dữ liệu có bản sao phục hồi được, không chỉ có lịch chạy backup.
+  objectives:
+  - Thiết lập backup tự động, mã hóa và quyền tối thiểu
+  - Phân biệt backup với replication và điểm khôi phục
+  - Thử restore và kiểm tra dữ liệu không bị hỏng
+- id: dr-site-dong-bo-cau-hinh
+  title: DR Site & đồng bộ cấu hình
+  purpose: Chuẩn bị môi trường khôi phục độc lập và hạn chế cấu hình lệch so với production.
+  objectives:
+  - Thiết kế vùng DR và đồng bộ dữ liệu cần thiết
+  - Dùng IaC để dựng lại hạ tầng và cấu hình
+  - Kiểm tra replication lag và configuration drift
+- id: runbook-failover-failback
+  title: Runbook & Failover/Failback
+  purpose: Xác định ai ra quyết định, cách chuyển dịch vụ và cách quay lại môi trường chính.
+  objectives:
+  - Viết tiêu chí kích hoạt DR và escalation
+  - Mô tả failover, traffic cutover và kiểm tra ứng dụng
+  - Lập kế hoạch failback và đối soát dữ liệu
+- id: tu-dong-hoa-giam-sat
+  title: Tự động hóa & giám sát
+  purpose: Giảm thao tác thủ công nhưng vẫn kiểm soát được rủi ro khi quá trình khôi phục gặp lỗi.
+  objectives:
+  - Tự động hóa các bước recovery bằng script hoặc IaC
+  - Theo dõi health check, thời gian và tiến độ khôi phục
+  - Thiết kế bước xác nhận, quyền phê duyệt và dừng khẩn
+- id: dien-tap-cai-tien-dr
+  title: Diễn tập & cải tiến DR
+  purpose: Kiểm chứng kế hoạch bằng sự cố giả lập và điều chỉnh theo kết quả thực tế.
+  objectives:
+  - Tổ chức restore test và failover drill định kỳ
+  - Đo RTO/RPO thực tế cùng tính toàn vẹn dữ liệu
+  - Cập nhật runbook, người phụ trách và bài học rút ra

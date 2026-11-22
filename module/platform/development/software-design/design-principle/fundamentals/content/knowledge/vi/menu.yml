@@ -1,0 +1,359 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Thiết kế phần mềm là gì và tạo ra những quyết định nào
+  - Vì sao phần mềm đúng chức năng vẫn có thể khó bảo trì
+  - Nguyên lý thiết kế là gì và giúp định hướng quyết định ra sao
+  - Phân biệt nguyên lý, quy tắc, kỹ thuật, mẫu thiết kế và kiến trúc
+  - Mối quan hệ giữa yêu cầu, mô hình, mã nguồn và hành vi thực thi
+  - Thiết kế ở cấp hàm, đối tượng, mô đun và hệ thống
+  - Vai trò của nguyên lý trong quản lý độ phức tạp và thay đổi
+  - Thiết kế hướng đối tượng, hướng thủ tục và hướng hàm ở mức tổng quan
+  - Các thuật ngữ nền tảng và mối liên hệ giữa chúng
+  - Lộ trình từ hiểu bài toán đến đánh giá một thiết kế
+- level1: Bài toán và ràng buộc
+  level2:
+  - Xác định người sử dụng, mục tiêu và vấn đề cần giải quyết
+  - Phân biệt yêu cầu chức năng với yêu cầu chất lượng
+  - Làm rõ quy tắc nghiệp vụ và những điều không được vi phạm
+  - Nhận diện giới hạn về thời gian, chi phí, nền tảng và đội ngũ
+  - Phân biệt điều đã biết, giả định và điều còn chưa chắc chắn
+  - Xác định các dạng thay đổi có khả năng xảy ra
+  - Mô tả tình huống sử dụng và tình huống lỗi đại diện
+  - Chuyển yêu cầu mơ hồ thành tiêu chí có thể kiểm chứng
+  - Giới hạn phạm vi thiết kế và xác định phần chưa cần giải quyết
+  - Tránh chọn giải pháp kỹ thuật trước khi hiểu bài toán
+- level1: Mô hình và ngôn ngữ
+  level2:
+  - Mô hình hóa là gì và vì sao mô hình luôn có giới hạn
+  - Chọn khái niệm phản ánh bài toán thay vì chỉ phản ánh công nghệ
+  - Thống nhất tên gọi và ý nghĩa nghiệp vụ trong mã
+  - Phân biệt thực thể có danh tính với giá trị dùng để mô tả
+  - Nhận diện hành vi, trạng thái và quan hệ giữa các khái niệm
+  - Diễn đạt điều kiện bất biến của một khái niệm
+  - Phân biệt mô hình nghiệp vụ với mô hình lưu trữ và truyền dữ liệu
+  - Sử dụng ví dụ cụ thể để kiểm tra tính đúng của mô hình
+  - Đánh giá mức chi tiết vừa đủ cho quyết định đang thực hiện
+  - Cập nhật mô hình khi xuất hiện bằng chứng và yêu cầu mới
+- level1: Trách nhiệm
+  level2:
+  - Trách nhiệm của một thành phần là gì
+  - Phân biệt trách nhiệm với danh sách hàm đang có
+  - Xác định ai sở hữu dữ liệu và ai thực thi quy tắc
+  - Gán hành vi cho nơi có đủ thông tin để thực hiện
+  - Nhận diện các lý do thay đổi của một thành phần
+  - Tách quyết định nghiệp vụ khỏi điều phối và tương tác hạ tầng
+  - Cân bằng trách nhiệm giữa nhiều đối tượng cùng cộng tác
+  - Tránh thành phần biết quá nhiều hoặc làm quá nhiều việc
+  - Đánh giá trách nhiệm qua một yêu cầu thay đổi cụ thể
+  - Làm rõ trách nhiệm bằng tên và giao diện
+- level1: Phân tách mối quan tâm
+  level2:
+  - Phân tách mối quan tâm (Separation of Concerns) là gì
+  - Nhận diện các vấn đề đang bị trộn trong cùng một luồng mã
+  - Tách trình bày, nghiệp vụ, truy cập dữ liệu và tích hợp bên ngoài
+  - Phân biệt điều cần làm với cơ chế thực hiện
+  - Đặt bước kiểm tra dữ liệu và quy tắc tại ranh giới phù hợp
+  - Xử lý ghi nhật ký, phân quyền và giao dịch xuyên nhiều thành phần
+  - Giữ các mối quan tâm độc lập khi thay đổi cấu hình hoặc công nghệ
+  - Nhận diện các phần buộc phải phối hợp thay vì tách máy móc
+  - Tránh chia quá nhiều tầng chỉ để tạo cảm giác có cấu trúc
+  - Kiểm chứng sự phân tách bằng phạm vi ảnh hưởng của thay đổi
+- level1: Mô đun hóa
+  level2:
+  - Mô đun là gì và cung cấp ranh giới nào
+  - Tổ chức các thành phần thay đổi cùng nhau trong cùng ranh giới
+  - Xác định giao diện công khai và chi tiết nội bộ
+  - Thiết kế quyền truy cập để giữ ranh giới mô đun
+  - Định nghĩa chiều phụ thuộc giữa các mô đun
+  - Giảm số giả định mà một mô đun đặt lên mô đun khác
+  - Tách mô đun theo khả năng nghiệp vụ và nhu cầu thực tế
+  - Phân biệt mô đun logic với đơn vị đóng gói và triển khai
+  - Nhận diện ranh giới giả khi hai mô đun luôn phải sửa cùng nhau
+  - Cân bằng lợi ích cô lập với chi phí phối hợp giữa mô đun
+- level1: Tính gắn kết
+  level2:
+  - Tính gắn kết (cohesion) là gì và vì sao cần quan tâm
+  - Nhận diện dữ liệu và hành vi phục vụ cùng một mục đích
+  - Đánh giá tính gắn kết theo chức năng và lý do thay đổi
+  - Phân biệt ở gần nhau trong tệp với có liên hệ về ý nghĩa
+  - Nhận diện lớp, hàm và mô đun chứa nhiều nhóm việc rời rạc
+  - Cải thiện tính gắn kết bằng cách gom và tách trách nhiệm
+  - Tránh gom mọi chức năng tiện ích vào một thành phần dùng chung
+  - Đánh giá tính gắn kết bằng luồng đọc và lịch sử thay đổi
+  - Cân bằng tính gắn kết với kích thước và khả năng sử dụng thành phần
+- level1: Mức phụ thuộc
+  level2:
+  - Mức phụ thuộc (coupling) là gì và xuất hiện ở những đâu
+  - Phụ thuộc qua lời gọi, dữ liệu, kiểu và trạng thái dùng chung
+  - Phụ thuộc ngầm qua thời gian, thứ tự gọi và cấu hình
+  - Phân biệt phụ thuộc cần thiết với hiểu biết nội bộ không cần thiết
+  - Tác động của phụ thuộc đến phạm vi thay đổi và kiểm thử
+  - Nhận diện chuỗi phụ thuộc dài và vòng phụ thuộc
+  - Giảm phụ thuộc bằng giao diện, đóng gói và dữ liệu rõ nghĩa
+  - Đánh giá phụ thuộc ở lúc biên dịch và lúc thực thi
+  - Giảm phụ thuộc về dữ liệu mà vẫn giữ đúng ngữ nghĩa
+  - Tránh thêm lớp chuyển tiếp mà không làm giảm phụ thuộc thực tế
+  - Cân bằng mức phụ thuộc thấp với khả năng hiểu toàn bộ luồng xử lý
+- level1: Trừu tượng hóa
+  level2:
+  - Trừu tượng hóa (abstraction) là gì và giữ lại thông tin nào
+  - Chọn mức trừu tượng phù hợp với người sử dụng
+  - Đặt tên theo ý định và khái niệm thay vì chi tiết máy móc
+  - Giữ cùng một mức trừu tượng trong một luồng trình bày
+  - Phân biệt giao diện trừu tượng với từ khóa interface
+  - Nhận diện chi tiết triển khai bị rò rỉ qua ranh giới
+  - Xây dựng trừu tượng từ các trường hợp cụ thể đã hiểu
+  - Đánh giá điểm chung thực sự và khác biệt cần giữ
+  - Nhận diện trừu tượng sai khiến mỗi trường hợp cần nhiều ngoại lệ
+  - Giới hạn số tầng gián tiếp để người đọc vẫn theo được hành vi
+  - Chấp nhận sửa hoặc bỏ trừu tượng khi mô hình không còn phù hợp
+- level1: Đóng gói thông tin
+  level2:
+  - Đóng gói (encapsulation) là gì và bảo vệ điều gì
+  - Che giấu quyết định dễ thay đổi (information hiding)
+  - Phân biệt đặt dữ liệu private với bảo vệ điều kiện bất biến
+  - Cung cấp hành vi có ý nghĩa thay vì để bên gọi tự sửa dữ liệu
+  - Kiểm soát khả năng thay đổi tập hợp và đối tượng bên trong
+  - Hạn chế lộ cấu trúc lưu trữ qua giá trị trả về
+  - Bảo vệ trạng thái hợp lệ từ lúc khởi tạo đến khi kết thúc
+  - Cho phép thay cách triển khai mà giảm ảnh hưởng bên sử dụng
+  - Đánh giá chi phí của đóng gói quá mức hoặc giao diện quá lớn
+- level1: Giao diện và hợp đồng
+  level2:
+  - Giao diện là điểm cam kết giữa bên cung cấp và bên sử dụng
+  - Mô tả đầu vào, đầu ra, lỗi và tác dụng phụ có thể quan sát
+  - Diễn đạt điều kiện trước, điều kiện sau và điều kiện bất biến
+  - Thiết kế thao tác theo mục đích của bên sử dụng
+  - Giảm các lời gọi phải thực hiện theo một thứ tự ngầm
+  - Giữ hành vi nhất quán và ít gây bất ngờ
+  - Phân biệt hợp đồng được công bố với chi tiết ngẫu nhiên hiện tại
+  - Thiết kế giá trị vắng mặt, giá trị mặc định và kết quả thất bại
+  - Giới hạn bề mặt công khai để giảm cam kết lâu dài
+  - Bảo toàn khả năng thay thế giữa các cách triển khai
+  - Quản lý thay đổi hợp đồng và tương thích với bên sử dụng
+- level1: Hướng phụ thuộc
+  level2:
+  - Phân biệt chính sách nghiệp vụ với cơ chế kỹ thuật
+  - Chọn chiều phụ thuộc để bảo vệ phần cần ổn định
+  - Phụ thuộc vào hợp đồng phù hợp thay vì chi tiết dễ đổi
+  - Đặt ranh giới trừu tượng theo nhu cầu của bên sử dụng
+  - Phân biệt luồng gọi lúc chạy với hướng phụ thuộc mã nguồn
+  - Hiểu quan hệ giữa đảo ngược phụ thuộc, đảo ngược điều khiển và tiêm phụ thuộc
+  - Tách việc tạo thành phần khỏi việc sử dụng thành phần
+  - Bao bọc thư viện và dịch vụ ngoài tại ranh giới phù hợp
+  - Nhận diện khi thêm giao diện không đem lại khả năng cô lập
+  - Đánh giá hướng phụ thuộc qua tình huống đổi công nghệ
+- level1: SOLID
+  level2:
+  - SOLID gồm những nguyên lý nào và giải quyết nhóm vấn đề nào
+  - Trách nhiệm đơn nhất (SRP) gắn với lý do thay đổi
+  - Đóng mở (OCP) hướng tới mở rộng tại những điểm biến đổi phù hợp
+  - Thay thế Liskov (LSP) dựa trên hợp đồng hành vi của kiểu
+  - Phân tách giao diện (ISP) theo nhu cầu của bên sử dụng
+  - Đảo ngược phụ thuộc (DIP) để bảo vệ chính sách quan trọng
+  - Mối liên hệ giữa năm nguyên lý và các khái niệm nền tảng
+  - Nhận diện tình huống cần ưu tiên từng nguyên lý
+  - Đánh giá SOLID ở mức hàm, đối tượng và mô đun
+  - Hiểu mở rộng có chọn lọc thay vì dự đoán mọi thay đổi
+  - Tránh chia lớp, giao diện và hệ phân cấp chỉ để đạt hình thức
+  - Giới hạn của SOLID khi đánh giá toàn bộ chất lượng thiết kế
+- level1: Tránh lặp tri thức
+  level2:
+  - Nguyên lý không lặp lại tri thức (DRY) là gì
+  - Phân biệt lặp câu lệnh với lặp một quyết định nghiệp vụ
+  - Nhận diện nhiều nguồn sự thật cho cùng một quy tắc
+  - Tập trung quy tắc ở nơi có trách nhiệm sở hữu rõ ràng
+  - Phân biệt điểm chung thực sự với sự giống nhau tình cờ
+  - Đánh giá nguy cơ gom chung các phần có lý do thay đổi khác nhau
+  - Chấp nhận lặp tạm thời để hiểu đúng ranh giới trừu tượng
+  - Giảm trùng lặp giữa mã, cấu hình và hợp đồng dữ liệu
+  - Cân bằng tái sử dụng với tính độc lập và khả năng hiểu mã
+- level1: Đơn giản và nhu cầu
+  level2:
+  - Nguyên lý giữ thiết kế đơn giản (KISS) nhằm giảm chi phí nào
+  - Phân biệt ít dòng mã với dễ đọc và dễ sửa
+  - Giới hạn độ phức tạp không phục vụ bài toán hiện tại
+  - Nguyên lý chưa cần thì chưa làm (YAGNI) và phạm vi áp dụng
+  - Phân biệt chuẩn bị điểm mở rộng với xây sẵn tính năng chưa có nhu cầu
+  - Đánh giá chi phí duy trì của cấu hình và khả năng tùy biến
+  - Chọn cách diễn đạt trực tiếp khi chưa cần nhiều tầng trừu tượng
+  - Không lược bỏ kiểm tra đúng đắn và yêu cầu chất lượng cần thiết
+  - Nhận diện tổng quát hóa sớm và tối ưu hóa theo phỏng đoán
+  - Giữ khả năng thay đổi bằng ranh giới rõ thay vì dự đoán tương lai
+  - Cân bằng tốc độ hiện tại với chi phí sửa đổi về sau
+- level1: Giới hạn hiểu biết
+  level2:
+  - Nguyên lý ít hiểu biết nhất và luật Demeter là gì
+  - Nhận diện đối tượng biết quá sâu về cấu trúc của đối tượng khác
+  - Đánh giá chuỗi truy cập theo mức phụ thuộc thay vì số dấu chấm
+  - Yêu cầu đối tượng thực hiện hành vi phù hợp thay vì tự sửa nội bộ
+  - Quan hệ giữa Tell Don't Ask và nơi sở hữu quy tắc
+  - Phân biệt truy vấn dữ liệu hợp lệ với đẩy trách nhiệm ra bên gọi
+  - Dùng hành vi có ý nghĩa để giảm điều phối chi tiết bên ngoài
+  - Tránh lớp chuyển tiếp tràn lan chỉ để che chuỗi lời gọi
+  - Cân bằng khả năng che giấu thông tin với giao diện rõ ràng
+- level1: Kết hợp và kế thừa
+  level2:
+  - Phân biệt quan hệ thuộc về, sử dụng và là một kiểu
+  - Kết hợp đối tượng và ủy quyền hoạt động như thế nào
+  - Kế thừa giao diện và kế thừa triển khai khác nhau ở đâu
+  - Đánh giá khả năng thay thế trước khi xây dựng hệ phân cấp
+  - Ưu tiên kết hợp khi hành vi cần thay đổi độc lập
+  - Nhận diện phụ thuộc vào chi tiết lớp cha
+  - Giữ điều kiện bất biến khi mở rộng hành vi ở lớp con
+  - Tránh dùng kế thừa chỉ để lấy lại một đoạn mã
+  - Chọn kế thừa khi quan hệ kiểu và hợp đồng thực sự phù hợp
+  - Cân bằng số đối tượng cộng tác với khả năng theo dõi luồng xử lý
+- level1: Dữ liệu và trạng thái
+  level2:
+  - Phân biệt giá trị, danh tính và trạng thái của thành phần
+  - Biểu diễn dữ liệu để hạn chế trạng thái không hợp lệ
+  - Đặt quy tắc kiểm tra tại nơi sở hữu dữ liệu
+  - Thu hẹp phạm vi và vòng đời của trạng thái có thể thay đổi
+  - Sử dụng bất biến để giảm số điều cần suy luận
+  - Phân biệt sao chép giá trị với chia sẻ cùng một đối tượng
+  - Nhận diện rủi ro từ trạng thái toàn cục và phụ thuộc ẩn
+  - Giữ tính nhất quán khi nhiều dữ liệu phải thay đổi cùng nhau
+  - Chọn kiểu dữ liệu biểu đạt đơn vị đo và ý nghĩa nghiệp vụ
+  - Đánh giá tác động của trạng thái chia sẻ đến thực thi đồng thời
+  - Cân bằng mô hình dữ liệu rõ nghĩa với chi phí biểu diễn
+- level1: Tác dụng phụ và lỗi
+  level2:
+  - Phân biệt tính toán thuần với thao tác tác động môi trường ngoài
+  - Tách quyết định nghiệp vụ khỏi truy cập mạng, tệp và cơ sở dữ liệu
+  - Làm rõ các phụ thuộc vào thời gian, cấu hình và số ngẫu nhiên
+  - Phân biệt truy vấn với lệnh làm thay đổi trạng thái
+  - Thiết kế cách báo lỗi nhất quán tại từng ranh giới
+  - Phân biệt lỗi đầu vào, lỗi nghiệp vụ và lỗi hạ tầng
+  - Bảo toàn nguyên nhân lỗi và tránh biến lỗi thành thành công giả
+  - Kiểm soát quyền sở hữu và vòng đời tài nguyên
+  - Giữ thứ tự tác dụng phụ khi thứ tự có ý nghĩa
+  - Xác định hành vi khi một chuỗi thao tác chỉ hoàn thành một phần
+  - Đưa tính lũy đẳng và khả năng thử lại vào hợp đồng khi cần
+- level1: Phong cách thiết kế
+  level2:
+  - Tổ chức lời giải theo quy trình và các bước xử lý
+  - Tổ chức lời giải theo đối tượng mang dữ liệu và hành vi
+  - Tổ chức lời giải theo hàm thuần và phép biến đổi dữ liệu
+  - Áp dụng gắn kết, đóng gói và mô đun hóa trong các phong cách khác nhau
+  - Chọn phong cách theo bản chất bài toán và khả năng của nhóm
+  - Kết hợp nhiều phong cách với ranh giới nhất quán
+  - Nhận diện mã hướng thủ tục nằm trong nhiều lớp hình thức
+  - Nhận diện trừu tượng hóa hướng đối tượng làm phức tạp phép tính đơn giản
+  - Đánh giá phong cách qua khả năng đọc, kiểm thử và thay đổi
+- level1: Cấu trúc mã
+  level2:
+  - Ánh xạ ranh giới thiết kế vào hàm, lớp, package và mô đun
+  - Tổ chức mã theo khả năng nghiệp vụ hoặc tầng kỹ thuật
+  - Tách phần cốt lõi khỏi chi tiết giao diện và hạ tầng
+  - Quản lý thành phần dùng chung để tránh phụ thuộc lan rộng
+  - Giữ tên, cấu trúc thư mục và trách nhiệm nhất quán
+  - Phân biệt ranh giới mã nguồn với ranh giới triển khai
+  - Kiểm tra vòng phụ thuộc và quyền truy cập không cần thiết
+  - Giữ cấu trúc dễ khám phá cho người mới tham gia
+  - Nhận diện khi một ứng dụng cần mô đun rõ thay vì thêm dịch vụ độc lập
+- level1: Thay đổi và tiến hóa
+  level2:
+  - Thiết kế tiến hóa qua các vòng học hỏi và phản hồi
+  - Nhận diện phần ổn định và phần thường xuyên thay đổi
+  - Cô lập quyết định dễ đổi sau một ranh giới phù hợp
+  - Đánh giá mức lan truyền của một yêu cầu mới
+  - Phân biệt thay đổi dễ đảo ngược với quyết định khó thay thế
+  - Vai trò của refactoring trong duy trì cấu trúc
+  - Giữ hành vi khi thay cấu trúc và tách nhiệm vụ đổi yêu cầu
+  - Sử dụng lớp chuyển tiếp khi cần bảo vệ bên sử dụng hiện hữu
+  - Quản lý nợ kỹ thuật có chủ đích và nợ phát sinh ngoài dự kiến
+  - Xác định thời điểm sửa thiết kế từ chi phí thay đổi thực tế
+  - Tránh thiết kế hoàn chỉnh mọi khả năng ngay từ đầu
+- level1: Kiểm thử và phản hồi
+  level2:
+  - Khả năng kiểm thử phản ánh những đặc điểm thiết kế nào
+  - Kiểm tra hành vi qua giao diện công khai phù hợp
+  - Sử dụng ví dụ và trường hợp biên để làm rõ hợp đồng
+  - Kiểm thử đơn vị cho logic độc lập với môi trường
+  - Kiểm thử tích hợp tại ranh giới có phụ thuộc thực
+  - Kiểm thử hợp đồng để bảo vệ các bên sử dụng
+  - Cô lập thời gian, ngẫu nhiên và tương tác ngoài trong kiểm thử
+  - Nhận diện kiểm thử khó viết do trách nhiệm hoặc phụ thuộc chưa rõ
+  - Tránh sửa thiết kế chỉ để làm hài lòng một kỹ thuật mock
+  - Giữ kiểm thử ổn định khi chi tiết triển khai thay đổi
+  - Kết hợp kiểm thử với rà soát mã và quan sát hệ thống
+- level1: Thuộc tính chất lượng
+  level2:
+  - Khả năng đọc hiểu và chi phí xây dựng mô hình trong đầu
+  - Khả năng bảo trì và thời gian thực hiện thay đổi
+  - Tính đúng đắn và khả năng bảo vệ điều kiện bất biến
+  - Khả năng mở rộng năng lực xử lý và mở rộng chức năng
+  - Hiệu năng, sử dụng bộ nhớ và chi phí của tầng trừu tượng
+  - Độ tin cậy và khả năng giới hạn tác động khi lỗi xảy ra
+  - An toàn thông tin qua ranh giới tin cậy và quyền truy cập tối thiểu
+  - Khả năng quan sát qua thông tin lỗi, nhật ký và số đo phù hợp
+  - Khả năng sử dụng lại trong những bối cảnh có ý nghĩa
+  - Khả năng chuyển đổi nền tảng và thay thế phụ thuộc
+  - Diễn đạt yêu cầu chất lượng bằng tình huống có thể kiểm chứng
+- level1: Quyết định và đánh đổi
+  level2:
+  - So sánh các phương án dựa trên mục tiêu và ràng buộc cụ thể
+  - Cân bằng tính gắn kết với mức phụ thuộc
+  - Cân bằng tái sử dụng với quyền thay đổi độc lập
+  - Cân bằng linh hoạt với đơn giản và chi phí vận hành
+  - Cân bằng khả năng che giấu thông tin với nhu cầu cung cấp dữ liệu
+  - Chọn mức đầu tư thiết kế phù hợp vòng đời phần mềm
+  - Nhận diện nguyên lý có thể dẫn tới các hướng giải quyết khác nhau
+  - Dùng bản mẫu và thử nghiệm nhỏ để giảm điều chưa chắc chắn
+  - Ghi lại bối cảnh, phương án và lý do chọn quyết định
+  - Đặt điều kiện xem xét lại khi giả định ban đầu thay đổi
+  - Đánh giá chi phí toàn vòng đời thay vì chỉ chi phí viết mã
+- level1: Dấu hiệu rủi ro
+  level2:
+  - Một thay đổi nhỏ buộc sửa nhiều thành phần không liên quan
+  - Một thành phần có nhiều lý do thay đổi độc lập
+  - Quy tắc nghiệp vụ bị rải ở giao diện, dịch vụ và lưu trữ
+  - Giao diện lớn khiến bên sử dụng biết nhiều hơn mức cần thiết
+  - Nhiều cờ cấu hình và ngoại lệ cho thấy trừu tượng chưa phù hợp
+  - Chuỗi gọi sâu và trạng thái dùng chung gây phụ thuộc ngầm
+  - Mã trùng lặp chứa nhiều bản sao của cùng một quyết định
+  - Lớp trung gian, hệ phân cấp và mẫu thiết kế không có lợi ích rõ
+  - Kiểm thử dễ vỡ khi chỉ thay cách tổ chức nội bộ
+  - Phân biệt dấu hiệu cần điều tra với bằng chứng phải thiết kế lại
+- level1: Đánh giá thiết kế
+  level2:
+  - Bắt đầu rà soát từ mục tiêu, tình huống sử dụng và rủi ro
+  - Yêu cầu giải thích trách nhiệm và hợp đồng của từng thành phần
+  - Vẽ sơ đồ phụ thuộc để kiểm tra ranh giới và vòng lặp
+  - Thử một yêu cầu thay đổi để đánh giá khả năng cô lập
+  - Đi qua đường thành công, đường lỗi và trạng thái không hợp lệ
+  - Sử dụng ví dụ mã nhỏ để so sánh các phương án
+  - Diễn giải số đo độ phức tạp và độ phủ theo đúng giới hạn
+  - Đánh giá qua lịch sử thay đổi và trải nghiệm của người bảo trì
+  - Phân biệt vấn đề có tác động với khác biệt sở thích cá nhân
+  - Ưu tiên cải tiến theo lợi ích, rủi ro và phạm vi ảnh hưởng
+  - Xác nhận cải tiến bằng bằng chứng thay vì số lớp hoặc số dòng mã
+- level1: Tình huống minh họa
+  level2:
+  - Thiết kế tính giá với các quy tắc thay đổi theo nghiệp vụ
+  - Tách xử lý đơn hàng khỏi gửi thông báo và lưu dữ liệu
+  - Cô lập nhà cung cấp thanh toán phía sau hợp đồng cần thiết
+  - Thiết kế báo cáo có nhiều định dạng xuất nhưng giữ logic chung
+  - Biểu diễn tiền tệ và đơn vị đo để tránh dữ liệu hợp lệ về kiểu nhưng sai nghĩa
+  - Giới hạn phụ thuộc trong luồng đọc dữ liệu người dùng
+  - Chọn giữa cấu trúc đơn giản và điểm mở rộng khi mới có một trường hợp
+  - So sánh giải pháp dùng kết hợp và kế thừa cho cùng một yêu cầu
+  - Xử lý yêu cầu thay đổi mà không làm lan chi tiết công nghệ
+  - Phân tích phương án chưa tốt và giải thích cải tiến theo nguyên lý
+- level1: Bài thực hành
+  level2:
+  - Phân tích yêu cầu và ghi lại giả định của một bài toán nhỏ
+  - Lập danh sách khái niệm, trách nhiệm và điều kiện bất biến
+  - Thiết kế giao diện thể hiện rõ đầu vào, đầu ra và lỗi
+  - Tổ chức một lời giải ban đầu với số thành phần vừa đủ
+  - Tìm vấn đề về gắn kết, phụ thuộc và lộ chi tiết nội bộ
+  - Áp dụng có chọn lọc SOLID vào một tình huống thay đổi cụ thể
+  - Đánh giá một đoạn mã lặp trước khi quyết định gom chung
+  - Loại bỏ khả năng tổng quát chưa có nhu cầu
+  - Cô lập tương tác bên ngoài và viết kiểm thử bảo vệ hành vi
+  - So sánh hai phương án bằng tiêu chí chất lượng và chi phí
+  - Thực hiện một thay đổi nhỏ rồi kiểm tra phạm vi ảnh hưởng
+  - Rà soát thiết kế với người khác và phản hồi bằng bằng chứng
+  - Ghi lại quyết định, giới hạn và điều kiện cần xem xét lại

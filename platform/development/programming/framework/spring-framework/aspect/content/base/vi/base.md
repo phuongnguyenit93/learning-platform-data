@@ -1,7 +1,0 @@
-# Aspect trong Spring Framework (Spring AOP)
-
-Trong Spring Framework, aspect được áp dụng chủ yếu thông qua proxy bao quanh bean do container quản lý, cho phép bổ sung hành vi vào các lời gọi phương thức phù hợp. Trọng tâm của module là cách Spring AOP vận hành trong `ApplicationContext`, không trình bày lại lý thuyết AOP tổng quát. Vì lời gọi phải đi qua proxy, người học cần hiểu khác biệt giữa proxy dựa trên JDK và CGLIB, cũng như các giới hạn với tự gọi phương thức nội bộ hoặc phương thức không thể được can thiệp.
-
-Tài liệu dành cho người đã nắm Java, Spring Core Container và các khái niệm AOP nền tảng. Lộ trình bắt đầu từ proxy trong Spring, cách đăng ký `@Aspect` và kích hoạt `@EnableAspectJAutoProxy`, sau đó chọn phương thức bằng pointcut, triển khai advice và điều khiển `ProceedingJoinPoint.proceed()`. Các mốc tiếp theo tập trung vào thứ tự nhiều aspect, an toàn trạng thái dùng chung, API như `ProxyFactory`, `Advisor` và `MethodInterceptor`, cùng việc phối hợp Spring AOP với transaction, async và cache.
-
-Sau khi hoàn thành, bạn có thể cấu hình và kiểm thử một aspect trên bean Spring, giải thích vì sao advice được kích hoạt hoặc bị bỏ qua, kiểm soát thứ tự bằng `@Order` và giữ đúng kết quả hoặc ngoại lệ của phương thức đích. Bạn cũng sẽ biết đối chiếu cơ chế proxy với nhu cầu tích hợp AspectJ trong Spring khi cần, và dùng kiểm thử qua `ApplicationContext` để chẩn đoán lỗi cấu hình, biểu thức pointcut hoặc đường gọi không đi qua proxy.

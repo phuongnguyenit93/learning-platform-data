@@ -1,0 +1,57 @@
+roadmap:
+- id: externalized-configuration
+  title: Externalized Configuration
+  purpose: Tách cấu hình khỏi mã nguồn và quản lý giá trị theo ứng dụng, môi trường triển khai.
+  objectives:
+  - Giải thích Environment, PropertySource và externalized configuration
+  - Phân biệt cấu hình chung với cấu hình theo môi trường
+  - Nhận diện tác động của property precedence
+- id: config-server-http-api
+  title: Config Server & HTTP API
+  purpose: Thiết lập một điểm cung cấp cấu hình tập trung cho nhiều dịch vụ qua API chuẩn.
+  objectives:
+  - Tạo ứng dụng với @EnableConfigServer
+  - Khởi chạy Config Server và cấu hình backend
+  - Truy vấn endpoint /{application}/{profile}/{label}
+- id: git-backend-profiles
+  title: Git Backend & Profiles
+  purpose: Phiên bản hóa cấu hình và phân phối đúng giá trị cho ứng dụng, profile và phiên bản phát hành.
+  objectives:
+  - Cấu hình spring.cloud.config.server.git.uri
+  - Tổ chức application.yml và file theo app/profile
+  - Dùng branch, tag hoặc commit làm config label
+- id: config-client-import
+  title: Config Client & Import
+  purpose: Kết nối ứng dụng Spring Boot đến cấu hình từ xa và kiểm soát hành vi khi nguồn không sẵn sàng.
+  objectives:
+  - 'Cấu hình spring.config.import=configserver:'
+  - Đặt spring.application.name, profile và URL server
+  - Phân biệt optional, fail-fast và retry khi khởi động
+- id: bao-mat-secrets
+  title: Bảo mật & Secrets
+  purpose: Bảo vệ bí mật và ngăn dịch vụ đọc cấu hình vượt thẩm quyền.
+  objectives:
+  - Bật HTTPS, authentication và phân quyền theo application
+  - Hiểu {cipher}, /encrypt và quản lý khóa bí mật
+  - Tránh ghi token hoặc secret vào Git và log
+- id: refreshscope-cloud-bus
+  title: RefreshScope & Cloud Bus
+  purpose: Áp dụng thay đổi cấu hình có kiểm soát mà không mặc định mọi bean tự cập nhật tại runtime.
+  objectives:
+  - Phân biệt rebind @ConfigurationProperties và @RefreshScope
+  - Dùng Actuator /refresh với giới hạn truy cập
+  - Mô tả webhook /monitor và Spring Cloud Bus
+- id: high-availability-health
+  title: High Availability & Health
+  purpose: Duy trì khả năng lấy cấu hình và phát hiện lỗi backend khi triển khai nhiều instance.
+  objectives:
+  - Kiểm tra health indicator của Config Server
+  - Đánh giá Git cache, cloneOnStart và backend outage
+  - Lập phương án HA và fallback theo mức độ quan trọng
+- id: kiem-thu-quan-tri-thay-doi
+  title: Kiểm thử & Quản trị thay đổi
+  purpose: Đảm bảo cấu hình đúng theo môi trường, có thể kiểm toán và khôi phục khi thay đổi sai.
+  objectives:
+  - Kiểm tra kết quả endpoint theo app, profile và label
+  - Thử sai credential, thiếu cấu hình và refresh thất bại
+  - Review Git changes, quản lý release label và rollback

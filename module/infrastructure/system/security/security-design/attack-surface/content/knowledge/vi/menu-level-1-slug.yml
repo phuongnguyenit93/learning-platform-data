@@ -1,0 +1,109 @@
+menu:
+- title: Khái niệm attack surface
+  slug: attack-surface-overview
+  index: 0
+- title: Phạm vi và ranh giới
+  slug: scope-boundaries
+  index: 1
+- title: Tài sản và chủ sở hữu
+  slug: asset-ownership
+  index: 2
+- title: Attack surface inventory
+  slug: attack-surface-inventory
+  index: 3
+- title: Discovery có kiểm soát
+  slug: controlled-discovery
+  index: 4
+- title: Web attack surface
+  slug: web-attack-surface
+  index: 5
+- title: API attack surface
+  slug: api-attack-surface
+  index: 6
+- title: Identity attack surface
+  slug: identity-attack-surface
+  index: 7
+- title: Session và token
+  slug: session-token
+  index: 8
+- title: Input attack surface
+  slug: input-attack-surface
+  index: 9
+- title: Injection surface
+  slug: injection-surface
+  index: 10
+- title: Output và browser surface
+  slug: output-browser-surface
+  index: 11
+- title: File và resource surface
+  slug: file-resource-surface
+  index: 12
+- title: Network attack surface
+  slug: network-attack-surface
+  index: 13
+- title: Cloud attack surface
+  slug: cloud-attack-surface
+  index: 14
+- title: Container và Kubernetes
+  slug: containers-kubernetes
+  index: 15
+- title: Data store surface
+  slug: data-store-surface
+  index: 16
+- title: Message và integration surface
+  slug: message-integration-surface
+  index: 17
+- title: Admin và operations surface
+  slug: admin-operations-surface
+  index: 18
+- title: Development và CI/CD
+  slug: development-ci-cd
+  index: 19
+- title: Supply chain surface
+  slug: supply-chain-surface
+  index: 20
+- title: Configuration surface
+  slug: configuration-surface
+  index: 21
+- title: Access control surface
+  slug: access-control-surface
+  index: 22
+- title: Data flow và trust
+  slug: data-flows-trust
+  index: 23
+- title: Attack path
+  slug: attack-path
+  index: 24
+- title: Common weakness mapping
+  slug: common-weakness-mapping
+  index: 25
+- title: Attack surface reduction
+  slug: attack-surface-reduction
+  index: 26
+- title: Hardening controls
+  slug: hardening-controls
+  index: 27
+- title: Validation và testing
+  slug: validation-testing
+  index: 28
+- title: Monitoring attack surface
+  slug: monitoring-attack-surface
+  index: 29
+- title: Vulnerability management
+  slug: vulnerability-management
+  index: 30
+- title: Change và lifecycle
+  slug: change-lifecycle
+  index: 31
+- title: Incident response
+  slug: incident-response
+  index: 32
+- title: Verification framework
+  slug: verification-framework
+  index: 33
+- title: Thiết kế case study
+  slug: case-study-design
+  index: 34
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 35

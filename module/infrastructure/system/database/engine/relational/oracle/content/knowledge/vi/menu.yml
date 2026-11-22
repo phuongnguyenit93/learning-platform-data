@@ -1,0 +1,689 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Oracle Database là gì và vai trò trong hệ thống ứng dụng
+  - Bài toán lưu trữ quan hệ, tính toàn vẹn và xử lý giao dịch
+  - Phân biệt Oracle Database, SQL, PL/SQL và ứng dụng Java
+  - 'Bản đồ thuật ngữ: database, instance, service, schema, CDB và PDB'
+  - Luồng từ yêu cầu ứng dụng đến câu lệnh SQL và dữ liệu trên đĩa
+  - Phân biệt tải giao dịch OLTP, phân tích OLAP và tải hỗn hợp
+  - Vai trò và ranh giới công việc của lập trình viên, DBA và người vận hành
+  - Phiên bản, bản phát hành, Release Update và tham số COMPATIBLE
+  - Đối chiếu edition, tính năng, option và management pack trước khi sử dụng
+  - Trình tự học từ môi trường thực hành đến ứng dụng và vận hành
+- level1: Môi trường thực hành
+  level2:
+  - Chọn bản Oracle phù hợp với bài thực hành và giới hạn tài nguyên
+  - Chuẩn bị máy ảo hoặc container, bộ nhớ, dung lượng và cổng mạng
+  - Cài đặt và khởi tạo database bằng công cụ phù hợp với bản Oracle
+  - Cấu trúc thư mục ORACLE_HOME, ORACLE_BASE và vùng dữ liệu
+  - Cấu hình biến môi trường ORACLE_SID, PATH và TNS_ADMIN
+  - Tạo PDB, tài khoản thực hành, tablespace và hạn mức lưu trữ
+  - Thiết kế bộ dữ liệu mẫu có quan hệ, dữ liệu NULL và dữ liệu biên
+  - Lưu dữ liệu bền vững, sao lưu cấu hình và tái tạo môi trường
+  - Kiểm tra phiên bản, trạng thái database, PDB và listener
+  - Tách môi trường phát triển, kiểm thử và vận hành
+- level1: Công cụ và kết nối
+  level2:
+  - Thực hiện câu lệnh và script bằng SQL*Plus, SQLcl và SQL Developer
+  - Phân biệt kết nối cục bộ, kết nối mạng và xác thực hệ điều hành
+  - Listener, đăng ký dịch vụ và luồng thiết lập kết nối Oracle Net
+  - Phân biệt SID, SERVICE_NAME và tên kết nối TNS
+  - Cú pháp Easy Connect và connect descriptor
+  - Cấu hình tnsnames.ora, sqlnet.ora và listener.ora
+  - 'Kiểm tra kết nối theo từng lớp: DNS, TCP, listener và database service'
+  - Quản lý biến bind, biến thay thế và dấu kết thúc SQL/PLSQL trong script
+  - Điều khiển autocommit, hiển thị kết quả và ghi nhật ký bằng SPOOL
+  - Bộ ký tự, mã hóa và tham số phiên khi kết nối từ công cụ
+  - Nguyên tắc cấu hình timeout, mã hóa đường truyền và quản lý mật khẩu
+  - Đọc mã lỗi ORA và phân biệt lỗi kết nối với lỗi xác thực
+- level1: Kiến trúc
+  level2:
+  - Phân biệt database vật lý, instance và các đối tượng logic
+  - Luồng parse, bind, execute và fetch của một câu lệnh SQL
+  - Tiến trình người dùng, server process và background process
+  - Dedicated server, shared server và mô hình phục vụ phiên
+  - 'Bộ nhớ SGA: buffer cache, shared pool, redo log buffer và các vùng bổ sung'
+  - Bộ nhớ PGA, vùng làm việc và xử lý sắp xếp hoặc băm
+  - DBWn, LGWR, CKPT, SMON, PMON và vai trò phối hợp
+  - Datafile, control file, online redo log và archived redo log
+  - SCN, checkpoint và quan hệ giữa redo, undo, dữ liệu đã commit
+  - Logical read, physical read, dirty buffer và cơ chế ghi dữ liệu
+  - Hard parse, soft parse, shared cursor và library cache
+  - Đọc kiến trúc từ các dynamic performance view phù hợp
+- level1: Lưu trữ
+  level2:
+  - Quan hệ giữa tablespace, datafile, segment, extent và data block
+  - Block header, row piece, row chaining và row migration
+  - Locally managed tablespace và tự động quản lý không gian segment
+  - Tablespace SYSTEM, SYSAUX, USERS, TEMP và UNDO
+  - Tạo tablespace, cấu hình autoextend và kiểm soát MAXSIZE
+  - Phân biệt smallfile, bigfile và Oracle Managed Files
+  - Phân bổ extent, high water mark và ảnh hưởng đến thao tác quét
+  - Giải phóng không gian bằng shrink, move và tổ chức lại segment
+  - Table compression, đánh đổi CPU/dung lượng và điều kiện tính năng/giấy phép
+  - Temporary segment, sort spill và quản lý dung lượng TEMP
+  - Undo segment, undo retention và nhu cầu đọc nhất quán
+  - Tổng quan ASM, disk group, redundancy và ranh giới với filesystem
+  - Theo dõi dung lượng, xu hướng tăng trưởng và cảnh báo đầy đĩa
+- level1: CDB và PDB
+  level2:
+  - Mô hình multitenant và quan hệ giữa CDB root, seed và PDB
+  - Container hiện tại, CON_ID và chuyển container đúng phạm vi
+  - Common user, local user, common role và local role
+  - Phạm vi tham số và metadata ở CDB so với PDB
+  - Tạo, mở, đóng PDB và lưu trạng thái mở
+  - Service của PDB và định tuyến kết nối ứng dụng
+  - Clone, plug, unplug và kiểm tra điều kiện tương thích PDB
+  - Phân quyền và giới hạn tài nguyên giữa các PDB
+  - Tra cứu CDB_*, DBA_*, ALL_* và USER_* trong môi trường multitenant
+  - Ranh giới sao lưu, phục hồi và bảo trì CDB/PDB
+- level1: Schema và metadata
+  level2:
+  - Quan hệ giữa user, schema và quyền sở hữu đối tượng
+  - Tên đối tượng, định danh có dấu ngoặc kép và phân biệt chữ hoa chữ thường
+  - Phân giải tên theo schema, CURRENT_SCHEMA và synonym
+  - Data dictionary, static dictionary view và dynamic performance view
+  - Phạm vi dữ liệu trong USER_*, ALL_* và DBA_*
+  - Tra cứu bảng, cột, ràng buộc, chỉ mục và thống kê
+  - Tra cứu mã PL/SQL, lỗi biên dịch và trạng thái INVALID
+  - Quan hệ phụ thuộc giữa đối tượng và cơ chế invalidation
+  - Trích xuất DDL bằng DBMS_METADATA
+  - Ghi chú bảng/cột và quy ước đặt tên phục vụ tài liệu hóa
+- level1: Kiểu dữ liệu
+  level2:
+  - Chọn kiểu dữ liệu theo miền giá trị, độ chính xác và nhu cầu truy vấn
+  - NUMBER, precision, scale và sai số khi chuyển sang số dấu phẩy động
+  - BINARY_FLOAT, BINARY_DOUBLE và những giá trị số đặc biệt
+  - CHAR, VARCHAR2, NCHAR và NVARCHAR2
+  - Ngữ nghĩa độ dài BYTE/CHAR và lưu trữ tiếng Việt
+  - Giới hạn kích thước chuỗi, MAX_STRING_SIZE và tương thích phiên bản
+  - DATE, TIMESTAMP và các kiểu dữ liệu có múi giờ
+  - INTERVAL YEAR TO MONTH và INTERVAL DAY TO SECOND
+  - RAW, ROWID, UROWID và cách sử dụng đúng mục đích
+  - CLOB, NCLOB, BLOB và BFILE
+  - NULL, chuỗi rỗng và logic ba giá trị trong Oracle
+  - Chuyển kiểu tường minh, chuyển kiểu ngầm định và lỗi mất dữ liệu
+  - Phân biệt BOOLEAN trong PL/SQL và SQL theo phiên bản hỗ trợ
+  - Kiểu dữ liệu người dùng, object type và collection type
+- level1: Ngày giờ và NLS
+  level2:
+  - NLS_DATABASE_PARAMETERS, NLS_INSTANCE_PARAMETERS và NLS_SESSION_PARAMETERS
+  - NLS_DATE_FORMAT, NLS_TIMESTAMP_FORMAT và nguy cơ phụ thuộc cấu hình phiên
+  - Literal ngày giờ và mẫu định dạng (format model) tường minh
+  - SYSDATE, SYSTIMESTAMP, CURRENT_DATE và CURRENT_TIMESTAMP
+  - SESSIONTIMEZONE, DBTIMEZONE và chuẩn hóa thời điểm giữa hệ thống
+  - TIMESTAMP WITH TIME ZONE và TIMESTAMP WITH LOCAL TIME ZONE
+  - Cộng trừ ngày giờ, khoảng thời gian và quy tắc cuối tháng
+  - Lọc theo khoảng thời gian nửa mở và tránh mất dữ liệu trong ngày
+  - Múi giờ mùa hè, vùng giờ và cập nhật timezone file
+  - NLS_NUMERIC_CHARACTERS, NLS_SORT và NLS_COMP khi xử lý dữ liệu
+  - Collation, so sánh tiếng Việt và lựa chọn quy tắc tìm kiếm
+- level1: Bảng và ràng buộc
+  level2:
+  - Chuyển miền dữ liệu và quan hệ nghiệp vụ thành bảng Oracle
+  - CREATE TABLE, giá trị DEFAULT và cột bắt buộc
+  - PRIMARY KEY, UNIQUE và quan hệ với chỉ mục
+  - FOREIGN KEY, quan hệ cha con và lựa chọn hành vi khi xóa
+  - CHECK, NOT NULL và giới hạn của kiểm tra dữ liệu khai báo
+  - NULL trong ràng buộc UNIQUE, CHECK và khóa ghép
+  - ENABLE, DISABLE, VALIDATE, NOVALIDATE và RELY
+  - DEFERRABLE và kiểm tra ràng buộc tại thời điểm commit
+  - 'ALTER TABLE: thêm, đổi, xóa cột và chuyển đổi dữ liệu'
+  - Cột ảo, cột identity và các chế độ sinh giá trị
+  - CREATE TABLE AS SELECT và những thuộc tính cần kiểm tra sau khi sao chép
+  - Phân biệt DELETE, TRUNCATE, DROP và PURGE
+  - Global/private temporary table, vòng đời dữ liệu và điều kiện phiên bản
+  - Index-organized table, external table và lựa chọn cấu trúc bảng
+- level1: SELECT cơ bản
+  level2:
+  - Cấu trúc SELECT và thứ tự xử lý logic các mệnh đề
+  - Chọn cột, biểu thức, bí danh và sử dụng DUAL
+  - WHERE, toán tử so sánh và kết hợp AND, OR, NOT
+  - IN, BETWEEN, LIKE và ký tự đại diện
+  - IS NULL, IS NOT NULL và kết quả UNKNOWN
+  - DISTINCT và chi phí loại bỏ dữ liệu trùng
+  - ORDER BY, thứ tự NULL và yêu cầu sắp xếp xác định
+  - ROWNUM và lỗi giới hạn kết quả trước khi sắp xếp
+  - OFFSET, FETCH FIRST, WITH TIES và phân trang
+  - Biến bind, literal và phân biệt giá trị với tên đối tượng
+  - Đọc kết quả rỗng, giá trị NULL và số dòng bị nhân bản
+  - Giải thích và kiểm chứng một truy vấn bằng dữ liệu tối thiểu
+- level1: Hàm và biểu thức
+  level2:
+  - Biểu thức số học, thứ tự ưu tiên và xử lý phép chia
+  - 'Hàm số: ROUND, TRUNC, MOD, CEIL và FLOOR'
+  - 'Hàm chuỗi: SUBSTR, INSTR, LENGTH, TRIM và REPLACE'
+  - Nối chuỗi, padding và xử lý CHAR có khoảng trắng cuối
+  - UPPER, LOWER, INITCAP và ảnh hưởng bộ ký tự
+  - REGEXP_LIKE, REGEXP_SUBSTR, REGEXP_REPLACE và giới hạn sử dụng
+  - TO_CHAR, TO_NUMBER, TO_DATE và TO_TIMESTAMP
+  - CAST, format model và kiểm soát chuyển đổi dữ liệu
+  - CASE dạng đơn giản và CASE dạng điều kiện
+  - DECODE và khác biệt cần chú ý khi so sánh NULL
+  - NVL, NVL2, COALESCE, NULLIF và lựa chọn kiểu kết quả
+  - 'Hàm ngày tháng: ADD_MONTHS, MONTHS_BETWEEN, LAST_DAY và EXTRACT'
+  - LEAST, GREATEST và ảnh hưởng của NULL hoặc chuyển kiểu
+  - LISTAGG, tràn độ dài kết quả và khác biệt theo phiên bản
+- level1: Gom nhóm và tập hợp
+  level2:
+  - COUNT(*), COUNT(cột), SUM, AVG, MIN và MAX
+  - Ảnh hưởng của NULL và tập rỗng đến hàm tổng hợp
+  - GROUP BY, khóa nhóm ghép và biểu thức nhóm
+  - Phân biệt WHERE và HAVING
+  - Conditional aggregation bằng CASE
+  - ROLLUP, CUBE và GROUPING SETS
+  - GROUPING, GROUPING_ID và phân biệt dòng tổng với NULL dữ liệu
+  - UNION, UNION ALL, INTERSECT và MINUS
+  - Điều kiện tương thích kiểu dữ liệu giữa các nhánh tập hợp
+  - ORDER BY, độ ưu tiên và xử lý trùng trong truy vấn tập hợp
+  - Kiểm chứng số lượng dòng và tổng hợp sau khi kết nối nhiều bảng
+- level1: JOIN và truy vấn con
+  level2:
+  - INNER JOIN theo khóa đơn, khóa ghép và điều kiện nhiều cột
+  - LEFT, RIGHT và FULL OUTER JOIN
+  - CROSS JOIN, self join và nguy cơ nhân số dòng
+  - Vị trí điều kiện trong ON/WHERE và ảnh hưởng đến OUTER JOIN
+  - ANSI JOIN và cú pháp Oracle (+) trong mã cũ
+  - Scalar subquery và điều kiện trả về tối đa một dòng
+  - Single-row, multi-row và correlated subquery
+  - EXISTS, NOT EXISTS và kiểm tra quan hệ tồn tại
+  - IN, NOT IN và bẫy NULL trong truy vấn con
+  - Inline view và phân tách các bước xử lý truy vấn
+  - WITH và tái sử dụng khối truy vấn có tên
+  - LATERAL, CROSS APPLY và OUTER APPLY theo phiên bản hỗ trợ
+  - Chọn JOIN hay truy vấn con dựa trên ngữ nghĩa và kế hoạch thực thi
+- level1: Truy vấn nâng cao
+  level2:
+  - Truy vấn cây bằng START WITH và CONNECT BY
+  - LEVEL, PRIOR, CONNECT_BY_ROOT và SYS_CONNECT_BY_PATH
+  - Phát hiện vòng lặp bằng NOCYCLE và CONNECT_BY_ISCYCLE
+  - Recursive subquery factoring, SEARCH và CYCLE
+  - PIVOT, UNPIVOT và chuyển đổi dạng dữ liệu báo cáo
+  - Top-N toàn cục và Top-N trong từng nhóm
+  - Phân trang bằng khóa tiếp nối và điều kiện thứ tự ổn định
+  - Xử lý khoảng trống, dãy liên tiếp và dữ liệu thiếu kỳ
+  - MODEL clause và bài toán tính toán trên tập ô
+  - MATCH_RECOGNIZE và nhận dạng mẫu theo chuỗi sự kiện
+  - SQL động theo nhu cầu lọc và nguyên tắc giữ an toàn
+  - Thiết kế truy vấn báo cáo có tổng phụ, xếp hạng và dữ liệu thời gian
+- level1: Hàm phân tích
+  level2:
+  - Phân biệt hàm tổng hợp và hàm phân tích theo cửa sổ
+  - Cấu trúc OVER, PARTITION BY và ORDER BY
+  - ROW_NUMBER, RANK và DENSE_RANK
+  - LAG, LEAD và so sánh với dòng trước hoặc dòng sau
+  - FIRST_VALUE, LAST_VALUE, NTH_VALUE và phạm vi cửa sổ
+  - Khung ROWS/RANGE, khung mặc định và các dòng đồng hạng
+  - SUM/AVG chạy dồn và trung bình trượt
+  - COUNT phân tích, RATIO_TO_REPORT và tỷ trọng trong nhóm
+  - NTILE, CUME_DIST, PERCENT_RANK và phân bố dữ liệu
+  - KEEP (DENSE_RANK FIRST/LAST) trong phép tổng hợp
+  - IGNORE NULLS, RESPECT NULLS và lấp dữ liệu theo chuỗi
+  - Tách bước lọc kết quả phân tích và kiểm tra cú pháp theo phiên bản
+  - Chi phí sắp xếp, kích thước phân vùng và kiểm chứng kết quả
+- level1: Thay đổi dữ liệu
+  level2:
+  - INSERT một dòng, nhiều dòng và INSERT từ SELECT
+  - INSERT ALL, INSERT FIRST và chèn có điều kiện
+  - UPDATE một bảng, cập nhật nhiều cột và cập nhật từ truy vấn con
+  - DELETE theo điều kiện và xóa dữ liệu quan hệ cha con
+  - MERGE để đồng bộ dữ liệu và điều kiện khớp nguồn/đích
+  - Nguồn MERGE trùng khóa và tính xác định của thao tác đồng bộ
+  - RETURNING INTO để lấy giá trị sau INSERT, UPDATE hoặc DELETE
+  - Sinh khóa bằng sequence, identity và lấy khóa vừa tạo
+  - Default, trigger và ràng buộc trong vòng đời thay đổi dữ liệu
+  - LOG ERRORS và tách dòng lỗi khi nạp dữ liệu
+  - Xử lý dữ liệu trùng bằng ràng buộc và thao tác có thể thực hiện lại
+  - Ảnh hưởng của DML đến undo, redo, chỉ mục và khóa
+- level1: Giao dịch
+  level2:
+  - Đơn vị công việc nghiệp vụ và các thuộc tính ACID trong Oracle
+  - Thời điểm bắt đầu, kết thúc và ranh giới của một giao dịch
+  - COMMIT, ROLLBACK và khả năng quan sát dữ liệu giữa các phiên
+  - SAVEPOINT và hoàn tác một phần giao dịch
+  - Tính nguyên tử ở mức câu lệnh và mức giao dịch
+  - Implicit commit của DDL và tác động đến script triển khai
+  - Autocommit phía công cụ/JDBC và nguy cơ chia nhỏ giao dịch
+  - Undo, MVCC và tính nhất quán khi đọc
+  - READ COMMITTED và ảnh chụp dữ liệu tại từng câu lệnh
+  - SERIALIZABLE, READ ONLY và khác biệt về tính nhất quán
+  - SCN và mối quan hệ giữa commit với yêu cầu phục hồi
+  - Thiết kế giao dịch ngắn, kiểm soát lỗi và quy tắc retry
+- level1: Khóa và đồng thời
+  level2:
+  - Khóa dòng, khóa bảng, enqueue và latch/mutex
+  - Đọc nhất quán, thao tác ghi và các tình huống phải chờ nhau
+  - SELECT FOR UPDATE và phạm vi dòng bị khóa
+  - NOWAIT, WAIT, SKIP LOCKED và mô hình nhận việc từ bảng
+  - Lost update và khóa lạc quan bằng cột phiên bản
+  - Khóa ngoại thiếu chỉ mục và tranh chấp trên dữ liệu cha con
+  - Deadlock, nguyên nhân theo thứ tự khóa và phạm vi rollback
+  - Blocking session, chuỗi chờ và truy tìm giao dịch gây nghẽn
+  - Hot block, ITL và tranh chấp khi cập nhật tập trung
+  - ORA-08177 và thử lại giao dịch SERIALIZABLE
+  - ORA-01555 và quan hệ giữa thời gian truy vấn với undo
+  - Mô phỏng hai phiên để kiểm chứng tính cô lập và cơ chế khóa
+- level1: Đối tượng schema
+  level2:
+  - Tạo view và sử dụng view làm ranh giới truy cập dữ liệu
+  - View có thể cập nhật, key-preserved table và WITH CHECK OPTION
+  - Materialized view và lựa chọn ON DEMAND hoặc ON COMMIT
+  - Complete refresh, fast refresh và materialized view log
+  - Query rewrite và điều kiện tương thích, thống kê, tính năng
+  - 'Sequence: NEXTVAL, CURRVAL, CACHE, ORDER và khoảng trống khóa'
+  - Identity so với sequence và chiến lược sinh khóa cho ứng dụng
+  - Private synonym, public synonym và rủi ro phân giải sai đối tượng
+  - Database link, fixed/current user và phạm vi quyền truy cập
+  - Object type, nested table, VARRAY và quan hệ với bảng thông thường
+  - Đối tượng INVALID, biên dịch lại và theo dõi dependency
+  - Lựa chọn bảng, view, materialized view hoặc kết quả truy vấn trực tiếp
+- level1: Chỉ mục
+  level2:
+  - Cấu trúc B-tree và cơ chế tìm kiếm theo khóa
+  - Unique/nonunique index và quan hệ với ràng buộc
+  - Composite index, cột dẫn đầu và thứ tự các cột
+  - Index range scan, unique scan, full scan và fast full scan
+  - Index skip scan và điều kiện bộ tối ưu cân nhắc
+  - Function-based index và yêu cầu biểu thức truy vấn tương ứng
+  - Bitmap index, đặc điểm tải phân tích và tranh chấp cập nhật
+  - NULL trong B-tree và ảnh hưởng đến lựa chọn thiết kế chỉ mục
+  - Clustering factor, selectivity và số block cần truy cập
+  - Reverse key index, khóa tăng dần và khả năng truy vấn theo khoảng
+  - Invisible index và thử nghiệm thay đổi kế hoạch
+  - Trạng thái UNUSABLE, rebuild, coalesce và chi phí bảo trì
+  - Chỉ mục phủ truy vấn, đánh đổi tốc độ đọc/ghi và tránh tạo dư thừa
+- level1: Phân vùng
+  level2:
+  - Mục tiêu phân vùng và điều kiện phiên bản/edition/giấy phép
+  - Range, list, hash và interval partitioning
+  - Composite partitioning và lựa chọn subpartition
+  - Khóa phân vùng theo thời gian, khách hàng hoặc miền dữ liệu
+  - Partition pruning tĩnh và động
+  - Local/global index và tác động của bảo trì partition
+  - ADD, DROP, TRUNCATE, SPLIT, MERGE và MOVE PARTITION
+  - EXCHANGE PARTITION để nạp hoặc luân chuyển dữ liệu
+  - Partition-wise join và tổ chức truy vấn theo vùng dữ liệu
+  - Thống kê theo partition và incremental statistics
+  - Lưu trữ theo vòng đời dữ liệu và chiến lược xóa dữ liệu cũ
+  - Kiểm chứng lợi ích phân vùng bằng kế hoạch và tải thực tế
+- level1: PL/SQL cơ bản
+  level2:
+  - Vai trò PL/SQL và ranh giới với SQL hoặc mã ứng dụng
+  - Anonymous block, DECLARE, BEGIN, EXCEPTION và END
+  - Biến, hằng, phạm vi, khối lồng nhau và che khuất tên
+  - Kiểu số, chuỗi, ngày giờ và BOOLEAN trong PL/SQL
+  - Gán giá trị, biểu thức và xử lý NULL
+  - IF, ELSIF, CASE và nhánh điều kiện
+  - LOOP, WHILE, FOR, EXIT và CONTINUE
+  - '%TYPE, %ROWTYPE và liên kết khai báo với schema'
+  - RECORD và mô hình dữ liệu nhiều trường
+  - Associative array, nested table và VARRAY trong PL/SQL
+  - Collection method, chỉ số thưa và phần tử chưa khởi tạo
+  - DBMS_OUTPUT, biến bind và chạy block từ công cụ
+  - Quy ước tên, tổ chức khối và viết mã PL/SQL dễ bảo trì
+- level1: PL/SQL và dữ liệu
+  level2:
+  - SELECT INTO và các lỗi NO_DATA_FOUND hoặc TOO_MANY_ROWS
+  - DML trong PL/SQL và đọc SQL%ROWCOUNT
+  - Implicit cursor và các thuộc tính SQL%FOUND/NOTFOUND/ISOPEN
+  - 'Explicit cursor: khai báo, mở, fetch và đóng'
+  - Cursor FOR LOOP, cursor có tham số và phạm vi tài nguyên
+  - REF CURSOR, SYS_REFCURSOR và trả tập kết quả cho ứng dụng
+  - Khóa dòng bằng cursor FOR UPDATE và WHERE CURRENT OF
+  - SQL tĩnh, SQL động và tiêu chí lựa chọn
+  - EXECUTE IMMEDIATE, USING và RETURNING INTO
+  - DBMS_SQL khi số cột hoặc số biến bind chưa biết trước
+  - Bind theo vị trí/tên và khác biệt giữa SQL động với block PL/SQL
+  - Chống SQL injection trong SQL động và sử dụng DBMS_ASSERT
+- level1: Thủ tục và package
+  level2:
+  - CREATE PROCEDURE, CREATE FUNCTION và lựa chọn đơn vị chương trình
+  - Tham số IN, OUT, IN OUT và giá trị mặc định
+  - Overloading, named notation và positional notation
+  - Phạm vi tác dụng của NOCOPY và xử lý tham số khi phát sinh lỗi
+  - Package specification, package body và giao diện công khai
+  - Thành phần riêng, trạng thái package và quá trình khởi tạo
+  - Trạng thái package qua phiên và ảnh hưởng của connection pool
+  - AUTHID DEFINER, AUTHID CURRENT_USER và kiểm tra quyền thực thi
+  - Gọi function trong SQL, tính thuần và giới hạn tác dụng phụ
+  - Quyền EXECUTE, quyền trực tiếp và vai trò khi biên dịch PL/SQL
+  - Phụ thuộc đối tượng, thay đổi chữ ký và biên dịch lại
+  - Thiết kế API cơ sở dữ liệu, ranh giới giao dịch và hợp đồng lỗi
+- level1: Lỗi và trigger
+  level2:
+  - Exception định sẵn, exception tự định nghĩa và PRAGMA EXCEPTION_INIT
+  - RAISE, RAISE_APPLICATION_ERROR và bảo toàn thông tin nguyên nhân
+  - SQLCODE, SQLERRM, FORMAT_ERROR_STACK và FORMAT_ERROR_BACKTRACE
+  - WHEN OTHERS, truyền tiếp lỗi và tránh che giấu giao dịch thất bại
+  - BEFORE, AFTER, row-level và statement-level trigger
+  - :OLD, :NEW và xử lý INSERT/UPDATE/DELETE
+  - INSTEAD OF trigger cho thao tác thay đổi dữ liệu qua view
+  - Mutating table và lựa chọn compound trigger
+  - Thứ tự thực thi, trigger lồng nhau và tác động ngoài dự kiến
+  - DDL/database event trigger và ranh giới quyền quản trị
+  - PRAGMA AUTONOMOUS_TRANSACTION cho nhật ký và rủi ro mất nhất quán
+  - Khi nên dùng constraint, mã ứng dụng hoặc trigger
+- level1: PL/SQL nâng cao
+  level2:
+  - Chi phí chuyển ngữ cảnh giữa SQL và PL/SQL
+  - BULK COLLECT, LIMIT và giới hạn bộ nhớ PGA
+  - FORALL, INDICES OF và VALUES OF với collection thưa
+  - SAVE EXCEPTIONS, SQL%BULK_EXCEPTIONS và xử lý lỗi từng phần
+  - SQL xử lý theo tập hợp so với vòng lặp và bulk processing
+  - PRAGMA UDF, function gọi từ SQL và điều kiện hỗ trợ theo phiên bản
+  - Pipelined table function và tiêu thụ dữ liệu dạng luồng
+  - RESULT_CACHE, điều kiện phù hợp và phụ thuộc dữ liệu
+  - DETERMINISTIC và trách nhiệm bảo đảm tính xác định
+  - Conditional compilation, cảnh báo và tham số biên dịch
+  - Native compilation, tối ưu PL/SQL và đo trước khi thay đổi
+  - DBMS_PROFILER, DBMS_HPROF và truy tìm đoạn mã tốn thời gian
+  - Quản lý quyền, tài nguyên và tính có thể kiểm thử của package
+- level1: LOB và dữ liệu lớn
+  level2:
+  - LOB locator, dữ liệu in-row/out-of-row và vòng đời tài nguyên
+  - SecureFiles, BasicFiles và điều kiện lựa chọn cơ chế lưu trữ
+  - Đọc ghi CLOB/BLOB bằng DBMS_LOB
+  - Temporary LOB, tạo/giải phóng và kiểm soát dung lượng
+  - Streaming dữ liệu lớn thay vì tải toàn bộ vào bộ nhớ ứng dụng
+  - Chuyển đổi CLOB/BLOB, charset và xử lý tiếng Việt
+  - BFILE, DIRECTORY object và truy cập file phía máy chủ
+  - Compression, deduplication, encryption của LOB và điều kiện tính năng
+  - Giao dịch, khóa và tính nhất quán khi cập nhật LOB
+  - Đo dung lượng, truy vấn metadata và xử lý rò rỉ temporary LOB
+- level1: JSON và XML
+  level2:
+  - Lưu JSON trong VARCHAR2/CLOB/BLOB và kiểm tra IS JSON
+  - Kiểu JSON gốc và khác biệt theo phiên bản hỗ trợ
+  - SQL/JSON path, JSON_VALUE, JSON_QUERY và JSON_EXISTS
+  - JSON_TABLE và chuyển cấu trúc JSON thành bảng quan hệ
+  - JSON_OBJECT, JSON_ARRAY và các hàm tổng hợp JSON
+  - ON ERROR, ON EMPTY và phân biệt JSON null với SQL NULL
+  - Chỉ mục cho JSON, điều kiện đường dẫn và lựa chọn truy vấn
+  - Cập nhật JSON và kiểm tra cú pháp JSON_TRANSFORM/JSON_MERGEPATCH theo phiên bản
+  - PL/SQL JSON object type và thao tác cây JSON
+  - XMLType, XMLTABLE, XMLQUERY và XMLEXISTS
+  - XMLSERIALIZE, XMLCAST và chuyển đổi giữa XML với dữ liệu quan hệ
+  - Thiết kế hợp đồng JSON/XML, kiểm soát kích thước và dữ liệu không hợp lệ
+  - Lựa chọn lưu trữ quan hệ, tài liệu hoặc mô hình kết hợp
+- level1: Bộ tối ưu và thống kê
+  level2:
+  - Cost-based optimizer và các đầu vào để lựa chọn kế hoạch
+  - Cardinality, selectivity, cost và giới hạn của ước lượng
+  - Thống kê bảng, cột, chỉ mục và thông tin hệ thống
+  - 'DBMS_STATS: thu thập thống kê theo bảng, schema hoặc database'
+  - Auto statistics, stale statistics và thời điểm cập nhật
+  - Histogram và dữ liệu phân bố lệch
+  - Extended statistics cho các cột tương quan hoặc biểu thức
+  - Bind peeking, adaptive cursor sharing và nhiều child cursor
+  - Dynamic statistics, cardinality feedback và khác biệt theo phiên bản
+  - 'Query transformation: view merging, unnesting và predicate pushing'
+  - Pending statistics, khóa thống kê và phục hồi thống kê cũ
+  - Tác động của thống kê sau nạp lớn, thay đổi dữ liệu hoặc nâng cấp
+- level1: Kế hoạch thực thi
+  level2:
+  - EXPLAIN PLAN và khác biệt với kế hoạch đã thực thi
+  - DBMS_XPLAN.DISPLAY và DISPLAY_CURSOR
+  - Đọc cây thực thi, thứ tự xử lý và quan hệ giữa các nhánh
+  - TABLE ACCESS FULL, BY INDEX ROWID và các đường truy cập chỉ mục
+  - NESTED LOOPS, HASH JOIN và SORT MERGE JOIN
+  - FILTER, SORT, HASH GROUP BY và WINDOW SORT
+  - 'Predicate information: access predicate và filter predicate'
+  - So sánh E-Rows/A-Rows, Starts, Buffers và thời gian thực tế
+  - Thu thập thống kê thực thi bằng GATHER_PLAN_STATISTICS trong phiên thử nghiệm
+  - SQL_ID, PLAN_HASH_VALUE, child cursor và điều kiện tái sử dụng kế hoạch
+  - Phân biệt kế hoạch chạy nối tiếp với parallel execution
+  - Giới hạn của cost và tránh kết luận chỉ từ một ảnh chụp kế hoạch
+- level1: Tối ưu SQL
+  level2:
+  - Quy trình đo tải, chọn SQL trọng yếu, sửa và so sánh lại
+  - Giảm số dòng và số cột được xử lý trước các thao tác tốn chi phí
+  - Điều kiện có thể khai thác chỉ mục và tránh hàm bao quanh cột ngoài ý muốn
+  - Chuyển kiểu ngầm định, NLS và nguyên nhân mất đường truy cập chỉ mục
+  - Viết lại truy vấn JOIN/subquery theo đúng ngữ nghĩa
+  - Tối ưu EXISTS, NOT EXISTS và xử lý quan hệ nhiều-nhiều
+  - Giảm round trip, truy vấn lặp và mô hình N+1 từ ứng dụng
+  - Biến bind, cursor sharing và tải có phân bố dữ liệu lệch
+  - Tối ưu phân trang, Top-N và truy vấn theo khoảng thời gian
+  - Ảnh hưởng của ORDER BY, DISTINCT, phép nhóm và dữ liệu tràn TEMP
+  - Hint, query block và cách kiểm chứng hint được sử dụng
+  - SQL Plan Management, baseline và kiểm soát hồi quy kế hoạch
+  - SQL Profile, SQL Patch, SQL Tuning Advisor và kiểm tra điều kiện giấy phép
+  - Đo độ trễ, thông lượng, CPU/I/O và tính đúng sau mỗi thay đổi
+- level1: Hiệu năng hệ thống
+  level2:
+  - Đọc V$SESSION, V$SQL, V$SQLSTATS và các bộ đếm tích lũy
+  - Wait event, wait class, DB time và phân biệt CPU với thời gian chờ
+  - Chọn khoảng đo, tính chênh lệch bộ đếm và tránh diễn giải sai số tổng
+  - SQL trace, DBMS_MONITOR và TKPROF
+  - AWR, ASH, ADDM và kiểm tra quyền sử dụng Diagnostics Pack
+  - Chẩn đoán bằng dynamic view, trace hoặc Statspack trong phạm vi được phép
+  - Nhận diện nghẽn CPU, I/O, redo, undo và temporary space
+  - PGA, SGA, ASMM/AMM và đánh đổi bộ nhớ với hệ điều hành
+  - Parallel execution, degree of parallelism và nguy cơ dùng quá tài nguyên
+  - Session/process limit, số kết nối và giới hạn connection pool
+  - Resource Manager, consumer group và phân bổ tài nguyên
+  - Thiết lập mức hiệu năng cơ sở và kiểm thử trước/sau thay đổi
+- level1: Bảo mật
+  level2:
+  - Nguyên tắc quyền tối thiểu và tách tài khoản quản trị/ứng dụng
+  - CREATE USER, xác thực, khóa tài khoản và quản lý vòng đời mật khẩu
+  - System privilege, object privilege, role và quyền cấp lại
+  - GRANT, REVOKE, WITH ADMIN OPTION và WITH GRANT OPTION
+  - Profile, password policy và giới hạn tài nguyên phiên
+  - SYSDBA, SYSOPER và các quyền quản trị chuyên biệt
+  - Ranh giới quyền qua synonym, view, package và database link
+  - SQL injection, bind parameter và kiểm soát tên đối tượng động
+  - Oracle Net encryption, TLS/TCPS, wallet và quản lý chứng thư
+  - TDE, keystore, sao lưu khóa và điều kiện tính năng/giấy phép
+  - Unified Auditing, audit policy và tra cứu dấu vết thao tác
+  - Fine-Grained Auditing và điều kiện áp dụng
+  - Virtual Private Database, application context và DBMS_RLS
+  - Data Redaction, che dữ liệu thử nghiệm và kiểm tra điều kiện sử dụng
+  - Quản lý bí mật, luân chuyển mật khẩu và tránh ghi dữ liệu nhạy cảm vào log
+  - Rà soát quyền định kỳ, tài khoản bỏ quên và truy cập từ PUBLIC
+- level1: Vận hành
+  level2:
+  - STARTUP NOMOUNT, MOUNT, OPEN và điều kiện sử dụng từng trạng thái
+  - SHUTDOWN NORMAL, TRANSACTIONAL, IMMEDIATE và ABORT
+  - PFILE, SPFILE và phạm vi MEMORY/SPFILE/BOTH của tham số
+  - ALTER SYSTEM, ALTER SESSION và yêu cầu khởi động lại
+  - ARCHIVELOG, NOARCHIVELOG và kế hoạch bảo vệ dữ liệu
+  - Quản lý redo log group, member và log switch
+  - Fast Recovery Area, archived log và áp lực dung lượng
+  - ADR, alert log, trace file và sử dụng ADRCI
+  - Theo dõi trạng thái listener, service, database và PDB
+  - 'DBMS_SCHEDULER: job, program, schedule, credential và lịch sử chạy'
+  - Maintenance window, auto task và kiểm soát thời điểm bảo trì
+  - DBMS_APPLICATION_INFO để gắn module/action cho phiên ứng dụng
+  - Kiểm tra sức khỏe định kỳ và xây dựng sổ tay vận hành (runbook)
+  - Lập kế hoạch dung lượng, ngưỡng cảnh báo và xử lý tài nguyên cạn
+- level1: Sao lưu và phục hồi
+  level2:
+  - Phân biệt backup, restore, recovery và yêu cầu RPO/RTO
+  - Consistent backup, inconsistent backup và crash recovery
+  - RMAN repository, control file và recovery catalog
+  - Cấu hình RMAN channel, device type và vị trí lưu backup
+  - Full backup, incremental level 0/1 và block change tracking
+  - Backup database, tablespace, datafile, control file và SPFILE
+  - Sao lưu archived redo log và quan hệ với khả năng phục hồi
+  - Retention policy, redundancy, recovery window và deletion policy
+  - LIST, REPORT, CROSSCHECK, EXPIRED và OBSOLETE
+  - RESTORE VALIDATE, kiểm tra lỗi block và diễn tập phục hồi
+  - Complete recovery khi mất datafile hoặc hỏng vùng lưu trữ
+  - Point-in-time recovery, RESETLOGS và database incarnation
+  - Phục hồi khi mất control file, SPFILE hoặc online redo log
+  - Phục hồi CDB/PDB và kiểm tra điều kiện của bản Oracle
+  - RMAN DUPLICATE, tạo bản sao và tách dữ liệu nhạy cảm
+  - Sao lưu khóa mã hóa, lưu bản sao ngoài máy chủ và chứng minh khả năng khôi phục
+- level1: Flashback
+  level2:
+  - Phân biệt Flashback Query, Table, Database và backup recovery
+  - AS OF SCN, AS OF TIMESTAMP và truy vấn dữ liệu trong quá khứ
+  - VERSIONS BETWEEN và xem lịch sử thay đổi của dòng
+  - Flashback Transaction Query và điều kiện truy cập thông tin giao dịch
+  - FLASHBACK TABLE, row movement và giới hạn phụ thuộc
+  - Recycle bin, FLASHBACK DROP và hành vi PURGE
+  - Flashback Database, flashback log và cấu hình vùng phục hồi
+  - Restore point, guaranteed restore point và áp lực dung lượng
+  - Undo retention, thời gian lưu lịch sử và giới hạn khả năng flashback
+  - Flashback Data Archive và kiểm tra điều kiện tính năng
+  - Lựa chọn cách khắc phục xóa nhầm, cập nhật nhầm hoặc triển khai lỗi
+- level1: Sẵn sàng cao
+  level2:
+  - Phân biệt sẵn sàng cao, khôi phục thảm họa và mở rộng năng lực xử lý
+  - Tổng quan RAC, instance dùng chung database và Cache Fusion
+  - Service trong RAC, phân phối kết nối và ràng buộc vị trí dịch vụ
+  - 'Data Guard: primary, physical standby và redo transport/apply'
+  - Synchronous/asynchronous transport và đánh đổi độ trễ với mức bảo vệ
+  - Protection mode, apply lag, transport lag và kiểm chứng dữ liệu
+  - Switchover, failover, reinstate và kế hoạch diễn tập
+  - Data Guard Broker, observer và điều kiện tự động failover
+  - Active Data Guard và phân biệt với chức năng Data Guard cơ bản
+  - FAN, Fast Connection Failover và phối hợp với connection pool
+  - Application Continuity, replay và những thao tác không an toàn để lặp lại
+  - Đối chiếu RAC/Data Guard/Active Data Guard với edition và giấy phép
+  - Thiết kế ứng dụng chịu mất kết nối, thử lại có giới hạn và chống giao dịch trùng
+- level1: Nhập xuất và di chuyển
+  level2:
+  - Phân biệt sao lưu vật lý với xuất nhập dữ liệu logic
+  - 'Data Pump: expdp, impdp và xử lý phía máy chủ'
+  - DIRECTORY object, quyền truy cập và vị trí dump/log
+  - Export/import theo database, schema, table hoặc tablespace
+  - INCLUDE, EXCLUDE, QUERY và chọn phạm vi dữ liệu
+  - REMAP_SCHEMA, REMAP_TABLESPACE và xử lý đối tượng đã tồn tại
+  - Consistent export bằng FLASHBACK_SCN/FLASHBACK_TIME
+  - Parallel, compression, encryption và kiểm tra điều kiện sử dụng
+  - 'SQL*Loader: control file, bad file, discard file và nạp CSV'
+  - External table để đọc file và xử lý dữ liệu theo SQL
+  - Transportable tablespace và full transportable theo điều kiện tương thích
+  - Bộ ký tự, timezone file, VERSION và tương thích giữa nguồn/đích
+  - Đối soát số dòng, tổng kiểm tra nghiệp vụ và đối tượng INVALID sau di chuyển
+  - Kế hoạch cắt chuyển, dữ liệu tăng thêm và quay lui khi kiểm tra thất bại
+- level1: Tích hợp phân tán
+  level2:
+  - Database link và truy vấn đối tượng từ database khác
+  - Đẩy điều kiện lọc, giảm dữ liệu truyền và đọc kế hoạch truy vấn phân tán
+  - Giao dịch phân tán, two-phase commit và giao dịch in-doubt
+  - XA transaction từ Java và lựa chọn quản lý giao dịch toàn cục
+  - 'Advanced Queuing: queue table, enqueue, dequeue và tính giao dịch'
+  - DBMS_SCHEDULER cho công việc tích hợp nền và kiểm soát thực hiện lại
+  - UTL_FILE, DIRECTORY và giới hạn truy cập filesystem
+  - UTL_HTTP, network ACL, wallet và gọi dịch vụ bên ngoài
+  - Change Data Capture, GoldenGate và phân biệt với Data Guard
+  - Outbox, tính lũy đẳng (idempotency) và đồng bộ dữ liệu theo sự kiện
+  - ORDS, REST-enabled SQL và ranh giới với ứng dụng Spring Boot
+  - Giới hạn phạm vi, quyền và giấy phép của các phương án tích hợp
+- level1: Oracle JDBC
+  level2:
+  - Chọn Oracle JDBC driver theo JDK và ma trận tương thích database
+  - JDBC Thin, OCI driver và tiêu chí lựa chọn
+  - URL kết nối bằng service name, Easy Connect và connect descriptor
+  - OracleDataSource, thuộc tính kết nối và quản lý bí mật
+  - Connection, Statement, PreparedStatement và CallableStatement
+  - Bind kiểu dữ liệu, setNull và phân biệt JDBC type với Oracle type
+  - Ánh xạ NUMBER sang BigDecimal và kiểm soát độ chính xác
+  - Ánh xạ DATE/TIMESTAMP sang kiểu java.time và xử lý múi giờ
+  - Sequence, identity, generated keys và RETURNING từ JDBC
+  - Batch DML, JDBC standard batching và xử lý BatchUpdateException
+  - Fetch size, row prefetch và giảm số lần trao đổi mạng
+  - REF CURSOR, OUT parameter, ARRAY và object type
+  - Đọc ghi CLOB/BLOB dạng luồng và đóng tài nguyên đúng vòng đời
+  - Statement cache, cursor phía server và xử lý ORA-01000
+  - Connect timeout, read timeout, query timeout và hủy câu lệnh
+  - SQLState, vendor error code và phân loại lỗi có thể thử lại
+- level1: Spring Boot và JPA
+  level2:
+  - Cấu hình DataSource Oracle trong Spring Boot theo từng môi trường
+  - HikariCP, Oracle UCP và ranh giới quản lý kết nối
+  - Kích thước pool, thời gian sống kết nối và giới hạn session phía Oracle
+  - Khởi tạo và đặt lại NLS/application context khi tái sử dụng kết nối
+  - JdbcTemplate, named parameter và xử lý kiểu dữ liệu Oracle
+  - Chọn Oracle dialect theo phiên bản Hibernate và database
+  - Ánh xạ entity, schema, tên đối tượng và định danh có dấu ngoặc kép
+  - Sequence generator, allocationSize và phối hợp với sequence phía Oracle
+  - Ánh xạ LOB, thời gian, enum và converter
+  - '@Transactional, propagation và ranh giới giao dịch qua proxy'
+  - Read-only, isolation, flush và hành vi khóa thực tế trong Oracle
+  - Optimistic locking, pessimistic locking và timeout
+  - Phân trang, batch insert/update và kiểm soát N+1
+  - Stored procedure, native query và giới hạn trừu tượng ORM
+  - Khôi phục kết nối sau sự cố và tránh thực hiện lặp giao dịch nghiệp vụ
+- level1: Kiểm thử
+  level2:
+  - Chọn bản Oracle, edition và tham số tương thích cho bộ kiểm thử
+  - Tạo môi trường Oracle cô lập bằng container hoặc máy ảo tự động
+  - Kiểm thử tích hợp với Oracle thật và khác biệt với H2
+  - Tạo/reset schema, seed dữ liệu và thứ tự quan hệ khóa ngoại
+  - Kiểm thử SQL với NULL, chuỗi rỗng, dữ liệu trùng và Unicode
+  - Kiểm thử NUMBER, làm tròn, ngày giờ và chuyển múi giờ
+  - Kiểm thử giao dịch, rollback và implicit commit của DDL
+  - Kiểm thử đồng thời bằng nhiều session và lịch thực thi có kiểm soát
+  - Kiểm thử package, function và procedure bằng utPLSQL hoặc JDBC
+  - Kiểm thử mất kết nối, timeout, deadlock và tính an toàn khi retry
+  - Đo tải với dữ liệu đại diện, warm-up và kế hoạch thực thi
+  - Kiểm thử phục hồi dữ liệu và kiểm tra khả năng quay lui triển khai
+- level1: Thay đổi và nâng cấp
+  level2:
+  - Quản lý DDL, PL/SQL và dữ liệu tham chiếu bằng version control
+  - Flyway/Liquibase với Oracle và thứ tự thực hiện migration
+  - Khóa triển khai, lịch sử migration và phát hiện schema drift
+  - DDL implicit commit và thiết kế migration chịu lỗi từng phần
+  - Mô hình mở rộng rồi thu hẹp để đổi schema tương thích ứng dụng
+  - Backfill dữ liệu theo lô, kiểm soát redo/undo và khả năng chạy lại
+  - Online DDL, DBMS_REDEFINITION và giới hạn khóa/tính năng
+  - Edition-Based Redefinition, editioning view và cross-edition trigger
+  - Đổi tên, đổi kiểu, thêm ràng buộc và xử lý đối tượng phụ thuộc
+  - Release Update, OPatch, datapatch và kiểm tra sau vá
+  - Nâng cấp database, COMPATIBLE và kiểm tra tính năng bị loại bỏ
+  - Kiểm chứng SQL plan, driver, timezone, quyền và ứng dụng sau nâng cấp
+  - Kế hoạch cắt chuyển, go/no-go và giới hạn của rollback hoặc downgrade
+- level1: Xử lý sự cố
+  level2:
+  - Quy trình xác định thời điểm, phạm vi, thay đổi gần nhất và bằng chứng
+  - ORA-12154, ORA-12514, ORA-12541 và chẩn đoán Oracle Net
+  - ORA-01017, ORA-28000 và lỗi xác thực hoặc tài khoản bị khóa
+  - ORA-00942, ORA-01031 và lỗi phân giải đối tượng hoặc thiếu quyền
+  - ORA-00001, ORA-02291, ORA-02292 và vi phạm toàn vẹn dữ liệu
+  - ORA-01400, ORA-01438, ORA-12899 và dữ liệu vượt miền cho phép
+  - ORA-01722, ORA-01843, ORA-01861 và lỗi chuyển đổi phụ thuộc dữ liệu/NLS
+  - ORA-00054, ORA-00060 và phân biệt chờ khóa với deadlock
+  - ORA-01555, ORA-30036 và kiểm tra nhu cầu UNDO
+  - ORA-01652, ORA-01653 và lỗi không đủ vùng tạm hoặc lưu trữ
+  - ORA-01000, ORA-04030, ORA-04031 và tài nguyên cursor/bộ nhớ
+  - ORA-00018, ORA-00020 và giới hạn session/process
+  - ORA-03113, ORA-03135, ORA-17002 và mất kết nối từ ứng dụng
+  - ORA-04063, ORA-06508, ORA-04068 và đối tượng PL/SQL/trạng thái package
+  - Truy vấn chậm đột ngột do thống kê, bind hoặc thay đổi kế hoạch
+  - Commit chậm, redo log switch và nghẽn vùng phục hồi
+  - Thu thập alert log, trace, SQL_ID và ngữ cảnh trước khi khắc phục
+  - Đánh giá tác động trước khi kill session, khởi động lại hoặc đổi tham số
+- level1: Tính năng mở rộng
+  level2:
+  - Lập ma trận tính năng theo release, COMPATIBLE, edition và giấy phép
+  - So sánh phạm vi SQL/PLSQL giữa hệ thống 19c và các bản Oracle mới hơn
+  - SQL BOOLEAN, giới hạn định danh và cú pháp mới theo bản hỗ trợ
+  - SQL macro và điều kiện sử dụng theo release/update
+  - JSON-Relational Duality và ranh giới với JSON_TABLE hoặc ORM
+  - 'AI Vector Search: kiểu VECTOR, độ tương đồng và loại chỉ mục'
+  - SQL property graph, mô hình đồ thị và truy vấn theo phiên bản hỗ trợ
+  - 'Oracle Text: chỉ mục văn bản, lexer và đồng bộ chỉ mục'
+  - 'Oracle Spatial: hình học, hệ tọa độ và truy vấn không gian'
+  - Database In-Memory, column store và khác biệt với buffer cache
+  - Sharding, khóa phân mảnh và định tuyến giao dịch
+  - Autonomous Database, wallet và ranh giới trách nhiệm vận hành
+  - Đánh giá tính năng mở rộng bằng bài toán, dữ liệu và điều kiện triển khai thực tế
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng schema quản lý đơn hàng với ràng buộc, sequence và dữ liệu mẫu
+  - Viết báo cáo doanh thu có tổng phụ, xếp hạng và so sánh theo thời gian
+  - Thiết kế giữ chỗ tồn kho và kiểm chứng giao dịch đồng thời
+  - Xây dựng package nghiệp vụ với hợp đồng tham số và xử lý lỗi
+  - Nạp dữ liệu lớn, tách dòng lỗi và đối soát kết quả
+  - Tối ưu một truy vấn từ số liệu thực thi đến lựa chọn chỉ mục
+  - Kết nối Java/Spring Boot, quản lý giao dịch và ánh xạ kiểu dữ liệu
+  - Mô phỏng pool cạn, timeout, deadlock và khôi phục có kiểm soát
+  - Triển khai thay đổi schema tương thích nhiều phiên bản ứng dụng
+  - Di chuyển schema bằng Data Pump và kiểm tra dữ liệu/đối tượng
+  - Diễn tập xóa nhầm, mất datafile và lựa chọn phương án phục hồi
+  - Hoàn thiện runbook với sơ đồ kiến trúc, chỉ số theo dõi và bằng chứng kiểm thử

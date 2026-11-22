@@ -1,3 +1,0 @@
-menuLevel1: Compile modular
-menuLevel2: javac --module-path và --add-modules
-status: WRITTEN

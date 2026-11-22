@@ -1,0 +1,3 @@
+menuLevel1: '@SpringBootTest'
+menuLevel2: '@LocalServerPort, management port và địa chỉ gọi trong test'
+status: WRITTEN

@@ -1,3 +1,0 @@
-menuLevel1: Nhật ký systemd
-menuLevel2: Đọc nhật ký theo unit bằng journalctl -u
-status: ""

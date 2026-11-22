@@ -1,0 +1,455 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Elasticsearch là gì và bài toán tìm kiếm mà nó giải quyết
+  - Vai trò của Elasticsearch trong Elastic Stack và hệ thống ứng dụng
+  - Tìm kiếm toàn văn, đối sánh chính xác và phân tích dữ liệu
+  - Document, field, index, shard, replica, node và cluster
+  - Mối liên hệ giữa Elasticsearch, Apache Lucene và chỉ mục đảo
+  - Tìm kiếm gần thời gian thực và giới hạn nhất quán cần hiểu
+  - So sánh Elasticsearch với cơ sở dữ liệu quan hệ và công cụ tìm kiếm khác
+  - Khi nên dùng Elasticsearch và khi cần giữ dữ liệu gốc ở hệ thống khác
+  - Lộ trình từ lập chỉ mục tài liệu đến vận hành hệ thống tìm kiếm
+- level1: Môi trường
+  level2:
+  - Lựa chọn triển khai tự quản lý, Elastic Cloud và Serverless
+  - Đối chiếu phiên bản, giấy phép và phạm vi tính năng
+  - Khởi chạy môi trường học tập bằng Docker và lưu trữ dữ liệu bền vững
+  - Thiết lập môi trường nhiều node để thực nghiệm phân tán
+  - Cấu hình elasticsearch.yml, biến môi trường và keystore
+  - Kết nối HTTPS, chứng chỉ CA và thông tin xác thực
+  - Sử dụng Kibana Dev Tools và curl để gửi yêu cầu
+  - Kiểm tra phiên bản, trạng thái cluster và dữ liệu mẫu
+- level1: REST API
+  level2:
+  - Cấu trúc endpoint, HTTP method, query parameter và JSON body
+  - Quy ước đặt tên index, document ID và đường dẫn tài nguyên
+  - Đọc phản hồi thành công, mã HTTP và cấu trúc lỗi
+  - Điều khiển phản hồi bằng pretty, human và filter_path
+  - Timeout phía máy khách, timeout phía máy chủ và kết quả một phần
+  - Định dạng NDJSON trong Bulk API và Multi Search API
+  - Phân biệt API quản trị, API tìm kiếm và CAT API
+  - Tổ chức tập lệnh gọi API có thể chạy lại và dọn dữ liệu thử nghiệm
+- level1: Kiến trúc phân tán
+  level2:
+  - Vai trò master-eligible, data, ingest và coordinating của node
+  - Cluster state, lựa chọn master và điều kiện hình thành cluster
+  - Primary shard và replica shard trong phân phối dữ liệu
+  - Định tuyến document bằng _id, _routing và lựa chọn shard
+  - Đường đi của yêu cầu ghi từ coordinating node đến primary và replica
+  - Hai pha query và fetch trong tìm kiếm phân tán
+  - Tác động của số shard, số replica và phân bố dữ liệu đến hệ thống
+  - Ranh giới truy vấn một index, nhiều index và nhiều cluster
+  - Phân biệt khả năng chịu lỗi, khả năng mở rộng và độ trễ tìm kiếm
+- level1: Lucene và lưu trữ
+  level2:
+  - Chỉ mục đảo, term dictionary, posting list và vị trí token
+  - Segment bất biến và vòng đời tài liệu bên trong Lucene
+  - Indexing buffer, translog và cơ chế khôi phục dữ liệu ghi
+  - Refresh, flush và commit khác nhau như thế nào
+  - Segment merge, tài liệu đánh dấu xóa và dung lượng đĩa
+  - Doc values, stored fields và vai trò của _source
+  - BKD tree trong trường số và dữ liệu không gian
+  - Filesystem cache, bộ nhớ JVM và chi phí truy cập đĩa
+  - Quan sát ảnh hưởng của refresh và merge bằng thí nghiệm
+- level1: Index và alias
+  level2:
+  - Tạo index với settings và mappings tường minh
+  - Thiết lập number_of_shards, number_of_replicas và refresh_interval
+  - Phân biệt settings tĩnh và settings có thể cập nhật
+  - Alias đọc, alias ghi, is_write_index và chuyển alias nguyên tử
+  - 'Alias có bộ lọc và routing: phạm vi sử dụng và giới hạn'
+  - Component template, composable index template và độ ưu tiên
+  - Kiểm tra cấu hình template bằng API mô phỏng
+  - Đóng, mở, xóa index và biện pháp tránh thao tác nhầm
+  - Quy ước tên index theo miền dữ liệu, môi trường và phiên bản
+- level1: Mapping cơ bản
+  level2:
+  - Mapping là gì và vì sao cần xác định kiểu dữ liệu trước khi nạp
+  - Dynamic mapping, explicit mapping và chế độ strict
+  - 'Kiểu text và keyword: phân tích từ so với giá trị nguyên vẹn'
+  - Kiểu số, scaled_float và lựa chọn độ chính xác
+  - Kiểu date, date_nanos, định dạng thời gian và múi giờ
+  - Kiểu boolean, IP, binary và các trường chuyên biệt
+  - Multi-fields và quan hệ giữa trường chính với trường phụ
+  - Tham số index, doc_values, store, null_value và ignore_above
+  - Phân biệt trường không tồn tại, giá trị null, mảng rỗng và chuỗi rỗng
+  - Giới hạn thay đổi mapping và khi nào phải tạo index mới
+- level1: Mô hình tài liệu
+  level2:
+  - Thiết kế document theo mẫu truy vấn và đơn vị cập nhật
+  - 'Mảng giá trị và object: cách Elasticsearch biểu diễn dữ liệu'
+  - Nested và lỗi ghép chéo điều kiện giữa các phần tử object
+  - Join field, quan hệ cha-con và chi phí truy vấn
+  - Phi chuẩn hóa dữ liệu và đánh đổi giữa đọc với cập nhật
+  - Flattened và kiểm soát dữ liệu có khóa không cố định
+  - Mapping explosion, giới hạn field và dynamic template
+  - Thiết kế mô hình nhiều khách hàng với index chung hoặc tách riêng
+  - Routing theo miền dữ liệu và nguy cơ phân bố lệch
+  - Tiến hóa mô hình tài liệu mà vẫn duy trì khả năng tìm kiếm
+- level1: Phân tích văn bản
+  level2:
+  - Analyzer gồm character filter, tokenizer và token filter
+  - Phân tích lúc lập chỉ mục và lúc tìm kiếm
+  - Dùng _analyze để quan sát token, vị trí và offset
+  - Các analyzer dựng sẵn và tiêu chí lựa chọn
+  - Tạo custom analyzer và cấu hình search_analyzer
+  - Chuẩn hóa keyword bằng normalizer
+  - Lowercase, asciifolding, stop word và stemming
+  - N-gram, edge n-gram và đánh đổi kích thước chỉ mục
+  - Synonym, synonym_graph và quản lý tập từ đồng nghĩa
+  - Kiểm tra tương thích analyzer trước khi thay đổi và reindex
+- level1: Ngôn ngữ tìm kiếm
+  level2:
+  - 'Thách thức của tiếng Việt: dấu, tách từ và từ ghép'
+  - Thiết kế tìm kiếm có dấu, không dấu và bảo toàn văn bản gốc
+  - Lựa chọn analyzer hoặc plugin tiếng Việt theo phiên bản và giấy phép
+  - ICU analysis trong chuẩn hóa Unicode và xử lý đa ngôn ngữ
+  - Tách trường theo ngôn ngữ và lựa chọn analyzer tương ứng
+  - Từ đồng nghĩa theo miền nghiệp vụ và nguy cơ mở rộng quá mức
+  - Giữ nguyên mã sản phẩm, địa chỉ email và chuỗi định danh
+  - Thiết kế bộ kiểm thử token hóa cho tiếng Việt và dữ liệu hỗn hợp
+- level1: Thao tác document
+  level2:
+  - 'Index API và Create API: tạo mới so với ghi đè theo _id'
+  - Lấy tài liệu bằng Get API và nhiều tài liệu bằng Multi Get API
+  - Cập nhật từng phần, doc_as_upsert và scripted upsert
+  - Thay thế toàn bộ tài liệu và xử lý trường bị loại bỏ
+  - Xóa document và ý nghĩa phản hồi khi tài liệu không tồn tại
+  - _seq_no, _primary_term và kiểm soát cập nhật đồng thời
+  - External versioning trong đồng bộ từ hệ thống dữ liệu gốc
+  - Refresh mặc định, refresh=true và refresh=wait_for
+  - Phân biệt khả năng đọc thấy qua Get API và Search API
+  - Xử lý xung đột, timeout và yêu cầu được gửi lại
+- level1: Thao tác hàng loạt
+  level2:
+  - Bulk API với các thao tác index, create, update và delete
+  - Xây dựng NDJSON hợp lệ và đọc lỗi của từng phần tử
+  - Chọn kích thước batch theo số tài liệu và dung lượng
+  - Retry có chọn lọc, exponential backoff và tính lũy đẳng
+  - 'Update By Query và Delete By Query: phạm vi, xung đột và chi phí'
+  - Reindex sang index mới với mapping hoặc analyzer mới
+  - Reindex từ cluster khác và điều kiện truy cập an toàn
+  - Slicing, throttling và theo dõi tác vụ chạy bất đồng bộ
+  - Kiểm tra kết quả trước khi chuyển alias hoặc xóa dữ liệu cũ
+- level1: Truy vấn chính xác
+  level2:
+  - Cấu trúc Search API và Query DSL
+  - Query context, filter context và tác động đến _score
+  - Match All, Match None và truy vấn tồn tại trường
+  - Term, Terms và Terms Set trên dữ liệu nguyên vẹn
+  - Range trên số và thời gian với date math và múi giờ
+  - IDs query và tra cứu tập document đã biết
+  - Prefix, Wildcard, Regexp và chi phí mở rộng term
+  - Fuzzy query, khoảng cách chỉnh sửa và giới hạn ứng viên
+  - Kiểm tra truy vấn bằng Validate API và tập dữ liệu đối chứng
+- level1: Tìm kiếm toàn văn
+  level2:
+  - Match query, operator và minimum_should_match
+  - Match Phrase, slop và thứ tự từ trong câu
+  - Match Phrase Prefix và tìm kiếm khi người dùng đang nhập
+  - Multi Match với best_fields, most_fields và cross_fields
+  - Combined Fields và ý nghĩa tìm kiếm trên nhiều trường
+  - Query String, Simple Query String và xử lý cú pháp người dùng
+  - Chọn analyzer cho truy vấn và phát hiện lệch token
+  - Kết hợp tiếng Việt, từ đồng nghĩa và lỗi chính tả
+  - Thiết kế truy vấn nhiều trường cho tìm kiếm sản phẩm hoặc bài viết
+- level1: Truy vấn kết hợp
+  level2:
+  - Bool query với must, filter, should và must_not
+  - Lồng Bool query và diễn giải minimum_should_match
+  - Dis Max và tie_breaker khi kết hợp nhiều nguồn điểm
+  - Constant Score và tách điều kiện lọc khỏi xếp hạng
+  - Nested query, score_mode và inner_hits
+  - Has Child, Has Parent và truy vấn quan hệ cha-con
+  - Span query và Intervals query cho quan hệ vị trí từ
+  - Named queries và xác định điều kiện đã khớp
+  - Giới hạn độ phức tạp và ngăn truy vấn tốn tài nguyên từ đầu vào
+- level1: Điểm và xếp hạng
+  level2:
+  - BM25, tần suất từ, độ hiếm và chuẩn hóa độ dài trường
+  - Boost theo trường, truy vấn và tiêu chí nghiệp vụ
+  - Function Score với trọng số, field_value_factor và decay
+  - Script Score và kiểm soát chi phí tính điểm
+  - Rank Feature và tín hiệu tĩnh phục vụ xếp hạng
+  - Rescore một tập ứng viên và đánh đổi độ trễ
+  - Explain API và diễn giải vì sao tài liệu đứng trước
+  - Ảnh hưởng của thống kê theo shard và dfs_query_then_fetch
+  - Đánh giá precision, recall, MRR và NDCG trên tập truy vấn có nhãn
+  - Ranking Evaluation API và quy trình điều chỉnh chất lượng tìm kiếm
+- level1: Kết quả và phân trang
+  level2:
+  - Đọc hits, total, _score, took và thông tin shard thất bại
+  - _source filtering, fields, docvalue_fields và stored_fields
+  - Sắp xếp nhiều trường, missing value và thứ tự ổn định
+  - Highlight và giới hạn khi làm nổi bật kết quả
+  - From/size và chi phí phân trang sâu
+  - Search After kết hợp Point In Time để phân trang nhất quán
+  - Scroll cho xử lý dữ liệu hàng loạt và tiêu chí lựa chọn
+  - Field collapsing và gom các kết quả cùng nhóm
+  - Track total hits, timeout và kiểm soát chi phí phản hồi
+  - Multi Search, hủy yêu cầu và xử lý kết quả một phần
+- level1: Aggregation cơ bản
+  level2:
+  - Cây aggregation, bucket, metric và phạm vi dữ liệu đầu vào
+  - Min, max, sum, avg, value_count và stats
+  - Cardinality, độ chính xác xấp xỉ và precision_threshold
+  - Percentiles, percentile_ranks và diễn giải phân bố
+  - Terms aggregation, size, shard_size và sai số đếm
+  - Range, date_range, histogram và date_histogram
+  - Calendar interval, fixed interval, múi giờ và giờ mùa hè
+  - Filter, Filters, Global và Missing aggregation
+  - Sub-aggregation và xây dựng thống kê theo nhiều chiều
+  - Post Filter và phân biệt bộ lọc kết quả với bộ lọc aggregation
+- level1: Aggregation nâng cao
+  level2:
+  - Composite aggregation và phân trang tập bucket bằng after_key
+  - Nested và Reverse Nested aggregation
+  - 'Pipeline aggregation: derivative, cumulative_sum và moving_fn'
+  - Bucket Script, Bucket Selector và Bucket Sort
+  - Top Hits, Top Metrics và lấy đại diện cho từng nhóm
+  - Significant Terms và phát hiện giá trị nổi bật
+  - Sampler và kiểm soát chi phí phân tích trên dữ liệu lớn
+  - Giới hạn bucket, bộ nhớ và lỗi circuit breaker
+  - Thiết kế bộ lọc nhiều chiều cho trang tìm kiếm
+  - Kiểm chứng số liệu aggregation trước dữ liệu thiếu hoặc lệch
+- level1: Dữ liệu địa lý
+  level2:
+  - Mapping geo_point và geo_shape
+  - Biểu diễn tọa độ, GeoJSON và thứ tự kinh độ-vĩ độ
+  - Tìm kiếm theo khoảng cách và vùng giới hạn
+  - Quan hệ hình học intersects, within, contains và disjoint
+  - Sắp xếp theo khoảng cách địa lý
+  - Geo Distance, Geo Bounds và Geo Centroid aggregation
+  - Geo Tile Grid, Geo Hash Grid và mức chi tiết bản đồ
+  - Kiểm tra dữ liệu không hợp lệ và chi phí truy vấn không gian
+- level1: Gợi ý tìm kiếm
+  level2:
+  - Phân biệt autocomplete, sửa lỗi chính tả và gợi ý truy vấn
+  - Completion suggester và cấu trúc dữ liệu phục vụ gợi ý
+  - Context suggester theo danh mục và vị trí
+  - Term suggester và Phrase suggester
+  - Search-as-you-type field và truy vấn bool_prefix
+  - So sánh completion, edge n-gram và search_as_you_type
+  - Kết hợp trọng số, bộ lọc nghiệp vụ và loại bỏ gợi ý trùng
+  - Đánh giá độ trễ và chất lượng gợi ý với tiếng Việt
+- level1: Vector và ngữ nghĩa
+  level2:
+  - Phân biệt tìm kiếm từ khóa, tìm kiếm vector và tìm kiếm ngữ nghĩa
+  - Embedding, mô hình suy luận và tính tương thích của vector
+  - Dense Vector, số chiều và lựa chọn độ tương đồng
+  - Tìm kiếm kNN gần đúng với HNSW và tìm kiếm chính xác
+  - K, num_candidates, bộ lọc và đánh đổi recall với độ trễ
+  - Sparse Vector, Semantic Text và điều kiện sử dụng theo phiên bản
+  - Chia đoạn tài liệu, lưu nguồn và chiến lược cập nhật embedding
+  - Kết hợp tìm kiếm từ khóa với vector bằng truy vấn lai
+  - Reciprocal Rank Fusion và kiểm tra điều kiện phiên bản hoặc giấy phép
+  - Đánh giá truy hồi cho RAG và phân quyền tài liệu trước khi trả kết quả
+  - Chi phí bộ nhớ, lượng tử hóa và đo hiệu quả trên dữ liệu thực
+- level1: Script và trường tính toán
+  level2:
+  - Ngôn ngữ Painless và các ngữ cảnh thực thi
+  - Inline script, stored script và truyền tham số an toàn
+  - Đọc doc values, xử lý giá trị thiếu và kiểu dữ liệu trong script
+  - Runtime field và khác biệt với trường được lập chỉ mục
+  - Khai báo runtime_mappings cho từng yêu cầu tìm kiếm
+  - Cân nhắc tính toán lúc ingest, lúc truy vấn hoặc trong ứng dụng
+  - Script compilation cache, giới hạn thực thi và bảo mật
+  - Kiểm thử script trước khi dùng trong cập nhật hoặc xếp hạng
+- level1: Ingest pipeline
+  level2:
+  - Cấu trúc pipeline, processor và thứ tự thực thi
+  - Set, Rename, Remove, Convert và Date processor
+  - Grok, Dissect, Split và xử lý dữ liệu dạng chuỗi
+  - Foreach, Script và điều kiện if trong processor
+  - Enrich processor và ghép thông tin từ dữ liệu tham chiếu
+  - On_failure, ignore_failure và quản lý tài liệu lỗi
+  - Default pipeline, final pipeline và gọi pipeline khi ghi
+  - Simulate API và kiểm thử pipeline bằng dữ liệu mẫu
+  - Phiên bản pipeline, cập nhật an toàn và theo dõi hiệu năng
+  - Vai trò Elastic Agent, Beats, Logstash và ứng dụng khi đưa dữ liệu vào
+- level1: Vòng đời dữ liệu
+  level2:
+  - Data stream, backing index, @timestamp và dữ liệu append-only
+  - Rollover theo kích thước, tuổi và số lượng tài liệu
+  - Index Lifecycle Management với các pha hot, warm, cold, frozen và delete
+  - Data tier, tier preference và phân bổ dữ liệu theo nhu cầu truy cập
+  - Data Stream Lifecycle và phạm vi áp dụng theo kiểu triển khai
+  - Shrink, Split, Clone và các điều kiện thực hiện
+  - Force merge trên index ít thay đổi và rủi ro khi dùng sai thời điểm
+  - Retention, downsampling và dữ liệu chuỗi thời gian
+  - Searchable snapshot và điều kiện sử dụng
+  - Giám sát, giải thích lỗi và phục hồi chính sách vòng đời
+- level1: Tính đúng đắn
+  level2:
+  - Nhất quán của ghi, đọc theo _id và tìm kiếm gần thời gian thực
+  - Wait for active shards và giới hạn bảo đảm của yêu cầu ghi
+  - Translog durability, acknowledgement và kịch bản mất dữ liệu
+  - Optimistic concurrency control và xử lý lost update
+  - Retry sau timeout khi chưa biết yêu cầu đã thành công hay chưa
+  - Tính lũy đẳng của thao tác nạp, cập nhật và xóa
+  - Replica promotion, primary term và phục hồi khi node hỏng
+  - Checkpoint, lịch sử thao tác và đồng bộ shard
+  - Giới hạn giao dịch nhiều document và cách phối hợp với dữ liệu gốc
+- level1: Quản trị cluster
+  level2:
+  - Discovery, bootstrap lần đầu và cluster.initial_master_nodes
+  - Quorum, voting configuration và an toàn khi thay đổi master node
+  - Cluster health green, yellow, red và ý nghĩa thực tế
+  - Shard allocation, relocation và rebalance
+  - Allocation Awareness và phân bổ replica theo vùng lỗi
+  - Disk watermark, flood-stage block và quản lý dung lượng
+  - Allocation Explain API và chẩn đoán unassigned shard
+  - Thêm node, loại node và kế hoạch bảo trì
+  - Rolling restart, full-cluster restart và kiểm tra sau khởi động
+  - Phân tách vai trò node theo tải ingest, search và lưu trữ
+- level1: Tối ưu tìm kiếm
+  level2:
+  - Xác định SLO, độ trễ p95/p99 và tải tìm kiếm thực tế
+  - Query cache, shard request cache và filesystem cache
+  - Profile API và đọc chi phí các thành phần truy vấn
+  - Tối ưu filter, số field tìm kiếm và truy vấn wildcard
+  - Doc values, fielddata và nguyên nhân tốn heap
+  - Giới hạn phân trang sâu, số bucket và số lượng kết quả
+  - Index sorting, routing và thu hẹp tập shard cần truy vấn
+  - Ảnh hưởng của shard fan-out, segment và dữ liệu phân bố lệch
+  - Tối ưu phản hồi, nén HTTP và thời gian truyền dữ liệu
+  - Đo lại chất lượng xếp hạng sau mỗi thay đổi hiệu năng
+- level1: Tối ưu ghi và dung lượng
+  level2:
+  - Đo tốc độ ingest, thời gian phản hồi và tỷ lệ bị từ chối
+  - Điều chỉnh bulk size, số luồng ghi và cơ chế backpressure
+  - Refresh interval, replica và đánh đổi khi nạp dữ liệu ban đầu
+  - Indexing buffer, merge pressure và tốc độ thiết bị lưu trữ
+  - Thiết kế shard size và tránh quá nhiều shard nhỏ
+  - Lựa chọn field cần index, doc values và lưu _source
+  - Ước lượng dung lượng index, replica, snapshot và tăng trưởng
+  - JVM heap, garbage collection và bộ nhớ ngoài heap
+  - Thread pool, indexing pressure và lỗi 429
+  - Thử tải bằng Elasticsearch Rally và lập kế hoạch năng lực
+- level1: Bảo mật
+  level2:
+  - TLS cho HTTP và giao tiếp giữa các node
+  - Xác thực bằng tài khoản, API key và service account
+  - Role, privilege và nguyên tắc cấp quyền tối thiểu
+  - Phân quyền theo cluster, index, document và field
+  - Quản lý secret bằng keystore và cơ chế của môi trường triển khai
+  - Giới hạn mạng, proxy và bảo vệ endpoint quản trị
+  - Bảo vệ đầu vào truy vấn và giới hạn yêu cầu tốn tài nguyên
+  - Audit logging và truy vết truy cập dữ liệu
+  - Che dữ liệu nhạy cảm, retention và yêu cầu tuân thủ
+  - Kiểm tra tính năng bảo mật theo phiên bản, giấy phép và loại triển khai
+- level1: Sao lưu và khôi phục
+  level2:
+  - Snapshot khác với sao chép thư mục dữ liệu như thế nào
+  - Đăng ký và kiểm tra snapshot repository
+  - Tạo snapshot, chọn index và theo dõi trạng thái
+  - Snapshot Lifecycle Management và chính sách lưu giữ
+  - Khôi phục index với tên mới hoặc cấu hình phù hợp
+  - Khôi phục cluster state, feature state và thành phần hệ thống
+  - Ma trận tương thích snapshot giữa các phiên bản
+  - Diễn tập phục hồi với mục tiêu RPO và RTO
+  - Bảo vệ repository, quyền truy cập và xử lý snapshot thất bại
+- level1: Sẵn sàng và liên cluster
+  level2:
+  - Thiết kế replica theo vùng lỗi và tránh điểm lỗi đơn
+  - Cross-cluster search và cấu hình remote cluster
+  - Cross-cluster replication, leader và follower
+  - Độ trễ sao chép, chuyển vùng và quy trình khôi phục dịch vụ
+  - Khác biệt giữa replication và backup
+  - Timeout, giới hạn thử lại và circuit breaker ở phía ứng dụng
+  - Giảm chức năng tìm kiếm khi cluster gặp sự cố
+  - Ràng buộc bảo mật, phiên bản và giấy phép khi liên kết cluster
+- level1: Quan sát và xử lý lỗi
+  level2:
+  - Cluster Stats, Nodes Stats, Index Stats và các chỉ số thiết yếu
+  - Hot Threads, pending tasks và tác vụ đang chạy
+  - Search slow log, indexing slow log và nhật ký hệ thống
+  - Giám sát heap, GC, CPU, đĩa, shard và độ trễ
+  - Chẩn đoán mapper_parsing_exception và dữ liệu sai kiểu
+  - Chẩn đoán query_shard_exception và kết quả tìm kiếm không như mong đợi
+  - Xử lý circuit_breaking_exception, rejected execution và lỗi 429
+  - Xử lý read-only index, disk watermark và shard chưa được gán
+  - Phân biệt lỗi xác thực, phân quyền, chứng chỉ và kết nối
+  - Runbook sự cố, bằng chứng chẩn đoán và cảnh báo có thể hành động
+- level1: Truy vấn và phân tích mở rộng
+  level2:
+  - Elasticsearch SQL và cách tiếp cận dữ liệu theo bảng
+  - SQL API, phân trang bằng cursor và giới hạn biểu diễn
+  - ES|QL, pipeline xử lý và các lệnh nguồn-lọc-tổng hợp
+  - Đối chiếu Query DSL, SQL và ES|QL theo bài toán
+  - EQL cho chuỗi sự kiện và điều kiện sử dụng phù hợp
+  - Transform dạng pivot hoặc latest để tạo dữ liệu tổng hợp
+  - Continuous transform, checkpoint và độ trễ cập nhật
+  - Kiểm tra phiên bản, giấy phép và giới hạn của từng công cụ
+- level1: Java API Client
+  level2:
+  - Chọn Java API Client và đối chiếu tương thích với Elasticsearch
+  - Thiết lập transport, HTTPS, CA, API key và vòng đời kết nối
+  - Ánh xạ JSON bằng Jackson hoặc JSON-B và kiểu document
+  - Fluent builder, kiểu request/response và kiểm tra lỗi biên dịch
+  - Tạo index, mapping và alias từ ứng dụng Java
+  - CRUD, optimistic concurrency và xử lý ElasticsearchException
+  - Xây Query DSL có kiểu và truy vấn có điều kiện
+  - Đọc hits, aggregation, highlight và kết quả phân trang
+  - BulkIngester, lỗi từng phần tử và kiểm soát backpressure
+  - API bất đồng bộ, CompletableFuture và quản lý timeout
+  - Logging, metric, retry và đóng tài nguyên khi ứng dụng dừng
+- level1: Spring Data Elasticsearch
+  level2:
+  - Vai trò Spring Data Elasticsearch và ma trận tương thích
+  - Cấu hình Spring Boot, chứng chỉ, xác thực và môi trường chạy
+  - Ánh xạ entity bằng @Document, @Field và bộ chuyển đổi
+  - Repository, derived query và giới hạn suy diễn truy vấn
+  - ElasticsearchOperations và NativeQuery cho truy vấn chuyên biệt
+  - SearchHit, SearchPage, aggregation và metadata kết quả
+  - Quản lý index, mapping và quyền sở hữu schema trong ứng dụng
+  - Tích hợp optimistic locking và xử lý xung đột cập nhật
+  - ReactiveElasticsearchClient và giới hạn khi sử dụng luồng phản ứng
+  - Kiểm thử tích hợp Spring với Elasticsearch qua Testcontainers
+- level1: Đồng bộ dữ liệu
+  level2:
+  - Elasticsearch như mô hình đọc và vai trò của nguồn dữ liệu gốc
+  - Rủi ro dual write giữa cơ sở dữ liệu nghiệp vụ và Elasticsearch
+  - Transactional outbox, CDC và luồng sự kiện cập nhật
+  - Thiết kế document ID ổn định và xử lý sự kiện trùng
+  - Thứ tự sự kiện, external version và cập nhật đến muộn
+  - Đồng bộ thao tác xóa, tombstone và retention của sự kiện
+  - Backfill dữ liệu ban đầu song song với luồng cập nhật
+  - Đối soát số lượng, phiên bản và nội dung giữa hai hệ thống
+  - Dead-letter queue, chạy lại sự kiện và phục hồi đồng bộ
+  - Reindex với alias và xử lý thay đổi trong thời gian chuyển đổi
+- level1: Kiểm thử
+  level2:
+  - Xây dữ liệu mẫu đại diện cho văn bản, thời gian và trường thiếu
+  - Kiểm thử analyzer, normalizer và tập từ đồng nghĩa
+  - Kiểm thử CRUD, mapping, pipeline và optimistic concurrency
+  - Kiểm thử truy vấn với bộ kết quả kỳ vọng và các trường hợp biên
+  - Kiểm thử điểm xếp hạng bằng dữ liệu có nhãn
+  - Kiểm thử aggregation gần đúng và sai số cho phép
+  - Kiểm thử tích hợp bằng Testcontainers và chờ dữ liệu có thể tìm kiếm
+  - Kiểm thử tải, soak test và dữ liệu phân bố lệch
+  - Kiểm thử lỗi node, timeout, retry và phục hồi snapshot
+  - Đặt tiêu chí chấp nhận cho tính đúng đắn, chất lượng và hiệu năng
+- level1: Nâng cấp và di chuyển
+  level2:
+  - Đọc release notes, breaking changes và deprecation
+  - Kiểm kê tương thích client, plugin, Kibana và tính năng đang dùng
+  - Sao lưu và diễn tập nâng cấp trên dữ liệu đại diện
+  - Lựa chọn rolling upgrade hoặc chuyển sang cluster mới
+  - Reindex dữ liệu không tương thích với phiên bản đích
+  - Kiểm tra API tương thích và kế hoạch chuyển đổi máy khách
+  - Xác minh dữ liệu, truy vấn, bảo mật và hiệu năng sau nâng cấp
+  - Kế hoạch phục hồi khi không thể hạ phiên bản trực tiếp
+  - Di chuyển môi trường tự quản lý sang dịch vụ quản lý và đánh giá giới hạn
+- level1: Bài thực hành tổng hợp
+  level2:
+  - Xây tìm kiếm sản phẩm với tiếng Việt, bộ lọc và aggregation
+  - Xây tìm kiếm bài viết với highlight, gợi ý và phân trang ổn định
+  - Thiết kế index cho nhật ký với ingest pipeline và data stream
+  - Đồng bộ dữ liệu PostgreSQL sang Elasticsearch bằng outbox hoặc CDC
+  - Xây tìm kiếm lai từ khóa-vector và đánh giá bộ truy vấn có nhãn
+  - Di chuyển mapping sang index mới bằng reindex và alias
+  - Mô phỏng node hỏng, shard chưa được gán và phục hồi snapshot
+  - Đo tải tìm kiếm và ingest để chọn cấu hình shard phù hợp
+  - Hoàn thiện dịch vụ tìm kiếm Java/Spring với bảo mật và quan sát

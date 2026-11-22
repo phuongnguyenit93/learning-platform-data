@@ -1,3 +1,0 @@
-menuLevel1: Kết hợp CompletableFuture
-menuLevel2: supplyAsync() không chỉ định executor và nguy cơ dùng chung common pool
-status: WRITTEN

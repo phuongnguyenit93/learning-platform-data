@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-mybatis
+  title: Tổng quan MyBatis
+  purpose: Hiểu MyBatis là công cụ ánh xạ SQL với đối tượng Java, trong đó lập trình viên kiểm soát câu truy vấn.
+  objectives:
+  - Mô tả luồng ứng dụng → Mapper → SQL → cơ sở dữ liệu.
+  - Phân biệt SQL Mapper với ORM tự sinh SQL.
+  - Nhận diện SqlSessionFactory, SqlSession và Mapper.
+- id: cau-hinh-sqlsession
+  title: Cấu hình & SqlSession
+  purpose: Thiết lập môi trường truy cập dữ liệu và quản lý vòng đời phiên làm việc an toàn.
+  objectives:
+  - Cấu hình DataSource, môi trường và các Mapper.
+  - Tạo SqlSessionFactory và sử dụng SqlSession.
+  - Giải thích phạm vi sống và tính an toàn luồng của SqlSession.
+- id: mapper-crud
+  title: Mapper & CRUD
+  purpose: Tổ chức truy vấn SQL thành các phương thức Java để đọc và thay đổi dữ liệu.
+  objectives:
+  - Tạo Mapper interface và khai báo SQL bằng XML/annotation.
+  - Thực hiện select, insert, update và delete.
+  - Xử lý tham số, số dòng ảnh hưởng và khóa tự sinh.
+- id: tham-so-sql-an-toan
+  title: Tham số SQL an toàn
+  purpose: Ràng buộc giá trị đầu vào đúng cách để giảm nguy cơ SQL injection.
+  objectives:
+  - 'Dùng #{...} để bind tham số truy vấn.'
+  - 'Phân biệt #{...} với ${...} và nguy cơ nối chuỗi SQL.'
+  - Kiểm soát tên cột, bảng động bằng danh sách cho phép.
+- id: anh-xa-ket-qua
+  title: Ánh xạ kết quả
+  purpose: Chuyển hàng dữ liệu quan hệ thành đối tượng Java, kể cả kết quả có nhiều mối quan hệ.
+  objectives:
+  - Ánh xạ cột bằng resultType và resultMap.
+  - Dùng association, collection cho dữ liệu liên kết.
+  - Nhận biết vai trò TypeHandler khi đổi kiểu.
+- id: dynamic-sql
+  title: Dynamic SQL
+  purpose: Xây dựng câu SQL theo điều kiện mà vẫn giữ cú pháp và tham số nhất quán.
+  objectives:
+  - Sử dụng if, choose, where và set.
+  - Tạo danh sách IN bằng foreach.
+  - Kiểm tra SQL ở các tổ hợp điều kiện khác nhau.
+- id: giao-dich-spring-boot
+  title: Giao dịch & Spring Boot
+  purpose: Phối hợp commit/rollback và tích hợp Mapper vào ứng dụng Spring Boot.
+  objectives:
+  - Phân biệt giao dịch thủ công và giao dịch do Spring quản lý.
+  - Thiết lập MyBatis Spring Boot Starter và Mapper scanning.
+  - Xác minh commit/rollback với @Transactional.
+- id: kiem-thu-toi-uu
+  title: Kiểm thử & tối ưu
+  purpose: Xác minh tính đúng đắn của truy vấn, mapping và chi phí truy cập cơ sở dữ liệu.
+  objectives:
+  - Kiểm thử tích hợp CRUD, mapping và rollback trên CSDL thử nghiệm.
+  - Đọc log SQL và đo số truy vấn, thời gian thực thi.
+  - Nhận diện N+1, cache và tác động của lazy loading.

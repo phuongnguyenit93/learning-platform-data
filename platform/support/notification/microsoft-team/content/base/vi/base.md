@@ -1,7 +1,0 @@
-# Support Notification Microsoft Team — Thông báo hệ thống qua Microsoft Teams
-
-Microsoft Teams có thể là điểm nhận các thông báo vận hành, cảnh báo ứng dụng hoặc kết quả xử lý nghiệp vụ. Một thông báo tốt cần đến đúng channel hoặc chat, nêu rõ sự kiện, mức độ ảnh hưởng và hành động tiếp theo; không nên biến Teams thành nơi đổ toàn bộ log. Với tích hợp mới, cách đơn giản thường là dùng **Teams Workflows** dựa trên Power Automate để nhận HTTP webhook rồi chuyển nội dung vào Teams. Các Office 365 Connectors và connector-based Incoming Webhooks cũ đã ngừng hoạt động từ tháng 5/2026.
-
-Module phù hợp với người đã biết HTTP, JSON, Java và nguyên lý xử lý sự kiện cơ bản. Lộ trình đi từ lựa chọn loại thông báo và đích nhận đến cách phân biệt Workflows, Microsoft Graph và notification bot. Người học sẽ thiết lập webhook workflow, gửi yêu cầu POST, định dạng thông báo dưới dạng văn bản hoặc Adaptive Card, sau đó xem xét quyền truy cập, bảo vệ webhook URL và cách triển khai Java HTTP client. Microsoft Graph đòi hỏi cơ chế cấp quyền phù hợp; bot chủ động là một phương án khác khi cần tương tác sâu hơn.
-
-Ở phần cuối, bạn sẽ kiểm thử lỗi mạng, rate limit và trường hợp gửi trùng, đồng thời tổ chức quản trị workflow để thông báo tiếp tục hoạt động khi người tạo thay đổi. Hoàn thành module, bạn có thể xây dựng một luồng thông báo Teams cơ bản từ ứng dụng Java, diễn giải lựa chọn tích hợp và áp dụng các nguyên tắc bảo mật, độ tin cậy và tránh gây nhiễu.

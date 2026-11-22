@@ -1,0 +1,302 @@
+menu:
+- level1: Tổng quan High Cohesion
+  level2:
+  - Tính gắn kết cao (High Cohesion) là gì trong thiết kế phần mềm
+  - Vì sao các phần trong một đơn vị mã cần cùng phục vụ mục đích rõ ràng
+  - Nhận diện dữ liệu, hành vi, trách nhiệm và ranh giới trong một thiết kế
+  - Mối liên hệ giữa cohesion, khả năng đọc hiểu và chi phí thay đổi
+  - Phân biệt gắn kết nội bộ với mức phụ thuộc giữa các đơn vị
+  - Các cấp xem xét cohesion từ hàm, lớp đến gói, mô-đun và dịch vụ
+  - Phân biệt cohesion cao với ít dòng mã, ít phương thức hoặc nhiều lớp nhỏ
+  - So sánh một ví dụ trước và sau khi tổ chức lại trách nhiệm
+  - Lộ trình học từ nhận diện quan hệ nội bộ đến kiểm chứng thiết kế
+- level1: Trách nhiệm và ranh giới
+  level2:
+  - Xác định trách nhiệm qua giá trị và kết quả mà một đơn vị cung cấp
+  - Phân biệt trách nhiệm với một thao tác kỹ thuật riêng lẻ
+  - Mô tả mục đích của hàm, lớp hoặc mô-đun bằng ngôn ngữ rõ nghĩa
+  - Nhận diện các phần cùng phục vụ một quy tắc hoặc quyết định thiết kế
+  - Phân tích người sử dụng, chủ sở hữu và lý do thay đổi
+  - Xác định dữ liệu, hành vi và bất biến cần được quản lý cùng nhau
+  - Đánh giá mức trừu tượng phù hợp của một ranh giới
+  - Nhận diện trách nhiệm bị thiếu, bị trùng hoặc phân tán
+  - Phân biệt ranh giới có ý nghĩa với việc gom mã theo tên gọi chung chung
+- level1: Cohesion và Coupling
+  level2:
+  - Phân biệt tính gắn kết nội bộ (cohesion) với mức phụ thuộc (coupling)
+  - Quan sát cohesion và coupling như hai khía cạnh cần đánh giá riêng
+  - Phân tích thiết kế có gắn kết tốt nhưng vẫn phụ thuộc quá nhiều bên ngoài
+  - Nhận diện thiết kế ít phụ thuộc nhưng chứa các trách nhiệm rời rạc
+  - Liên hệ đóng gói và che giấu thông tin với cả hai mục tiêu
+  - Đánh giá việc tách lớp làm tăng số quan hệ cộng tác
+  - Lựa chọn ranh giới giúp tập trung quy tắc và giảm phụ thuộc vào chi tiết
+  - Phân biệt kết nối cần thiết với ràng buộc gây thay đổi dây chuyền
+  - Đánh giá lợi ích toàn thiết kế thay vì tối ưu riêng một chỉ số
+- level1: Các dạng Cohesion
+  level2:
+  - Mục đích và phạm vi sử dụng các cách phân loại cohesion
+  - Gắn kết ngẫu nhiên (Coincidental Cohesion) giữa các phần không có mục đích chung
+  - Gắn kết theo loại thao tác (Logical Cohesion) và vai trò của tham số lựa chọn
+  - Gắn kết theo thời điểm (Temporal Cohesion) trong khởi tạo và kết thúc
+  - Gắn kết theo trình tự thủ tục (Procedural Cohesion)
+  - Gắn kết qua dữ liệu chung (Communicational Cohesion)
+  - Gắn kết theo chuỗi đầu ra và đầu vào (Sequential Cohesion)
+  - Gắn kết theo một chức năng xác định (Functional Cohesion)
+  - Gắn kết quanh cấu trúc dữ liệu và các thao tác liên quan (Informational Cohesion)
+  - Phân biệt chia sẻ dữ liệu với thực sự cùng bảo vệ một ý nghĩa
+  - Giới hạn của phân loại cổ điển khi đánh giá thiết kế hướng đối tượng và hệ thống hiện đại
+- level1: Dấu hiệu và bằng chứng
+  level2:
+  - Đọc luồng sử dụng để xác định các phần có liên quan thực tế
+  - Lập bản đồ phương thức, trường dữ liệu và các lời gọi nội bộ
+  - Tìm nhóm hành vi cùng sử dụng dữ liệu hoặc bảo vệ một bất biến
+  - Đối chiếu tên gọi với mục đích mà mã đang thực hiện
+  - Quan sát những phần thường phải thay đổi cùng nhau
+  - Phân biệt đồng thay đổi do nghiệp vụ với đồng thay đổi do sao chép mã
+  - Nhận diện nhiều nhóm phương thức ít liên quan trong cùng một lớp
+  - Kiểm tra các phụ thuộc chỉ phục vụ một nhóm trách nhiệm nhỏ
+  - Kết hợp mã nguồn, kiểm thử và lịch sử thay đổi trước khi kết luận
+  - Ghi nhận giả thuyết thiết kế cùng bằng chứng còn thiếu
+- level1: Cohesion ở hàm
+  level2:
+  - Xác định một kết quả có ý nghĩa mà hàm chịu trách nhiệm tạo ra
+  - Giữ các bước xử lý ở mức trừu tượng nhất quán
+  - Nhận diện hàm vừa tính toán, lưu dữ liệu và điều khiển giao diện
+  - Phân biệt một quy trình nhiều bước với nhiều trách nhiệm không liên quan
+  - Tách hàm theo ý định và luồng dữ liệu
+  - Giảm biến tạm và phạm vi trạng thái phải ghi nhớ
+  - Xử lý tham số cờ chọn giữa các hành vi khác bản chất
+  - Đánh giá tác dụng phụ và thứ tự thực thi trong mục đích chung của hàm
+  - Tránh chia hàm cơ học khiến ý nghĩa bị phân tán qua nhiều nơi
+  - Kiểm chứng khả năng đọc hiểu và thay đổi sau khi tổ chức lại hàm
+- level1: Cohesion ở lớp
+  level2:
+  - Mô tả khái niệm hoặc trách nhiệm trung tâm của lớp
+  - Đối chiếu trường dữ liệu với hành vi mà lớp cung cấp
+  - Giữ quy tắc bảo vệ trạng thái hợp lệ gần dữ liệu liên quan
+  - Nhận diện nhóm trường và phương thức tạo thành trách nhiệm riêng
+  - Phân tích hàm khởi tạo có quá nhiều phụ thuộc không dùng cùng nhau
+  - Đánh giá lớp chứa đồng thời nhiều mức trừu tượng
+  - Tách lớp theo trách nhiệm và vòng đời trạng thái
+  - Phân biệt lớp nhỏ có mục đích rõ với lớp quá vụn
+  - Nhận diện lớp lớn nhưng gắn kết và lớp nhỏ nhưng thiếu mục đích
+  - Kiểm chứng hợp đồng và quan hệ cộng tác sau khi thay ranh giới lớp
+- level1: Dữ liệu và hành vi
+  level2:
+  - Xác định nơi sở hữu dữ liệu và quyền thay đổi trạng thái
+  - Đưa hành vi về nơi có đủ thông tin và trách nhiệm để quyết định
+  - Phân biệt truy cập dữ liệu cần thiết với can thiệp chi tiết nội bộ
+  - Nhận diện cụm dữ liệu cần biểu diễn bằng khái niệm riêng
+  - Đóng gói giá trị cùng quy tắc hợp lệ trong đối tượng giá trị
+  - Phân biệt hành vi nghiệp vụ với chuyển đổi dữ liệu tại biên hệ thống
+  - Đánh giá dữ liệu bất biến và hàm thuần trong thiết kế gắn kết
+  - Giữ DTO và cấu trúc truyền dữ liệu phù hợp vai trò của chúng
+  - Tránh chuyển mọi xử lý về một lớp chỉ vì lớp đó nắm dữ liệu
+  - Kiểm chứng bất biến và quyền sở hữu sau khi di chuyển hành vi
+- level1: Cohesion của giao diện
+  level2:
+  - Xác định nhu cầu của nhóm bên sử dụng một giao diện
+  - Nhận diện các thao tác cùng phục vụ một vai trò có ý nghĩa
+  - Phát hiện giao diện rộng khiến bên sử dụng phụ thuộc vào thao tác không cần
+  - Phân biệt giao diện gắn kết với giao diện chỉ có một phương thức
+  - Tách giao diện theo vai trò khi các nhu cầu sử dụng khác nhau
+  - Đối chiếu tên, tham số và kết quả với hợp đồng chung
+  - Đánh giá giao diện chuyển tiếp và nguy cơ tạo quá nhiều tầng trung gian
+  - Giữ ổn định hợp đồng công khai khi thay đổi cách tổ chức bên trong
+  - Kiểm chứng các bên sử dụng sau khi điều chỉnh ranh giới giao diện
+- level1: Cohesion ở gói
+  level2:
+  - Xác định gói (package) đang biểu diễn năng lực hay chi tiết kỹ thuật
+  - So sánh nhóm mã theo tầng với nhóm mã theo chức năng
+  - Đánh giá mục đích chung của các lớp trong cùng một gói
+  - Giữ chi tiết cài đặt gần hợp đồng và thành phần sử dụng chúng
+  - Nhận diện gói tiện ích tập hợp nhiều trách nhiệm không liên quan
+  - Kiểm tra phụ thuộc vòng và lớp bị dùng xuyên nhiều ranh giới
+  - Thiết lập phần công khai và phần nội bộ của gói
+  - Đặt tên gói theo ý nghĩa thay vì chỉ theo loại lớp
+  - Kiểm chứng khả năng tìm mã và phạm vi thay đổi theo một yêu cầu
+- level1: Cohesion ở mô-đun
+  level2:
+  - Xác định mục đích, hợp đồng và chủ sở hữu của mô-đun
+  - Nhóm thành phần có quy tắc và hướng thay đổi liên quan
+  - Đánh giá các phần cần tái sử dụng cùng nhau
+  - Phân tích chu kỳ phát hành và yêu cầu tương thích của các thành phần
+  - Nhận diện mô-đun dùng chung chứa quá nhiều mối quan tâm
+  - Tách phần cốt lõi khỏi chi tiết tích hợp khi cần
+  - Giữ dữ liệu và quyết định nội bộ sau một hợp đồng rõ ràng
+  - Phân biệt ranh giới mô-đun với cách chia thư mục hoặc dự án build
+  - Đánh giá tác động khi chia một mô-đun thành nhiều đơn vị phát hành
+  - Kiểm chứng khả năng thay đổi độc lập mà vẫn đáp ứng các luồng sử dụng
+- level1: Cohesion ở dịch vụ
+  level2:
+  - Xác định năng lực nghiệp vụ mà một dịch vụ cung cấp
+  - Đánh giá quyền sở hữu dữ liệu và quy tắc của dịch vụ
+  - Phân biệt ranh giới triển khai với ranh giới trách nhiệm
+  - Nhận diện dịch vụ phải gọi qua lại nhiều lần để hoàn thành một quyết định nhỏ
+  - Phân tích thay đổi buộc nhiều dịch vụ phải phát hành cùng nhau
+  - Đánh giá tính nhất quán dữ liệu và giao dịch khi đề xuất tách dịch vụ
+  - Cân nhắc giữ mô-đun trong cùng tiến trình thay vì phân tán sớm
+  - Giới hạn việc dùng chung mô hình nội bộ giữa các dịch vụ
+  - Kiểm chứng ranh giới theo hành vi nghiệp vụ và chi phí vận hành
+- level1: Mô hình miền nghiệp vụ
+  level2:
+  - Dùng thuật ngữ nghiệp vụ để tìm trách nhiệm và khái niệm trung tâm
+  - Nhận diện các quy tắc cần được thực thi và thay đổi cùng nhau
+  - Đánh giá thực thể, đối tượng giá trị và dịch vụ miền theo vai trò
+  - Nhóm dữ liệu cần bảo vệ nhất quán trong một ranh giới phù hợp
+  - Liên hệ ranh giới ngữ cảnh (bounded context) với ý nghĩa của mô hình
+  - Phân biệt cùng tên dữ liệu với cùng khái niệm trong hai ngữ cảnh
+  - Ngăn chi tiết lưu trữ hoặc giao tiếp làm loãng quy tắc nghiệp vụ
+  - Đánh giá trường hợp mô hình đơn giản chưa cần nhiều lớp miền
+  - Kiểm chứng ranh giới bằng tình huống nghiệp vụ và thay đổi dự kiến
+- level1: Phân tầng và điều phối
+  level2:
+  - Phân biệt quy tắc nghiệp vụ, điều phối ứng dụng và chi tiết hạ tầng
+  - Nhận diện lớp điều phối bị cuốn vào xử lý dữ liệu quá chi tiết
+  - Giữ một luồng sử dụng nhiều bước có mục đích và hợp đồng rõ ràng
+  - Tách việc quyết định cần làm gì khỏi cơ chế thực hiện khi phù hợp
+  - Đánh giá vai trò của Controller, Service và Repository theo trách nhiệm thực tế
+  - Tránh dùng tên tầng làm lý do gom mọi xử lý vào một lớp
+  - Phân tích ánh xạ dữ liệu và kiểm tra đầu vào tại ranh giới
+  - Đánh giá trường hợp cần tách thêm hoặc gộp bớt tầng trung gian
+  - Kiểm chứng luồng xử lý tổng thể sau khi phân chia trách nhiệm
+- level1: Liên hệ các nguyên tắc
+  level2:
+  - Phân biệt High Cohesion với nguyên tắc một trách nhiệm (Single Responsibility Principle)
+  - Đối chiếu lý do thay đổi với quan hệ giữa các thành phần nội bộ
+  - Liên hệ phân tách giao diện với nhu cầu của bên sử dụng
+  - Liên hệ đảo ngược phụ thuộc với việc giữ chi tiết ngoài trách nhiệm cốt lõi
+  - Vai trò của đóng gói và che giấu thông tin trong duy trì ranh giới
+  - Liên hệ nguyên tắc chuyên gia thông tin (Information Expert) với nơi đặt hành vi
+  - Đánh giá cân bằng High Cohesion và Low Coupling khi phân công trách nhiệm
+  - Áp dụng DRY mà không trộn các quy tắc có hướng thay đổi độc lập
+  - Sử dụng KISS và YAGNI để hạn chế ranh giới và trừu tượng chưa cần
+- level1: Các cách tổ chức mã
+  level2:
+  - Đánh giá cohesion trong thiết kế hướng đối tượng theo trạng thái và hành vi
+  - Đánh giá cohesion trong thiết kế theo hướng hàm qua phép biến đổi và kiểu dữ liệu
+  - Tổ chức các hàm thuần quanh một mục đích hoặc khái niệm chung
+  - Phân biệt hàm tiện ích có chủ đề rõ với tập hợp thao tác ngẫu nhiên
+  - Đánh giá phép xử lý dữ liệu nhiều bước như một luồng có ý nghĩa
+  - Phân biệt tổ chức theo chức năng với chia mã theo từ khóa kỹ thuật
+  - Giữ khả năng tổ hợp mà không làm mất ngữ nghĩa nghiệp vụ
+  - Tránh áp dụng tiêu chí của một cách tổ chức mã máy móc cho cách khác
+- level1: Dấu hiệu cohesion thấp
+  level2:
+  - Nhận diện lớp nhiều trách nhiệm và lớp trung tâm xử lý quá mức
+  - Phát hiện một lớp thay đổi vì nhiều nguyên nhân độc lập (Divergent Change)
+  - Nhận diện quy tắc bị phân tán khiến một thay đổi phải sửa nhiều nơi
+  - Phát hiện hành vi quan tâm dữ liệu của lớp khác quá mức (Feature Envy)
+  - Nhận diện danh sách tham số dài và nhóm dữ liệu lặp lại
+  - Phát hiện tham số chế độ điều khiển các trách nhiệm khác nhau
+  - Nhận diện trạng thái chỉ có ý nghĩa với một phần nhỏ hành vi của lớp
+  - Đánh giá tên gọi chung chung như Manager, Helper và Utils trong bối cảnh
+  - Phát hiện kiểm thử phải dựng nhiều phụ thuộc không liên quan
+  - Phân biệt dấu hiệu đáng nghi với kết luận cần tách mã ngay
+- level1: Tách trách nhiệm
+  level2:
+  - Tách hàm theo ý định thay vì chỉ theo số dòng
+  - Tách lớp từ nhóm dữ liệu và hành vi cùng mục đích
+  - Tách giao diện khi các bên sử dụng cần vai trò khác nhau
+  - Tách đối tượng tham số cho nhóm giá trị có ý nghĩa chung
+  - Cô lập tác dụng phụ khỏi phần tính toán khi giúp làm rõ trách nhiệm
+  - Tách cơ chế tích hợp ra khỏi quyết định nghiệp vụ
+  - Chọn phần cần tách trước theo mức chắc chắn và rủi ro
+  - Giữ hợp đồng hiện có trong quá trình di chuyển bên sử dụng
+  - Kiểm chứng lớp hoặc mô-đun mới có trách nhiệm độc lập đủ rõ
+  - Tránh tạo nhiều đơn vị phải phối hợp chặt hơn cấu trúc ban đầu
+- level1: Gộp và di chuyển
+  level2:
+  - Chuyển phương thức tới nơi có trách nhiệm và thông tin phù hợp
+  - Chuyển trường dữ liệu cùng hành vi cần bảo vệ trạng thái
+  - Gom quy tắc bị phân tán về một nơi sở hữu rõ ràng
+  - Gộp lớp ít giá trị khi ranh giới hiện tại không còn ý nghĩa
+  - Đưa mã gần nơi sử dụng khi mức chia sẻ thực tế thấp
+  - Phân biệt gộp cùng trách nhiệm với gộp do cú pháp giống nhau
+  - Đánh giá đóng gói và hướng phụ thuộc sau khi di chuyển
+  - Kiểm chứng vòng đời dữ liệu và thứ tự thực thi của các bên liên quan
+  - Giữ khả năng thay đổi độc lập cho các quy tắc chỉ tình cờ giống nhau
+- level1: Quy trình tái cấu trúc
+  level2:
+  - Xác định vấn đề gắn kết và mục tiêu thiết kế bằng bằng chứng
+  - Khoanh vùng hợp đồng, bất biến và hành vi phải bảo toàn
+  - Đọc luồng sử dụng trước khi quyết định ranh giới mới
+  - Thiết lập kiểm thử bảo vệ và dữ liệu kiểm chứng ban đầu
+  - Lập thứ tự tách, gộp và di chuyển theo các bước nhỏ
+  - Điều chỉnh dữ liệu, hành vi và bên gọi mà không đổi ngữ nghĩa ngoài phạm vi
+  - Rà soát thay đổi cấu trúc riêng với thay đổi yêu cầu
+  - Kiểm chứng tác động tới API, lưu trữ, cấu hình và vòng đời đối tượng
+  - Đánh giá lại giả thuyết khi thay đổi làm tăng phối hợp hoặc khó đọc
+  - Ghi nhận lý do chọn ranh giới và điều kiện dừng tái cấu trúc
+- level1: Đo lường và giới hạn
+  level2:
+  - Mục đích của chỉ số cohesion trong hỗ trợ chẩn đoán
+  - Mô hình hóa quan hệ phương thức và trường dữ liệu để quan sát cấu trúc
+  - Nhận diện các họ chỉ số thiếu gắn kết (LCOM) và sự khác nhau giữa định nghĩa
+  - Tìm hiểu chỉ số gắn kết trực tiếp và gián tiếp như TCC, LCC
+  - Đánh giá ảnh hưởng của phương thức tĩnh, hàm khởi tạo và phương thức truy cập dữ liệu
+  - Nhận diện dữ liệu dùng chung như logger có thể tạo cảm giác liên quan giả
+  - Phân biệt liên kết cấu trúc đo được với liên hệ ngữ nghĩa của trách nhiệm
+  - Kết hợp lịch sử đồng thay đổi với cách sử dụng thực tế
+  - Giới hạn khi áp dụng chỉ số của lớp cho gói, mô-đun hoặc dịch vụ
+  - Tránh đặt ngưỡng chung để tự động kết luận mọi thiết kế
+  - Dùng chỉ số trước và sau cùng bằng chứng đọc hiểu, kiểm thử và thay đổi
+- level1: Kiểm thử thiết kế
+  level2:
+  - Dùng kiểm thử để kiểm chứng hành vi sau khi điều chỉnh ranh giới
+  - Quan sát mức chuẩn bị dữ liệu và phụ thuộc cần cho một trách nhiệm
+  - Viết ca kiểm thử theo quy tắc và bất biến mà đơn vị sở hữu
+  - Kiểm chứng tương tác qua hợp đồng giữa các đơn vị sau khi tách
+  - Tránh gắn kiểm thử vào chi tiết cài đặt chỉ để đạt cấu trúc mong muốn
+  - Kiểm tra lỗi, tác dụng phụ và thời điểm cập nhật trạng thái
+  - Dùng một yêu cầu thay đổi cụ thể để đánh giá phạm vi mã phải sửa
+  - Kết hợp kiểm thử đơn vị, tích hợp và kiểm tra ranh giới phù hợp
+  - Phân biệt kiểm thử dễ viết với bằng chứng đầy đủ về chất lượng thiết kế
+- level1: Đánh đổi và giới hạn
+  level2:
+  - Cân bằng tập trung trách nhiệm với kích thước và độ phức tạp của đơn vị
+  - Đánh giá cohesion cục bộ và nhu cầu phối hợp của toàn luồng nghiệp vụ
+  - Phân biệt dùng chung dữ liệu với cần chung ranh giới giao dịch
+  - Cân nhắc hiệu năng, cấp phát và đường gọi khi tách thành phần
+  - Giữ tương thích với framework, API công khai và mô hình lưu trữ
+  - Đánh giá thiết kế mã sinh hoặc mã tích hợp có ràng buộc bên ngoài
+  - Tránh tạo phụ thuộc vòng sau khi cố đưa mọi hành vi gần dữ liệu
+  - Nhận diện ranh giới bị chia quá vụn khiến khó tìm và hiểu mã
+  - Chấp nhận cấu trúc hiện tại khi chi phí thay đổi chưa tương xứng lợi ích
+  - Đặt mức cải thiện phù hợp nhu cầu thực tế thay vì tìm thiết kế tuyệt đối
+- level1: Tiến hóa và bảo trì
+  level2:
+  - Theo dõi sự thay đổi trách nhiệm khi yêu cầu nghiệp vụ phát triển
+  - Phát hiện ranh giới từng phù hợp nhưng nay chứa nhiều hướng thay đổi
+  - Đánh giá thành phần dùng chung khi số bên sử dụng tăng
+  - Quản lý quyền sở hữu và quyết định thiết kế tại ranh giới mô-đun
+  - Giữ tên gọi và tài liệu thống nhất với trách nhiệm hiện tại
+  - Chọn cơ hội cải thiện khi đang thực hiện thay đổi liên quan
+  - Ghi nhận nợ thiết kế bằng tác động và trường hợp cụ thể
+  - Kiểm tra lại lợi ích sau nhiều lần thay đổi thực tế
+  - Ngăn cải thiện cohesion trở thành chuỗi chia lớp hoặc chia dịch vụ không có mục tiêu
+- level1: Rà soát trong nhóm
+  level2:
+  - Mô tả mục đích và ranh giới trách nhiệm trước khi đọc chi tiết
+  - Đặt câu hỏi các thành phần có thực sự cần ở cùng nhau hay không
+  - Đặt câu hỏi một quy tắc hiện đang bị phân tán ở những nơi nào
+  - Phân biệt góp ý về trách nhiệm với sở thích đặt tệp hoặc đặt tên
+  - Trình bày bằng chứng từ luồng sử dụng, trạng thái và lịch sử thay đổi
+  - So sánh phương án giữ nguyên, tách, gộp và di chuyển
+  - Thống nhất đánh đổi với các bên sở hữu hợp đồng liên quan
+  - Xác định điều cần sửa ngay và điều cần theo dõi sau
+  - Lưu lý do quyết định để tránh lặp lại tranh luận khi bối cảnh chưa đổi
+- level1: Tình huống và thực hành
+  level2:
+  - Phân tích một lớp đơn hàng chứa quy tắc giá, lưu trữ và gửi thông báo
+  - Tách hàm xử lý nhiều bước mà vẫn giữ rõ mục đích chung
+  - Thiết kế đối tượng giá trị bảo vệ quy tắc của một nhóm dữ liệu
+  - Phân chia giao diện quản trị và tra cứu theo nhu cầu bên sử dụng
+  - Đánh giá lớp tiện ích trước khi quyết định chia hoặc giữ nguyên
+  - Gom một quy tắc nghiệp vụ đang bị sửa lặp ở nhiều mô-đun
+  - So sánh cách nhóm theo tầng với nhóm theo chức năng cho cùng một yêu cầu
+  - Đánh giá một mô-đun có thể giữ chung dù chứa nhiều lớp khác vai trò
+  - Phân tích đề xuất tách dịch vụ gây tăng giao tiếp và phụ thuộc dữ liệu
+  - Đối chiếu LCOM hoặc chỉ số liên quan với cách đọc trách nhiệm thực tế
+  - Thực hiện thay đổi yêu cầu trước và sau tái cấu trúc để so sánh phạm vi ảnh hưởng
+  - Lập hồ sơ thiết kế gồm dấu hiệu, ranh giới đề xuất, đánh đổi và bằng chứng kiểm chứng

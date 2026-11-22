@@ -1,0 +1,414 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - HAProxy là gì và bài toán phân phối lưu lượng
+  - Phân biệt reverse proxy, cân bằng tải và API Gateway
+  - Vị trí của HAProxy giữa máy khách, mạng và ứng dụng
+  - Quan hệ giữa frontend, backend, listener và server
+  - Khác biệt giữa cân bằng tải tầng 4 và tầng 7
+  - Đường đi của một kết nối và một yêu cầu qua HAProxy
+  - Phạm vi Community, Enterprise và các thành phần bổ trợ
+  - Kiến thức tiên quyết và thứ tự học HAProxy
+- level1: Cài đặt
+  level2:
+  - Lựa chọn phiên bản và tra cứu tài liệu đúng phiên bản
+  - Cài HAProxy từ kho gói trên Linux
+  - Biên dịch từ mã nguồn và lựa chọn tính năng cần thiết
+  - Kiểm tra phiên bản, thư viện TLS và tùy chọn biên dịch bằng haproxy -vv
+  - Tổ chức tệp cấu hình, chứng chỉ, log và quyền truy cập
+  - Chạy HAProxy bằng dòng lệnh và quản lý bằng systemd
+  - Chạy HAProxy trong Docker với cấu hình được gắn từ bên ngoài
+  - Thiết lập phòng thực hành gồm HAProxy và nhiều máy chủ đích
+  - Kiểm tra cấu hình bằng haproxy -c và xác minh dịch vụ sau khởi động
+- level1: Cấu hình
+  level2:
+  - Cấu trúc haproxy.cfg và vai trò của từng loại khối
+  - 'Khối global: thiết lập chung của tiến trình'
+  - 'Khối defaults: kế thừa, ghi đè và giới hạn phạm vi'
+  - 'Khối frontend, backend và listen: cách tổ chức và lựa chọn'
+  - Chỉ thị bind, server, default-server và default_backend
+  - Cú pháp chú thích, dấu nháy và ký tự cần thoát
+  - Đơn vị thời gian, kích thước và các giá trị mặc định cần kiểm tra
+  - Biến môi trường, tệp cấu hình bổ sung và thứ tự nạp
+  - Tên và định danh ổn định cho proxy, máy chủ và dữ liệu giám sát
+  - Đọc cảnh báo cấu hình, chỉ thị lỗi thời và khác biệt giữa các phiên bản
+- level1: Luồng xử lý
+  level2:
+  - Kiến trúc hướng sự kiện và cơ chế vào ra không chặn
+  - Tiến trình master-worker và các luồng xử lý
+  - Phân biệt kết nối, phiên, luồng dữ liệu và giao dịch HTTP
+  - 'Hai phía kết nối: máy khách đến HAProxy và HAProxy đến máy chủ'
+  - Các giai đoạn kiểm tra kết nối, kiểm tra nội dung và xử lý HTTP
+  - Thời điểm chạy tcp-request, http-request và http-response
+  - Thứ tự đánh giá quy tắc và các hành động kết thúc xử lý
+  - Bộ đệm, áp lực ngược và tác động của phía gửi hoặc nhận chậm
+- level1: Proxy TCP
+  level2:
+  - Cấu hình mode tcp cho frontend và backend
+  - Chuyển tiếp luồng TCP và giới hạn quan sát nội dung ứng dụng
+  - Định tuyến theo địa chỉ nguồn, địa chỉ đích và cổng
+  - Kiểm tra kết nối bằng tcp-request connection
+  - Đọc nội dung ban đầu bằng tcp-request content và inspect-delay
+  - Phân luồng TLS theo SNI mà không kết thúc TLS
+  - Chuyển tiếp TLS nguyên trạng và phân biệt với giải mã TLS
+  - Cân bằng kết nối cơ sở dữ liệu, Redis và dịch vụ TCP dài hạn
+  - Giữ kết nối TCP, đóng một chiều và giới hạn khi chuyển máy chủ
+  - Kiểm thử proxy TCP bằng nc, openssl s_client và công cụ giao thức
+- level1: Proxy HTTP
+  level2:
+  - Cấu hình mode http và mô hình yêu cầu, phản hồi
+  - Host, đường dẫn, truy vấn, phương thức và mã trạng thái
+  - Phân biệt giao dịch HTTP với kết nối TCP được tái sử dụng
+  - Vai trò của Host và SNI khi chọn dịch vụ
+  - Cấu hình reverse proxy cho một và nhiều ứng dụng web
+  - Backend mặc định và hành vi khi không có tuyến phù hợp
+  - Yêu cầu lớn, tải tệp lên và phản hồi truyền theo luồng
+  - 'Xử lý yêu cầu Expect: 100-continue và nội dung đến chậm'
+  - Phân biệt phản hồi do HAProxy tạo với phản hồi của ứng dụng
+- level1: Cân bằng tải
+  level2:
+  - Tiêu chí chọn thuật toán theo đặc điểm lưu lượng và ứng dụng
+  - Chia tải luân phiên với roundrobin
+  - Ưu tiên máy chủ ít kết nối bằng leastconn
+  - Phân phối theo địa chỉ nguồn với source
+  - Phân phối theo URI, tham số URL và header
+  - Thuật toán random, first và điều kiện sử dụng phù hợp
+  - Trọng số máy chủ và điều chỉnh tỷ lệ lưu lượng
+  - Băm nhất quán và tác động khi thêm hoặc bớt máy chủ
+  - Máy chủ backup và cách tổ chức nhóm dự phòng
+  - Khởi động nhận tải từ từ với slowstart
+  - Kiểm chứng phân phối tải và nguyên nhân tải không đều
+- level1: ACL
+  level2:
+  - ACL là gì và cách tách điều kiện khỏi hành động
+  - ACL có tên, ACL viết trực tiếp và khả năng tái sử dụng
+  - Lấy giá trị bằng sample fetch và biến đổi bằng converter
+  - So khớp chuỗi, số, địa chỉ IP và mạng CIDR
+  - So khớp chính xác, tiền tố, hậu tố và biểu thức chính quy
+  - Điều kiện if, unless, phủ định, kết hợp AND và OR
+  - Điều kiện theo Host, đường dẫn, phương thức và header
+  - Điều kiện theo nguồn truy cập, TLS và trạng thái backend
+  - Khác biệt giữa thông tin khả dụng ở tầng TCP và tầng HTTP
+  - Danh sách mẫu từ tệp và quản lý ACL lớn
+  - Lỗi thứ tự đánh giá, giá trị thiếu và điều kiện không bao giờ khớp
+  - Kiểm thử ACL với tập yêu cầu hợp lệ và trường hợp biên
+- level1: Định tuyến
+  level2:
+  - Chọn backend theo điều kiện bằng use_backend
+  - Định tuyến nhiều tên miền và tên miền con
+  - Định tuyến theo đường dẫn cho nhiều dịch vụ
+  - Định tuyến theo header, cookie và tham số yêu cầu
+  - Phối hợp tuyến cụ thể, tuyến tổng quát và tuyến mặc định
+  - Phân biệt use_backend với lựa chọn máy chủ bằng use-server
+  - Định tuyến động bằng biểu thức và kiểm soát tên đích hợp lệ
+  - Triển khai canary theo tỷ lệ, nhóm người dùng hoặc dấu hiệu yêu cầu
+  - Chuyển đổi blue-green và quay lại phiên bản trước
+  - Trang bảo trì và tuyến dự phòng khi dịch vụ đích không khả dụng
+- level1: Biến và Map
+  level2:
+  - Phạm vi biến proc, sess, txn, req và res
+  - Gán, đọc và xóa biến trong các giai đoạn xử lý
+  - Lưu giá trị yêu cầu để sử dụng khi xử lý phản hồi
+  - Biểu thức mẫu, converter và định dạng chuỗi động
+  - 'Tệp map: ánh xạ khóa sang giá trị cấu hình'
+  - Lựa chọn kiểu so khớp và giá trị dự phòng cho map
+  - Định tuyến nhiều tên miền bằng map thay cho chuỗi ACL dài
+  - Chuẩn hóa dữ liệu trước khi tra map
+  - Cập nhật map khi đang chạy và lưu thay đổi bền vững
+- level1: Xử lý HTTP
+  level2:
+  - Thêm, đặt lại và xóa header yêu cầu
+  - Thêm, đặt lại và xóa header phản hồi
+  - Thay đổi đường dẫn, URI và chuỗi truy vấn
+  - Chuyển hướng HTTP sang HTTPS và chuẩn hóa tên miền
+  - Lựa chọn mã chuyển hướng và tránh vòng lặp
+  - Trả phản hồi trực tiếp bằng http-request return
+  - Từ chối hoặc kết thúc yêu cầu theo điều kiện
+  - Trang lỗi tùy chỉnh với errorfile và khối http-errors
+  - Chính sách CORS và yêu cầu OPTIONS qua proxy
+  - Cookie, thuộc tính bảo mật và ảnh hưởng của việc sửa phản hồi
+  - Giới hạn biến đổi nội dung và trách nhiệm của ứng dụng phía sau
+- level1: Định danh máy khách
+  level2:
+  - Vì sao máy chủ ứng dụng nhìn thấy địa chỉ của HAProxy
+  - Truyền địa chỉ nguồn bằng X-Forwarded-For
+  - Truyền giao thức và cổng gốc bằng các header chuyển tiếp
+  - Chuỗi proxy tin cậy và cách xử lý header do máy khách tự gửi
+  - PROXY protocol v1, v2 và thông tin được chuyển tiếp
+  - Gửi PROXY protocol tới backend và phối hợp health check
+  - Nhận PROXY protocol bằng accept-proxy trên listener được bảo vệ
+  - Đối chiếu địa chỉ nguồn trong log HAProxy và log ứng dụng
+  - 'Chuyển tiếp trong suốt: điều kiện định tuyến, quyền hệ điều hành và giới hạn'
+- level1: TLS
+  level2:
+  - 'Ba mô hình: kết thúc TLS, chuyển tiếp nguyên trạng và mã hóa lại'
+  - Chuỗi chứng chỉ, khóa riêng và định dạng tệp HAProxy sử dụng
+  - Cấu hình HTTPS ở frontend bằng bind ssl
+  - Chọn chứng chỉ theo SNI và quản lý nhiều chứng chỉ bằng crt-list
+  - Cấu hình TLS từ HAProxy tới backend
+  - Xác minh CA, tên máy chủ và SNI của backend
+  - Xác thực chứng chỉ máy khách bằng mTLS
+  - Phiên bản TLS, bộ mật mã và chính sách tương thích
+  - Thương lượng giao thức qua ALPN
+  - Tái sử dụng phiên TLS, session ticket và quản lý khóa
+  - OCSP stapling, thu hồi chứng chỉ và điều kiện hỗ trợ
+  - Gia hạn chứng chỉ và tự động hóa quy trình với ACME
+  - Thay chứng chỉ đang chạy và đồng bộ lại cấu hình trên đĩa
+  - Chẩn đoán lỗi bắt tay, chứng chỉ hết hạn và chuỗi CA thiếu
+- level1: Giao thức hiện đại
+  level2:
+  - HTTP/1.1 keep-alive và tác động của kết nối được tái sử dụng
+  - HTTP/2 phía máy khách và phía backend là hai cấu hình độc lập
+  - Cấu hình HTTP/2 qua TLS và HTTP/2 không mã hóa bằng h2c
+  - 'gRPC: định tuyến, health check và giới hạn thời gian'
+  - 'WebSocket: nâng cấp kết nối và thời gian chờ đường hầm'
+  - 'Server-Sent Events: phản hồi dài hạn và yêu cầu duy trì kết nối'
+  - 'HTTP/3 và QUIC: điều kiện phiên bản, thư viện TLS và mạng UDP'
+  - Quảng bá HTTP/3 bằng Alt-Svc và kiểm tra chuyển về HTTP/2
+  - Phân biệt hỗ trợ QUIC của HTTP/3 với proxy UDP tổng quát
+  - 'FastCGI: phạm vi sử dụng và cấu hình khi cần tích hợp'
+- level1: Kiểm tra sức khỏe
+  level2:
+  - Phân biệt kiểm tra chủ động, quan sát lỗi và kiểm tra từ bên ngoài
+  - Kiểm tra cổng TCP bằng check
+  - Kiểm tra HTTP bằng option httpchk và chuỗi http-check
+  - Kiểm tra Host, đường dẫn, mã trạng thái và nội dung phản hồi
+  - Kiểm tra HTTPS với SNI và xác minh chứng chỉ phù hợp
+  - Chuỗi tcp-check để kiểm tra giao thức TCP nhiều bước
+  - Kiểm tra Redis, PostgreSQL, MySQL và SMTP bằng các tùy chọn chuyên biệt
+  - Chu kỳ kiểm tra, timeout check và ngưỡng rise, fall
+  - Phân biệt khả năng sống với khả năng sẵn sàng nhận tải
+  - Kiểm tra bằng agent-check và điều khiển trạng thái từ ứng dụng
+  - Quan sát lỗi bằng observe và xử lý bằng on-error
+  - Trạng thái UP, DOWN, MAINT, DRAIN và tác động lên kết nối
+  - Tránh kiểm tra quá nặng và hiện tượng liên tục lên xuống
+- level1: DNS động
+  level2:
+  - Phân giải tên lúc khởi động và phân giải trong thời gian chạy
+  - Khối resolvers và cấu hình máy chủ DNS
+  - Thời gian chờ DNS, số lần thử và thời gian giữ kết quả
+  - Bản ghi A, AAAA và lựa chọn họ địa chỉ
+  - server-template và khám phá nhiều máy chủ dịch vụ
+  - Bản ghi SRV, trọng số và cổng dịch vụ
+  - Xử lý khởi động khi tên backend chưa phân giải được
+  - Thay đổi địa chỉ backend trong Docker và Kubernetes
+  - Kiểm tra trạng thái DNS và chẩn đoán bản ghi cũ hoặc thiếu
+  - Phối hợp DNS động với health check và trạng thái máy chủ
+- level1: Kết nối và hàng đợi
+  level2:
+  - Giới hạn maxconn ở cấp tiến trình, frontend và server
+  - Phân biệt backlog của hệ điều hành với hàng đợi trong HAProxy
+  - Hàng đợi backend, hàng đợi server và giới hạn maxqueue
+  - Giới hạn tải backend bằng minconn, maxconn và fullconn
+  - Tái sử dụng kết nối tới backend bằng http-reuse
+  - Keep-alive HTTP, TCP keepalive và sự khác nhau
+  - Đa luồng HTTP/2 và giới hạn số luồng đồng thời
+  - Kết nối dài hạn và tác động tới dung lượng hệ thống
+  - Chọn máy chủ lại khi quá tải và tác động tới tính gắn kết phiên
+  - Đo thời gian xếp hàng và nhận diện áp lực ngược
+- level1: Timeout và thử lại
+  level2:
+  - Thiết kế ngân sách thời gian từ máy khách tới ứng dụng
+  - timeout connect, client và server
+  - timeout http-request và bảo vệ yêu cầu đến quá chậm
+  - timeout http-keep-alive và kết nối nhàn rỗi
+  - timeout queue và thời gian chờ được phục vụ
+  - timeout tunnel cho WebSocket và luồng TCP dài hạn
+  - Thời gian chờ khi đóng một chiều và kết nối chưa kết thúc
+  - Số lần thử bằng retries và điều kiện retry-on
+  - Thử lại trên cùng máy chủ và chuyển máy chủ bằng redispatch
+  - Tính lũy đẳng, yêu cầu POST và nguy cơ thực hiện giao dịch hai lần
+  - Phối hợp timeout với CDN, ứng dụng, cơ sở dữ liệu và máy khách
+  - Tránh thử lại dây chuyền và khuếch đại sự cố
+- level1: Duy trì phiên
+  level2:
+  - Khi nào cần gắn người dùng với cùng một backend
+  - Phân biệt gắn kết theo kết nối với gắn kết theo phiên ứng dụng
+  - Duy trì phiên bằng cookie do HAProxy chèn
+  - Dùng cookie có sẵn và lựa chọn chế độ xử lý cookie
+  - Phân phối theo nguồn và giới hạn khi người dùng dùng chung NAT
+  - Gắn kết theo khóa ứng dụng bằng stick-table
+  - Hành vi khi máy chủ gắn kết bị lỗi hoặc bị rút khỏi cụm
+  - Giữ định danh máy chủ ổn định qua reload và thay đổi cấu hình
+  - Đánh đổi giữa tính gắn kết, cân bằng tải và phiên lưu bên ngoài
+- level1: Stick Table
+  level2:
+  - Stick-table là gì và quan hệ với bộ đếm theo dõi
+  - Chọn kiểu khóa, kích thước, thời gian hết hạn và cơ chế loại bỏ
+  - Theo dõi bằng track-sc và chọn khóa đúng đối tượng
+  - Lưu số kết nối, tốc độ yêu cầu, lỗi và dung lượng truyền
+  - Cửa sổ tính tốc độ và cách đọc số liệu
+  - Dùng bộ đếm đa dụng để đánh dấu và áp dụng chính sách
+  - Tra cứu, cập nhật và xóa bản ghi qua Runtime API
+  - Đồng bộ dữ liệu giữa các nút bằng peers
+  - Phạm vi dữ liệu được đồng bộ và giới hạn khi có sự cố mạng
+  - Duy trì bảng qua reload và dự trù bộ nhớ
+- level1: Giới hạn lưu lượng
+  level2:
+  - Phân biệt giới hạn tốc độ, số kết nối và băng thông
+  - Giới hạn yêu cầu theo IP bằng stick-table và ACL
+  - Giới hạn theo tài khoản, khóa API hoặc đường dẫn
+  - Trả HTTP 429 và thiết kế thông tin để máy khách thử lại
+  - Giới hạn kết nối đồng thời và tốc độ mở kết nối TCP
+  - Giới hạn băng thông theo khả năng của phiên bản và bộ lọc
+  - Danh sách cho phép, danh sách chặn và ngoại lệ đáng tin cậy
+  - Xử lý người dùng chung NAT, địa chỉ IPv6 và khóa thiếu
+  - Phạm vi hạn mức trên một nút và khi triển khai nhiều HAProxy
+  - Đánh giá sai lệch cửa sổ đo, bùng phát lưu lượng và chi phí theo dõi
+- level1: Bảo mật
+  level2:
+  - Giảm quyền tiến trình bằng user, group, chroot và Linux capabilities
+  - Bảo vệ tệp cấu hình, khóa TLS và dữ liệu nhạy cảm
+  - Bảo vệ Stats, Runtime API và các cổng quản trị
+  - Xác thực HTTP Basic bằng userlist và giới hạn sử dụng
+  - Xác minh JWT khi phiên bản hỗ trợ và phân định trách nhiệm xác thực
+  - Kiểm tra Host, phương thức, kích thước và cấu trúc yêu cầu
+  - Chuẩn hóa URI và phòng tránh vượt qua quy tắc định tuyến
+  - HTTP request smuggling và tính nhất quán giữa các bộ phân tích
+  - Xử lý header chuyển tiếp giả mạo và ranh giới tin cậy
+  - Giảm tác động Slowloris, quét tự động và lưu lượng gây quá tải
+  - Tích hợp WAF khi cần và giới hạn của ACL so với WAF
+  - Cập nhật bản vá, kiểm tra cấu hình an toàn và kiểm soát bí mật
+- level1: Cache và nén
+  level2:
+  - Phạm vi bộ nhớ đệm HTTP tích hợp và trường hợp sử dụng phù hợp
+  - Khối cache, cache-use và cache-store
+  - Điều kiện lưu phản hồi, thời gian sống và kích thước đối tượng
+  - Cache-Control, Vary, cookie và dữ liệu riêng tư
+  - Đánh đổi khi vô hiệu hóa hoặc thay mới nội dung đã lưu
+  - Cấu hình nén phản hồi và thương lượng Accept-Encoding
+  - Chọn MIME type và tránh nén lại nội dung đã nén
+  - Đánh giá CPU, bộ nhớ, băng thông và rủi ro rò rỉ qua nén
+  - Phân biệt cache trong HAProxy với CDN và hệ thống cache chuyên dụng
+- level1: Ghi log
+  level2:
+  - Luồng ghi log tới syslog, stdout và hệ thống thu thập tập trung
+  - Cấu hình log trong global, defaults và từng proxy
+  - Định dạng httplog, tcplog và trường hợp lựa chọn
+  - Đọc frontend, backend, server, trạng thái và số byte trong log
+  - Các bộ đếm thời gian chờ, kết nối và phản hồi
+  - Mã trạng thái kết thúc kết nối và cách khoanh vùng lỗi
+  - Định dạng log tùy chỉnh và thoát ký tự để tạo dữ liệu có cấu trúc
+  - Ghi lại header, cookie và biến có chọn lọc
+  - Định danh yêu cầu và liên kết log với ứng dụng
+  - Điều chỉnh mức log, lấy mẫu và kiểm soát lưu lượng log
+  - Che dữ liệu nhạy cảm, lưu giữ log và kiểm tra mất log
+- level1: Giám sát
+  level2:
+  - Trang thống kê HAProxy và cách giới hạn quyền truy cập
+  - Đọc trạng thái frontend, backend và từng server
+  - Chỉ số số kết nối, tốc độ phiên, hàng đợi và lỗi
+  - Chỉ số health check và phân biệt sự cố máy chủ với sự cố proxy
+  - Xuất số liệu Prometheus theo tính năng của bản cài đặt
+  - Thiết kế dashboard về lưu lượng, độ trễ, lỗi và bão hòa
+  - Cảnh báo hết backend, hàng đợi tăng và chạm giới hạn kết nối
+  - Theo dõi lỗi TLS, chứng chỉ sắp hết hạn và DNS bất thường
+  - Đo từ bên ngoài để phát hiện lỗi mà kiểm tra nội bộ bỏ sót
+  - Đối chiếu số liệu HAProxy với hệ điều hành và ứng dụng
+- level1: Runtime API
+  level2:
+  - Stats socket, Runtime API và Master CLI
+  - Cấu hình socket Unix, quyền truy cập và mức quyền lệnh
+  - Kết nối bằng socat và khám phá lệnh đúng phiên bản
+  - Đọc show info, show stat và trạng thái máy chủ
+  - Đưa máy chủ vào drain hoặc maintenance và cho nhận tải trở lại
+  - Thay đổi trọng số, giới hạn kết nối và tham số máy chủ
+  - Cập nhật ACL, map và stick-table khi dịch vụ đang chạy
+  - Cập nhật chứng chỉ bằng set ssl cert và commit ssl cert
+  - Thêm hoặc bỏ máy chủ động theo khả năng của phiên bản
+  - Phân biệt thay đổi trong bộ nhớ với cấu hình bền vững
+  - Ghi nhận thao tác quản trị và xây dựng khả năng quay lại trạng thái trước
+- level1: Quản trị cấu hình
+  level2:
+  - Quản lý cấu hình như mã nguồn và quy trình duyệt thay đổi
+  - Tạo cấu hình từ mẫu và tách dữ liệu theo môi trường
+  - Kiểm tra cú pháp, cảnh báo và tham chiếu trước triển khai
+  - Reload mềm, restart và graceful stop
+  - Chuyển giao listener và xử lý các worker cũ
+  - Giới hạn thời gian tồn tại kết nối cũ với hard-stop-after
+  - Lưu và nạp trạng thái server qua lần khởi động hoặc reload
+  - Triển khai cấu hình nguyên tử và quay lại bản trước khi kiểm tra thất bại
+  - Phân biệt Runtime API với Data Plane API
+  - Tự động hóa thay đổi bằng Data Plane API và kiểm soát ghi đồng thời
+  - Nâng cấp phiên bản, kiểm tra tương thích và kế hoạch quay lại
+- level1: Sẵn sàng cao
+  level2:
+  - Điểm lỗi duy nhất khi chỉ triển khai một HAProxy
+  - Mô hình active-passive với Keepalived, VRRP và địa chỉ IP ảo
+  - Kiểm tra tiến trình, đường mạng và khả năng phục vụ trước chuyển nút
+  - Điều kiện mạng cho VRRP và xử lý nguy cơ hai nút cùng nhận vai trò chính
+  - Active-active với cân bằng tải bên ngoài, DNS hoặc định tuyến mạng
+  - Đồng bộ cấu hình, chứng chỉ và dữ liệu peers giữa các nút
+  - Những trạng thái không được sao chép và tác động tới kết nối đang mở
+  - Failover, failback và tránh chuyển vai trò liên tục
+  - Bảo trì từng nút và nâng cấp luân phiên
+  - Kiểm thử mất tiến trình, mất máy, mất mạng và mất toàn bộ backend
+- level1: Hiệu năng
+  level2:
+  - Xác định mục tiêu thông lượng, độ trễ và số kết nối đồng thời
+  - Thiết kế phép đo với wrk, h2load và công cụ phù hợp giao thức
+  - Phân biệt giới hạn của máy phát tải, proxy và backend
+  - Đọc phân vị độ trễ thay vì chỉ số trung bình
+  - File descriptor, backlog, cổng tạm và trạng thái TCP của hệ điều hành
+  - Chọn số luồng, gắn CPU và xem xét ảnh hưởng NUMA
+  - Dự trù bộ nhớ cho kết nối, bộ đệm, TLS, cache và stick-table
+  - Tối ưu chi phí TLS, bắt tay và tái sử dụng kết nối
+  - Chi phí regex, ACL, log, nén và tiện ích mở rộng
+  - Tối ưu HTTP/2, kết nối backend và luồng dữ liệu dài hạn
+  - Đo lại từng thay đổi và phát hiện suy giảm hiệu năng
+- level1: Tích hợp ứng dụng
+  level2:
+  - HAProxy trước Spring Boot và cấu hình tin cậy header chuyển tiếp
+  - Kiểm tra readiness của ứng dụng bằng endpoint sức khỏe phù hợp
+  - Khớp timeout và giới hạn kết nối với web server hoặc connection pool
+  - Rút ứng dụng khỏi nhận tải trước khi dừng để triển khai an toàn
+  - 'Ứng dụng có phiên: cookie, Redis và thiết kế không lưu trạng thái cục bộ'
+  - Phối hợp HAProxy với CDN, Nginx hoặc cân bằng tải của nhà cung cấp
+  - Triển khai trong Docker Compose và cập nhật địa chỉ dịch vụ
+  - Phân biệt HAProxy độc lập với HAProxy Kubernetes Ingress Controller
+  - Định tuyến Ingress, TLS và kiểm tra cấu hình được controller sinh ra
+  - Cân bằng kết nối cơ sở dữ liệu và yêu cầu nhận biết vai trò primary, replica
+  - Phân định trách nhiệm giữa HAProxy, API Gateway và service mesh
+- level1: Mở rộng
+  level2:
+  - Khi nào nên mở rộng và khi nào nên giữ cấu hình khai báo
+  - 'Lua: nạp mã, đăng ký converter, sample fetch và action'
+  - Lua service và tạo phản hồi theo yêu cầu
+  - Giới hạn thời gian, bộ nhớ và thao tác chặn trong Lua
+  - SPOE, SPOA và cách chuyển xử lý sang dịch vụ bên ngoài
+  - Thiết kế khi dịch vụ mở rộng chậm, lỗi hoặc không kết nối được
+  - Tích hợp kiểm tra bảo mật ngoài HAProxy và chính sách cho phép khi lỗi
+  - Truyền định danh truy vết và tích hợp theo khả năng của bản cài đặt
+  - Kiểm thử, đo chi phí và kiểm soát phụ thuộc của tiện ích mở rộng
+- level1: Xử lý sự cố
+  level2:
+  - Quy trình khoanh vùng từ DNS, TCP, TLS tới HTTP và ứng dụng
+  - 'Không khởi động được: lỗi cú pháp, quyền tệp và cổng bị chiếm'
+  - 'Không kết nối được: listener, firewall, định tuyến và backlog'
+  - HTTP 400, 403, 408 và lỗi quy tắc kiểm tra yêu cầu
+  - HTTP 502, 503, 504 và cách xác định phía phát sinh
+  - Backend luôn DOWN dù ứng dụng vẫn truy cập trực tiếp được
+  - Lỗi chọn chứng chỉ, SNI, ALPN và xác minh backend TLS
+  - Vòng lặp chuyển hướng, sai URL và sai giao thức gốc
+  - Phân tải không đều, mất phiên và thử lại gây trùng giao dịch
+  - Độ trễ tăng do xếp hàng, cạn kết nối hoặc backend chậm
+  - WebSocket, gRPC hoặc luồng dữ liệu bị ngắt định kỳ
+  - Lỗi DNS động, container thay IP và máy chủ không được cập nhật
+  - Dùng curl, tcpdump, ss và Runtime API để thu thập bằng chứng
+  - Phân tích sự cố, bảo vệ dữ liệu thu thập và cập nhật hướng dẫn vận hành
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng reverse proxy HTTP với hai backend và chứng minh chia tải
+  - Định tuyến nhiều tên miền, nhiều dịch vụ và tuyến mặc định
+  - Triển khai HTTPS, mTLS và xác minh TLS ở backend
+  - Cân bằng TCP và phân luồng TLS theo SNI
+  - Chủ động làm hỏng backend để kiểm chứng health check và chuyển tải
+  - Tạo tình huống quá tải để đo hàng đợi, timeout và thử lại
+  - Áp dụng giới hạn tốc độ và kiểm tra người dùng chung địa chỉ nguồn
+  - So sánh cookie gắn kết phiên với ứng dụng lưu phiên bên ngoài
+  - Triển khai canary, blue-green và quay lại bản cũ
+  - Thay map, trọng số và chứng chỉ khi đang phục vụ
+  - Thiết lập log, dashboard, cảnh báo và truy vết một yêu cầu lỗi
+  - Kiểm chứng reload mềm và rút kết nối khi bảo trì
+  - Diễn tập failover hai nút HAProxy và ghi nhận kết nối bị ảnh hưởng
+  - Lập bộ kiểm tra hồi quy cấu hình và tiêu chí đưa vào vận hành

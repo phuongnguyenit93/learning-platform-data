@@ -1,0 +1,2056 @@
+menu:
+- slug: release-overview
+  title: Tổng quan Java 24
+  childs:
+  - slug: release-overview-001
+    title: Java 24 trong lộ trình Java SE và chu kỳ phát hành không LTS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-overview-002
+    title: Phân biệt Java SE 24, JDK 24, OpenJDK và bản phân phối JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-overview-003
+    title: Bản đồ 24 JEP của JDK 24 theo nhóm ngôn ngữ, thư viện và JVM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-overview-004
+    title: Phân loại tính năng chuẩn hóa, preview, incubator và experimental
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-overview-005
+    title: Kiến thức Java nền tảng cần có trước khi học thay đổi của Java 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-overview-006
+    title: Cách đọc đặc tả, Javadoc và release notes đúng phiên bản 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jdk-setup
+  title: Môi trường JDK 24
+  childs:
+  - slug: jdk-setup-001
+    title: Lựa chọn bản phân phối, hệ điều hành và kiến trúc hỗ trợ JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-setup-002
+    title: Cài đặt JDK 24 và quản lý song song nhiều phiên bản JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-setup-003
+    title: Cấu hình JAVA_HOME, PATH và xác nhận java cùng javac thuộc JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-setup-004
+    title: Thiết lập SDK, language level và runtime Java 24 trong IDE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-setup-005
+    title: Biên dịch và chạy chương trình đầu tiên bằng javac và java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-setup-006
+    title: Chạy mã nguồn trực tiếp và thử biểu thức bằng JShell của JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdk-setup-007
+    title: Tổ chức ví dụ theo classpath và module path
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: feature-flags-and-compatibility
+  title: Cờ tính năng và tương thích
+  childs:
+  - slug: feature-flags-and-compatibility-001
+    title: Bật preview bằng javac --enable-preview --release 24 và java --enable-preview
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-flags-and-compatibility-002
+    title: Bật preview khi chạy source-file mode và JShell
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-flags-and-compatibility-003
+    title: Đọc cảnh báo preview, deprecation và API nội bộ bằng javac -Xlint
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-flags-and-compatibility-004
+    title: Nạp module incubator với --add-modules jdk.incubator.vector
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-flags-and-compatibility-005
+    title: Mở khóa tùy chọn experimental bằng -XX:+UnlockExperimentalVMOptions
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-flags-and-compatibility-006
+    title: Class-file major version 68 và dấu hiệu bytecode dùng preview
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: feature-flags-and-compatibility-007
+    title: Giới hạn --release, runtime và khả năng chạy bytecode preview giữa các phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: simple-source-files
+  title: Tệp nguồn đơn giản
+  childs:
+  - slug: simple-source-files-001
+    title: 'JEP 495: Simple Source Files and Instance Main Methods, preview lần 4'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-source-files-002
+    title: Viết void main() và chọn chữ ký main hợp lệ trong Java 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-source-files-003
+    title: Trường, phương thức và lớp được khai báo ngầm trong simple source file
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-source-files-004
+    title: Tự động import java.base và các phương thức static của java.io.IO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-source-files-005
+    title: Nhập xuất console với print, println và readln của API preview
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-source-files-006
+    title: Quy tắc khởi tạo đối tượng và lựa chọn main khi khởi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: simple-source-files-007
+    title: Chuyển chương trình nhỏ thành lớp tường minh có package
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: module-imports
+  title: Import module
+  childs:
+  - slug: module-imports-001
+    title: 'JEP 494: Module Import Declarations, preview lần 2'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-imports-002
+    title: Cú pháp import module và phạm vi các package được export
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-imports-003
+    title: Quan hệ giữa import module, requires và khả năng đọc module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-imports-004
+    title: Dùng module import trong mã thuộc unnamed module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-imports-005
+    title: Xử lý tên kiểu trùng và ưu tiên single-type, on-demand, module import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-imports-006
+    title: requires transitive java.base và ảnh hưởng của import module java.se
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: module-imports-007
+    title: Áp dụng module import cho nhiều module mà vẫn giữ ranh giới đóng gói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: primitive-patterns
+  title: Pattern với kiểu nguyên thủy
+  childs:
+  - slug: primitive-patterns-001
+    title: 'JEP 488: Primitive Types in Patterns, instanceof, and switch, preview lần 2'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-patterns-002
+    title: Đối chiếu primitive type pattern với reference type pattern
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-patterns-003
+    title: Kiểm tra chuyển đổi chính xác bằng instanceof trên giá trị nguyên thủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-patterns-004
+    title: Primitive pattern trong record pattern và phân rã dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-patterns-005
+    title: Mở rộng switch cho long, float, double và boolean
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-patterns-006
+    title: Độ chính xác số, chuyển đổi thu hẹp và các giá trị biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-patterns-007
+    title: Quy tắc dominance, exhaustiveness và nhãn case hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-patterns-008
+    title: Ảnh hưởng của boxing, unboxing và null trong pattern matching
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: primitive-patterns-009
+    title: Xây dựng bộ phân loại dữ liệu số bằng primitive pattern
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: flexible-constructor-bodies
+  title: Thân constructor linh hoạt
+  childs:
+  - slug: flexible-constructor-bodies-001
+    title: 'JEP 492: Flexible Constructor Bodies, preview lần 3'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-002
+    title: Chia constructor thành prologue, lời gọi super hoặc this và epilogue
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-003
+    title: Kiểm tra và biến đổi tham số trước super(...)
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-004
+    title: Gán trường trong early construction context và các giới hạn truy cập this
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-005
+    title: Ủy quyền constructor bằng this(...) và quy tắc definite assignment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-006
+    title: Tránh trạng thái chưa khởi tạo khi superclass gọi phương thức override
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flexible-constructor-bodies-007
+    title: Chẩn đoán các đoạn mã bị cấm trước explicit constructor invocation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: stream-gatherers
+  title: Stream Gatherers
+  childs:
+  - slug: stream-gatherers-001
+    title: 'JEP 485: Stream Gatherers trở thành API chuẩn trong Java 24'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-002
+    title: Stream.gather và cách chọn Gatherer, Collector hoặc intermediate operation có sẵn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-003
+    title: Mô hình Gatherer<T,A,R> cùng initializer, integrator, combiner và finisher
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-004
+    title: Gom nhóm và cửa sổ trượt bằng windowFixed và windowSliding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-005
+    title: Tích lũy kết quả bằng scan và fold
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-006
+    title: mapConcurrent với virtual thread, giới hạn đồng thời và thứ tự kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-007
+    title: Tạo gatherer bằng of, ofSequential và Integrator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-008
+    title: Downstream.push, short-circuit và xử lý luồng vô hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-009
+    title: Ghép gatherer bằng andThen và quản lý trạng thái từng pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: stream-gatherers-010
+    title: Điều kiện xử lý song song và tính đúng đắn của combiner
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: class-file-api
+  title: Class-File API
+  childs:
+  - slug: class-file-api-001
+    title: 'JEP 484: Class-File API trở thành API chuẩn trong Java 24'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-002
+    title: Cấu trúc class file và các package java.lang.classfile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-003
+    title: Đọc ClassModel, FieldModel, MethodModel và CodeModel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-004
+    title: Lazy parsing, mô hình bất biến và xử lý class file lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-005
+    title: Sinh lớp bằng ClassFile, ClassBuilder, MethodBuilder và CodeBuilder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-006
+    title: Biến đổi bytecode bằng ClassTransform, MethodTransform và CodeTransform
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-007
+    title: Làm việc với constant pool, descriptor và symbolic reference
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-008
+    title: Quản lý label, nhánh điều khiển, stack map và exception handler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-009
+    title: Bảo toàn hoặc xử lý attribute khi biến đổi lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-file-api-010
+    title: Kiểm chứng bytecode và đánh giá tích hợp với instrumentation hoặc thư viện bytecode
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-threads-and-synchronization
+  title: Virtual thread và synchronized
+  childs:
+  - slug: virtual-threads-and-synchronization-001
+    title: 'JEP 491: Synchronize Virtual Threads without Pinning'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-synchronization-002
+    title: Ôn mô hình carrier, mount, unmount và nguyên nhân pinning trước Java 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-synchronization-003
+    title: Hành vi synchronized và monitor khi virtual thread chặn trong JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-synchronization-004
+    title: Object.wait, tranh chấp monitor và tác động tới khả năng mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-synchronization-005
+    title: Các trường hợp pinning còn lại liên quan native code và callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-synchronization-006
+    title: Đánh giá lại lựa chọn synchronized và ReentrantLock theo nhu cầu khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-synchronization-007
+    title: Đọc sự kiện JFR về pinning và thay đổi chẩn đoán jdk.tracePinnedThreads
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-synchronization-008
+    title: Thiết kế phép đo tác vụ I/O có khóa để đối chiếu hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: structured-concurrency
+  title: Structured Concurrency
+  childs:
+  - slug: structured-concurrency-001
+    title: 'JEP 499: Structured Concurrency, preview lần 4'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-002
+    title: Vòng đời StructuredTaskScope trong try-with-resources
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-003
+    title: Fork subtask, join và đọc trạng thái Subtask đúng thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-004
+    title: ShutdownOnFailure và lan truyền lỗi bằng throwIfFailed
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-005
+    title: ShutdownOnSuccess và lấy kết quả thành công đầu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-006
+    title: joinUntil, deadline, interruption và hủy tác vụ phối hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-007
+    title: Quy tắc owner thread, đóng scope và StructureViolationException
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: structured-concurrency-008
+    title: So sánh mô hình scope với ExecutorService và CompletableFuture
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scoped-values
+  title: Scoped Values
+  childs:
+  - slug: scoped-values-001
+    title: 'JEP 487: Scoped Values, preview lần 4'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-002
+    title: Tạo ScopedValue và ràng buộc bằng where(...).run(...)
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-003
+    title: Trả kết quả bằng Carrier.call và ScopedValue.CallableOp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-004
+    title: Đọc binding bằng get, isBound, orElse và orElseThrow
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-005
+    title: Nested scope, rebinding và khôi phục ngữ cảnh khi có ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-006
+    title: Kế thừa binding qua StructuredTaskScope và giới hạn truyền giữa thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-007
+    title: Chọn ScopedValue hoặc ThreadLocal theo chiều truyền và vòng đời dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scoped-values-008
+    title: Thiết kế request context bất biến và kiểm soát quyền truy cập khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: vector-api
+  title: Vector API
+  childs:
+  - slug: vector-api-001
+    title: 'JEP 489: Vector API, incubator lần 9'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-002
+    title: Module jdk.incubator.vector và điều kiện CPU hỗ trợ SIMD
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-003
+    title: VectorSpecies, số lane và lựa chọn species phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-004
+    title: Load, store và phép toán với IntVector, FloatVector hoặc DoubleVector
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-005
+    title: Mask, vòng lặp phần đuôi và xử lý chiều dài không chia hết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-006
+    title: Reduction, thứ tự tính toán và sai khác số thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vector-api-007
+    title: Đối chiếu mã scalar với mã vector và kiểm tra lợi ích thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aot-class-loading-and-linking
+  title: Nạp và liên kết lớp AOT
+  childs:
+  - slug: aot-class-loading-and-linking-001
+    title: 'JEP 483: Ahead-of-Time Class Loading and Linking'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aot-class-loading-and-linking-002
+    title: Quan hệ giữa AOT cache, CDS, JIT và quá trình khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aot-class-loading-and-linking-003
+    title: Ghi nhận workload với -XX:AOTMode=record và -XX:AOTConfiguration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aot-class-loading-and-linking-004
+    title: Tạo cache bằng -XX:AOTMode=create và -XX:AOTCache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aot-class-loading-and-linking-005
+    title: Chạy ứng dụng bằng AOT cache và kiểm tra cache được sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aot-class-loading-and-linking-006
+    title: Ràng buộc nhất quán về JDK, classpath, hệ điều hành và kiến trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aot-class-loading-and-linking-007
+    title: Ảnh hưởng của class loader, agent và các tùy chọn JVM tới AOT cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aot-class-loading-and-linking-008
+    title: Đo thời gian startup và xây dựng quy trình tái tạo cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: runtime-image-linking
+  title: Liên kết runtime image
+  childs:
+  - slug: runtime-image-linking-001
+    title: 'JEP 493: Linking Run-Time Images without JMODs'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-image-linking-002
+    title: Phân biệt JMOD, modular JAR, jimage và runtime image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-image-linking-003
+    title: Điều kiện bản build JDK hỗ trợ --enable-linkable-runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-image-linking-004
+    title: Dùng jlink từ runtime image có khả năng liên kết khi không có thư mục jmods
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-image-linking-005
+    title: Chọn root module, module path và dịch vụ cần đưa vào image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-image-linking-006
+    title: Giới hạn tương thích nền tảng và cấu hình image được liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-image-linking-007
+    title: Đối chiếu dung lượng, khả năng chạy và trách nhiệm cập nhật runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compact-object-headers
+  title: Object header nhỏ gọn
+  childs:
+  - slug: compact-object-headers-001
+    title: 'JEP 450: Compact Object Headers, tính năng experimental'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-object-headers-002
+    title: Mark word, class pointer, alignment và kích thước object header
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-object-headers-003
+    title: Bật -XX:+UseCompactObjectHeaders trên cấu hình được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-object-headers-004
+    title: Tương tác với khóa, identity hash code và garbage collector
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-object-headers-005
+    title: Đánh giá tác động tới heap, cache locality và mật độ triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compact-object-headers-006
+    title: Thiết kế phép đo footprint và nhận diện giới hạn tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: g1-late-barrier-expansion
+  title: Tối ưu barrier của G1
+  childs:
+  - slug: g1-late-barrier-expansion-001
+    title: 'JEP 475: Late Barrier Expansion for G1'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-late-barrier-expansion-002
+    title: Write barrier, card table và remembered set của G1
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-late-barrier-expansion-003
+    title: Thời điểm mở rộng barrier trong pipeline C2 trước và sau thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-late-barrier-expansion-004
+    title: Tác động tới mã máy, thời gian biên dịch và khả năng tối ưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: g1-late-barrier-expansion-005
+    title: Đánh giá workload dùng G1 bằng GC log và số liệu hiệu năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: generational-shenandoah
+  title: Generational Shenandoah
+  childs:
+  - slug: generational-shenandoah-001
+    title: 'JEP 404: Generational Shenandoah, tính năng experimental'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generational-shenandoah-002
+    title: Thiết kế phân thế hệ và giả thuyết phần lớn đối tượng có tuổi thọ ngắn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generational-shenandoah-003
+    title: Young generation, old generation và chu kỳ thu gom đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generational-shenandoah-004
+    title: Bật -XX:+UseShenandoahGC và -XX:ShenandoahGCMode=generational khi bản phân phối hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generational-shenandoah-005
+    title: Đối chiếu chế độ generational và non-generational của Shenandoah trong JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generational-shenandoah-006
+    title: Đọc GC log và đánh giá pause time, throughput cùng mức dùng bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: generational-only-zgc
+  title: ZGC chỉ còn generational
+  childs:
+  - slug: generational-only-zgc-001
+    title: 'JEP 490: Loại bỏ chế độ non-generational của ZGC'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generational-only-zgc-002
+    title: Chọn ZGC bằng -XX:+UseZGC và hiểu chế độ còn lại trong Java 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generational-only-zgc-003
+    title: Ảnh hưởng của thay đổi tới tùy chọn ZGenerational cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generational-only-zgc-004
+    title: Kiểm tra script khởi động và cấu hình GC sau khi nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generational-only-zgc-005
+    title: Đối chiếu đặc tính ZGC, Shenandoah và G1 theo workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: key-derivation-function-api
+  title: Key Derivation Function API
+  childs:
+  - slug: key-derivation-function-api-001
+    title: 'JEP 478: Key Derivation Function API ở trạng thái preview'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-derivation-function-api-002
+    title: Vai trò KDF trong dẫn xuất khóa và phân biệt với mã hóa hoặc băm mật khẩu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-derivation-function-api-003
+    title: Tạo javax.crypto.KDF và lựa chọn thuật toán, provider
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-derivation-function-api-004
+    title: Cấu hình HKDF bằng HKDFParameterSpec với extract và expand
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-derivation-function-api-005
+    title: Dẫn xuất SecretKey hoặc dữ liệu khóa với chiều dài phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-derivation-function-api-006
+    title: Quản lý input keying material, salt, info và ranh giới sử dụng khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-derivation-function-api-007
+    title: Kiểm tra tham số, xử lý ngoại lệ và đối chiếu test vector
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ml-kem-key-encapsulation
+  title: Trao đổi khóa ML-KEM
+  childs:
+  - slug: ml-kem-key-encapsulation-001
+    title: 'JEP 496: Triển khai ML-KEM kháng lượng tử trong JDK 24'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-kem-key-encapsulation-002
+    title: Phân biệt key encapsulation mechanism với key agreement và mã hóa dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-kem-key-encapsulation-003
+    title: Các bộ tham số ML-KEM-512, ML-KEM-768 và ML-KEM-1024
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-kem-key-encapsulation-004
+    title: Tạo cặp khóa ML-KEM và lựa chọn provider qua JCA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-kem-key-encapsulation-005
+    title: Encapsulation, decapsulation và kiểm tra shared secret bằng javax.crypto.KEM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-kem-key-encapsulation-006
+    title: Định dạng khóa, dữ liệu encapsulation và giới hạn tích hợp giao thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ml-dsa-digital-signatures
+  title: Chữ ký số ML-DSA
+  childs:
+  - slug: ml-dsa-digital-signatures-001
+    title: 'JEP 497: Triển khai chữ ký số ML-DSA kháng lượng tử'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-dsa-digital-signatures-002
+    title: Các bộ tham số ML-DSA-44, ML-DSA-65 và ML-DSA-87
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-dsa-digital-signatures-003
+    title: Sinh và chuyển đổi khóa ML-DSA qua KeyPairGenerator và KeyFactory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-dsa-digital-signatures-004
+    title: Ký và xác minh dữ liệu bằng java.security.Signature
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-dsa-digital-signatures-005
+    title: Xử lý dữ liệu bị sửa, chữ ký sai và các định dạng khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ml-dsa-digital-signatures-006
+    title: Đánh giá kích thước khóa, chữ ký và yêu cầu tương thích hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: native-access
+  title: Quyền truy cập native
+  childs:
+  - slug: native-access-001
+    title: 'JEP 472: Chuẩn bị hạn chế việc sử dụng JNI'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-access-002
+    title: Cảnh báo native access khi load thư viện và liên kết native method
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-access-003
+    title: Thống nhất cảnh báo JNI với restricted operation của FFM API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-access-004
+    title: Cấp quyền bằng --enable-native-access cho named module hoặc ALL-UNNAMED
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-access-005
+    title: Enable-Native-Access trong manifest và giới hạn áp dụng khi chạy JAR
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-access-006
+    title: Chọn chế độ --illegal-native-access và hiểu hành vi mặc định của JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: native-access-007
+    title: Kiểm kê thư viện native và lập kế hoạch cấu hình quyền khi nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: unsafe-memory-access-warnings
+  title: Cảnh báo sun.misc.Unsafe
+  childs:
+  - slug: unsafe-memory-access-warnings-001
+    title: 'JEP 498: Cảnh báo khi dùng memory-access method của sun.misc.Unsafe'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unsafe-memory-access-warnings-002
+    title: Phân biệt API đã bị terminal deprecation với API bị loại bỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unsafe-memory-access-warnings-003
+    title: Hành vi cảnh báo runtime và nhận diện nơi gọi trong thư viện phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unsafe-memory-access-warnings-004
+    title: Điều khiển allow, warn, debug và deny bằng --sun-misc-unsafe-memory-access
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unsafe-memory-access-warnings-005
+    title: Thay truy cập field, array và thao tác atomic bằng VarHandle
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unsafe-memory-access-warnings-006
+    title: Thay truy cập bộ nhớ ngoài heap bằng Foreign Function and Memory API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unsafe-memory-access-warnings-007
+    title: Dùng JFR và chẩn đoán runtime để ưu tiên lộ trình thay thế Unsafe
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security-manager-disabled
+  title: Security Manager bị vô hiệu hóa
+  childs:
+  - slug: security-manager-disabled-001
+    title: 'JEP 486: Security Manager bị vô hiệu hóa vĩnh viễn trong Java 24'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-manager-disabled-002
+    title: Hành vi khi truyền -Djava.security.manager lúc khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-manager-disabled-003
+    title: Hành vi System.getSecurityManager và System.setSecurityManager
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-manager-disabled-004
+    title: Tác động tới AccessController, policy file và mã phụ thuộc kiểm tra quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-manager-disabled-005
+    title: Phân biệt vô hiệu hóa cơ chế với việc xóa toàn bộ API Security Manager
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-manager-disabled-006
+    title: Chuyển yêu cầu cách ly sang process, container và quyền hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: x86-32-bit-port-changes
+  title: Thay đổi nền tảng 32-bit
+  childs:
+  - slug: x86-32-bit-port-changes-001
+    title: 'JEP 479: Loại bỏ Windows 32-bit x86 port'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x86-32-bit-port-changes-002
+    title: 'JEP 501: Deprecate for removal đối với 32-bit x86 port còn lại'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x86-32-bit-port-changes-003
+    title: Phân biệt việc loại bỏ Windows x86 với deprecation của Linux x86 trong JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x86-32-bit-port-changes-004
+    title: Kiểm tra bitness của JDK, launcher và thư viện native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x86-32-bit-port-changes-005
+    title: Lập kế hoạch chuyển sang x64 hoặc kiến trúc được bản phân phối hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: standard-library-additions
+  title: Bổ sung thư viện chuẩn
+  childs:
+  - slug: standard-library-additions-001
+    title: Reader.of(CharSequence) và lựa chọn nguồn đọc ký tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: standard-library-additions-002
+    title: Process.waitFor(Duration), timeout và interruption
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: standard-library-additions-003
+    title: Unicode 16.0 trong Character, chuẩn hóa văn bản và biểu thức chính quy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: standard-library-additions-004
+    title: Đánh giá ảnh hưởng Unicode mới tới phân loại ký tự và xử lý chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: standard-library-additions-005
+    title: Đối chiếu API bổ sung, API deprecated và API bị xóa bằng Javadoc 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: standard-library-additions-006
+    title: Nhận diện thay đổi hành vi locale, múi giờ và định dạng dữ liệu từ release notes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security-configuration
+  title: Cấu hình bảo mật JDK 24
+  childs:
+  - slug: security-configuration-001
+    title: Chia sẻ cấu hình java.security bằng chỉ thị include
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-configuration-002
+    title: Tùy chỉnh số TLS 1.3 session ticket qua jdk.tls.server.newSessionTicketCount
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-configuration-003
+    title: Vô hiệu hóa TLS cipher suite bằng pattern trong jdk.tls.disabledAlgorithms
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-configuration-004
+    title: Cấu hình biến thể AES-CTS cho SunPKCS11 khi native provider hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-configuration-005
+    title: Đọc danh sách thuật toán, provider và thay đổi tương thích bảo mật của JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-configuration-006
+    title: Kiểm tra cấu hình TLS và chứng thư khi chuyển runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: runtime-tools-and-observability
+  title: Công cụ và quan sát runtime
+  childs:
+  - slug: runtime-tools-and-observability-001
+    title: Giám sát scheduler qua VirtualThreadSchedulerMXBean mới của JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-tools-and-observability-002
+    title: Đọc số carrier thread, virtual thread đang mount và hàng đợi scheduler
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-tools-and-observability-003
+    title: Chẩn đoán bằng jcmd Thread.vthread_scheduler và Thread.vthread_pollers
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-tools-and-observability-004
+    title: Phối hợp thread dump, JFR và unified logging để tìm nút thắt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-tools-and-observability-005
+    title: Giải nén JAR với --keep-old-files và --dir trong công cụ jar của JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-tools-and-observability-006
+    title: Đóng gói ứng dụng Windows bằng jpackage với WiX 4 hoặc WiX 5
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-tools-and-observability-007
+    title: Tra cứu external specifications trong Javadoc được sinh bởi JDK 24
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-migration
+  title: Nâng cấp ứng dụng lên Java 24
+  childs:
+  - slug: application-migration-001
+    title: Lập ma trận tương thích source, binary và hành vi từ Java 21 hoặc Java 23
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-002
+    title: Kiểm kê API nội bộ bằng jdeps và deprecation bằng jdeprscan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-003
+    title: Xác minh framework, thư viện, annotation processor và agent hỗ trợ class-file 68
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-004
+    title: Rà soát cờ JVM bị loại bỏ, obsolete hoặc thay đổi mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-005
+    title: Đánh giá tác động Security Manager, JNI, Unsafe và chuyển đổi nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-006
+    title: Rà soát GTK2 bị loại bỏ và thay đổi định danh múi giờ cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-007
+    title: Thiết kế kiểm thử hồi quy cho locale, TLS, serialization và xử lý ngoại lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-008
+    title: Thiết lập baseline về startup, latency, throughput và footprint trước nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-migration-009
+    title: Triển khai từng bước, theo dõi chỉ số và chuẩn bị rollback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-exercises
+  title: Thực hành tổng hợp Java 24
+  childs:
+  - slug: integrated-exercises-001
+    title: Xây dựng tiện ích console bằng simple source file và module import preview
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-002
+    title: Tạo pipeline xử lý dữ liệu với built-in gatherer và custom gatherer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-003
+    title: Viết công cụ đọc, sinh và biến đổi class file bằng API chuẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-004
+    title: Tổ chức tác vụ I/O với virtual thread, StructuredTaskScope và ScopedValue
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-005
+    title: Thử nghiệm KDF, ML-KEM và ML-DSA bằng dữ liệu mẫu cùng phép kiểm tra kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-006
+    title: Thiết kế thí nghiệm startup với AOT cache và image liên kết bằng jlink
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-007
+    title: So sánh cấu hình GC cùng compact object header trên workload kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-exercises-008
+    title: Tự đánh giá khả năng chọn tính năng chuẩn, preview, incubator và experimental
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

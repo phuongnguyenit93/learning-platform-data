@@ -1,0 +1,3 @@
+menuLevel1: Transactional messaging
+menuLevel2: Outbox như cách tách business transaction khỏi transport
+status: WRITTEN

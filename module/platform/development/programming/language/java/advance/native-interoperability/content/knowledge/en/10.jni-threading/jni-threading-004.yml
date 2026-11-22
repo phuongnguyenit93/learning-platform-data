@@ -1,0 +1,3 @@
+menuLevel1: Luồng với JNI
+menuLevel2: Gắn luồng bản địa bằng AttachCurrentThread hoặc AttachCurrentThreadAsDaemon
+status: TRANSLATE

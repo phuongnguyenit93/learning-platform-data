@@ -1,3 +1,0 @@
-menuLevel1: Enum Singleton
-menuLevel2: Bảo toàn danh tính hằng enum khi dùng cơ chế Java serialization chuẩn
-status: ""
